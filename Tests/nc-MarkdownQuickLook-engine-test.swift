@@ -1,14 +1,11 @@
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Model/*.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Service/*.swift
 // notchcast-kit: core
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/QuickLookCoordinator+Registration.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdown.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdownParser.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteInlineScanner.swift
 import Foundation
-
-@MainActor final class AppCore {}
 
 @main
 struct MarkdownQuickLookTests {

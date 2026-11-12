@@ -9,7 +9,6 @@ import Foundation
 
 enum DialogTone { case neutral }
 enum NotchcastFeature { case smallCommands }
-@MainActor final class AppCore {}
 @main struct SmallTests {
     @MainActor static func main() async {
         precondition(SmallCommandsModule.shortenCommand.argumentCount == 1)

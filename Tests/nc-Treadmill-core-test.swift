@@ -4,11 +4,8 @@
 // notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillModule.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core
 import Foundation
-
-@MainActor final class AppCore {}
 
 @MainActor
 final class IslandActivityCenter {

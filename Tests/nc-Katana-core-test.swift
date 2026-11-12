@@ -3,7 +3,6 @@
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 
 // notchcast-kit: core
 
@@ -422,8 +421,6 @@ struct KatanaTests {
         expect(try Data(contentsOf: library) == data, "Failed import preserves library")
     }
 }
-
-@MainActor final class AppCore {}
 
 @MainActor
 final class SilentKatanaMIDI: KatanaMIDILayer {

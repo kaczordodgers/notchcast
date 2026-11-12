@@ -10,7 +10,6 @@ import Foundation
 
 enum NotchcastFeature: Sendable { case shelfBetweenMacs, machLink }
 enum DialogTone {}
-@MainActor final class AppCore {}
 
 @MainActor enum SettingsActionCommands {
     static var openedShelf = false

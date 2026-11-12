@@ -12,7 +12,6 @@ import SQLite3
 enum TestFeature { case agentThreads }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor final class AppCore {}
 
 private struct FakeProjects: AgentThreadProjectReading {
     var values = [AgentThreadProject(id: "demo", title: "Demo")]

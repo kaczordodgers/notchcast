@@ -1,6 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-kit: core
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Registration.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
@@ -8,8 +7,6 @@
 import Foundation
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
-
-@MainActor final class AppCore {}
 
 @MainActor
 private final class CaptureProbe {

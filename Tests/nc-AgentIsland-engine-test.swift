@@ -15,7 +15,6 @@ import Foundation
 enum TestFeature { case agentThreads, openBotAgents, agentIsland }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor final class AppCore {}
 extension OpenBotAgentsModule { static let shared = OpenBotAgentsModule() }
 
 private struct Projects: AgentThreadProjectReading {

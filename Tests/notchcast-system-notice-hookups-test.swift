@@ -6,12 +6,10 @@
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Notice.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host
 import Foundation
 
 enum DialogTone {}
-@MainActor final class AppCore {}
 @MainActor final class LowDiskManager {
     var onNotice: ((LowDiskEngine.Space) -> Void)?
     func start() {}

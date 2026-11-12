@@ -3,11 +3,9 @@
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchivesBackupKeys.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host platform
 import Foundation
 
-@MainActor final class AppCore {}
 enum DialogTone { case neutral, danger }
 
 @MainActor

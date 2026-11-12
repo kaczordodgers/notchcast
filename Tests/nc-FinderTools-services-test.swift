@@ -6,15 +6,12 @@
 // notchcast-kit: core platform command
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
 // notchcast-sources: Tinycast/Features/FinderTools/FinderToolsCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
 import CoreGraphics
 
 enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
 }
-
-@MainActor final class AppCore {}
 
 @main @MainActor
 struct FinderToolsServicesTest {

@@ -6,7 +6,6 @@
 // notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift Tinycast/Features/Tweaks/Service/*.swift
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule.swift
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-kit: core platform host
 import Foundation

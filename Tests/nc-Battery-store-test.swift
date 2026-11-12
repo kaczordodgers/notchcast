@@ -8,10 +8,7 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/BatteryService.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/PowerRegistryAccess.swift
 // notchcast-sources: Tinycast/Features/Battery/BatteryModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
-
-@MainActor final class AppCore {}
 
 @main
 @MainActor

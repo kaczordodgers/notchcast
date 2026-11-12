@@ -11,7 +11,6 @@ import SQLite3
 
 enum NotchcastFeature { case waitingAlerts, agentThreads }
 enum DialogTone { case neutral }
-@MainActor final class AppCore {}
 @MainActor final class FakeWatcher: WaitingAlertsWatching {
     var changed: (@MainActor () -> Void)?
     var exists = true

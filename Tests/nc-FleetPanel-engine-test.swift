@@ -15,7 +15,6 @@ import Foundation
 enum TestFeature: Hashable { case fleetPanel, agentThreads, machLink }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor final class AppCore {}
 @MainActor final class MachLinkManager {
     var routes: [String: @MainActor (MachLinkMessage) async throws -> MachLinkMessage] = [:]
     func register(_ method: String, _ route: @escaping @MainActor (MachLinkMessage) async throws -> MachLinkMessage) {

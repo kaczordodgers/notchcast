@@ -3,7 +3,6 @@
 // notchcast-sources: Tinycast/Features/AgentSessions/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentSessions/AgentSessionsModule.swift
 // notchcast-sources: Tinycast/Features/AgentSessions/AgentSessionsModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host
 // notchcast-sources: -strict-concurrency=complete -warnings-as-errors
 import Foundation
@@ -11,8 +10,6 @@ import SQLite3
 import Synchronization
 
 enum DialogTone {}
-
-@MainActor final class AppCore {}
 
 @main
 struct AgentSessionTests {

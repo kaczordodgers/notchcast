@@ -3,7 +3,6 @@
 // notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/View/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/CaptureEditorCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host
 // notchcast-sources: Tinycast/DesignSystem/Interaction/AnimatedPanel.swift
 // notchcast-sources: Tinycast/DesignSystem/Interaction/Motion.swift
@@ -18,7 +17,6 @@ import SwiftUI
 import ImageIO
 
 enum DialogTone { case danger }
-@MainActor final class AppCore {}
 
 enum SystemSymbolName {
     static func resolve(_ name: String, isDark: Bool) -> String { name }

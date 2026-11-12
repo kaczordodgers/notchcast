@@ -9,7 +9,6 @@ import Foundation
 enum NotchcastFeature {
     case machMBPFans, remoteScreen, machBlockedDialogAlert
 }
-@MainActor final class AppCore {}
 @MainActor final class MachLinkChannel {}
 
 @MainActor struct MachLinkFanTransport { let channel: MachLinkChannel }
@@ -38,7 +37,6 @@ enum NotchcastFeature {
 
 @main struct LinkRegistrationsTest {
     @MainActor static func main() {
-        let core = AppCore()
         precondition(RemoteFanModule.register().isEmpty && RemoteFanModule.shared == nil)
         precondition(RemoteScreenModule.register().isEmpty && RemoteScreenModule.shared == nil)
         precondition(BlockedDialogModule.register().isEmpty && BlockedDialogModule.shared == nil)

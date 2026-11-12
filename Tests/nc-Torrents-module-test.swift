@@ -14,7 +14,6 @@ import Foundation
 
 // notchcast-sources: Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift
 // notchcast-sources: Tinycast/Features/Torrents/TorrentModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 enum AppPaths {
     static func applicationSupport() -> URL { URL(fileURLWithPath: "/unused") }
 }

@@ -2,7 +2,6 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: host
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/VolumeLevelsGate.swift
@@ -228,5 +227,4 @@ struct SystemLevelRoutingTests {
     }
 }
 
-@MainActor final class AppCore {}
 enum DialogTone {}

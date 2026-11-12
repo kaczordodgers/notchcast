@@ -13,8 +13,6 @@ import Synchronization
 enum DialogTone { case neutral }
 enum NotchcastFeature { case openBotAgents }
 
-@MainActor final class AppCore {}
-
 final class FixtureTransport: OpenBotTransport {
     let responses: Mutex<[(String, Int)]>
     let requests = Mutex<[URLRequest]>([])

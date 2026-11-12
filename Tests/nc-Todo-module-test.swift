@@ -3,12 +3,10 @@
 // notchcast-sources: Tinycast/Features/Todo/Service/TodoStore*.swift Tinycast/Features/Todo/TodoModule.swift
 // notchcast-sources: Tinycast/Features/Todo/TodoModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host
 import Foundation
 
 enum DialogTone { case danger }
-@MainActor final class AppCore {}
 
 @main @MainActor
 struct TodoModuleTests {

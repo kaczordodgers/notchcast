@@ -9,7 +9,6 @@ import Foundation
 
 enum NotchcastFeature { case linkQuickFixes }
 enum DialogTone { case success }
-@MainActor final class AppCore {}
 
 @main
 struct LinkQuickFixTests {

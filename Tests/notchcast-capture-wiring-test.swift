@@ -8,12 +8,9 @@
 // notchcast-sources: Tinycast/Features/CaptureScrolling/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule+Registration.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Registration.swift
 import Foundation
-
-@MainActor final class AppCore {}
 
 @main @MainActor
 struct CaptureWiringTest {

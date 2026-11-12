@@ -6,12 +6,10 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingSource.swift
 // notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/CaptureRecording/RecordingModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import CoreMedia
 import Foundation
 
 enum DialogTone { case danger, neutral, success }
-@MainActor final class AppCore {}
 
 @main
 struct RecordingModuleTests {

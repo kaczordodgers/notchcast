@@ -9,7 +9,6 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlerts.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlertPreferences.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/MonitorModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-kit: core root platform
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootHelperClient.swift
@@ -18,7 +17,6 @@
 import Foundation
 
 enum DialogTone { case danger }
-@MainActor final class AppCore {}
 
 @MainActor
 final class FakeFans {

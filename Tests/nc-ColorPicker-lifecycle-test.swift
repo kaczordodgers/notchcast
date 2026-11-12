@@ -1,6 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-kit: core
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerBackupKeys.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Registration.swift
@@ -10,8 +9,6 @@
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorFormat.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 import AppKit
-
-@MainActor final class AppCore {}
 
 @main
 struct ColorPickerLifecycleTest {

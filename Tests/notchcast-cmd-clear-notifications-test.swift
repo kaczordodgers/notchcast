@@ -9,7 +9,6 @@ import AppKit
 import Synchronization
 
 enum NotchcastFeature { case clearNotifications }
-@MainActor final class AppCore {}
 
 @main
 struct ClearNotificationsTests {

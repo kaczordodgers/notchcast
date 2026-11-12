@@ -7,7 +7,6 @@ import Foundation
 
 enum DialogTone { case neutral }
 enum NotchcastFeature { case copyPath }
-@MainActor final class AppCore {}
 @main struct CopyTests {
     @MainActor static func main() async {
         let module = CopyPathModule(makeService: { CopyPathService { request in

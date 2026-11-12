@@ -1,11 +1,8 @@
 // notchcast-sources: Tinycast/Features/MachineBackup/Model/*.swift Tinycast/Features/MachineBackup/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachineBackup/MachineBackupCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: platform core
 import Foundation
 import Synchronization
-
-@MainActor final class AppCore {}
 
 private final class FakeBackupTooling: MachineBackupTooling {
     struct State {
