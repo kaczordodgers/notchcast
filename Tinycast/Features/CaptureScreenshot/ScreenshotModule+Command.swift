@@ -39,8 +39,11 @@ extension ScreenshotModule {
         isEnabled: { NotchcastPreferences.shared.isOn(.screenshot) },
         run: { ScreenshotModule.shared.captureDisplay() })
 
-    func captureDisplay() {
-        guard let displayID = NSScreen.underCursor?.displayID else { return }
+    func captureDisplay(displayID: CGDirectDisplayID? = NSScreen.underCursor?.displayID) {
+        guard let displayID else {
+            NotchcastHost.current.showMessage(Self.failureMessage(ScreenshotRequest.Failure.targetUnavailable), .danger)
+            return
+        }
         commandTask?.cancel()
         commandTask = Task { [weak self] in
             do {

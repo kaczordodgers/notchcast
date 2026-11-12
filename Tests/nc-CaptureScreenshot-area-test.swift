@@ -72,6 +72,11 @@ enum DialogTone { case danger }
         command.run()
         precondition(starts == 0)
         module.start()
+        module.captureDisplay(displayID: nil)
+        precondition(messages == [ScreenshotModule.failureMessage(ScreenshotRequest.Failure.targetUnavailable)])
+        precondition(module.commandTask == nil && captures.isEmpty)
+        messages.removeAll()
+        print("PASS: missing display reports targetUnavailable without starting capture")
         let wasOn = NotchcastPreferences.shared.isOn(.captureEditor)
         NotchcastPreferences.shared.set(.captureEditor, false)
         defer { NotchcastPreferences.shared.set(.captureEditor, wasOn) }
