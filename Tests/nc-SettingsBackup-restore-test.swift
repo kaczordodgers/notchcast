@@ -57,10 +57,6 @@ enum NotchcastSettingsModule {
 enum SettingsActionCommands {
     @MainActor static func show(_ tab: SettingsStub.Tab, _ feature: NotchcastFeature) { }
 }
-@MainActor final class CalendarStub {
-    var excludedCalendarIDs: Set<String> = []
-    func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
-}
 enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
 enum ColorPickerService { static let formatKey = "notchcast.colorPicker.format" }
 enum ScreenshotModule {
@@ -88,11 +84,6 @@ extension DictationCleanupModule {
         store: .live(bundleIdentifier: Bundle.main.bundleIdentifier!)!, install: { }, uninstall: { })
 }
 extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
-@MainActor final class EventReminderModule {
-    static let shared = EventReminderModule()
-    nonisolated static let excludedCalendarsKey = "notchcast.day.excludedCalendars"
-    let calendar = CalendarStub()
-}
 @MainActor final class EditorCoordinator {
     static let shared = EditorCoordinator()
     let editorPreferences = EditorPreferences(defaults: UserDefaults(suiteName: Bundle.main.bundleIdentifier! + ".editor")!)
@@ -243,7 +234,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         changed["notchcast.quitProtection.mode"] = "doublePress"
         changed["notchcast.quitProtection.exceptions"] = ["com.example.app"]
         changed["notchcast.day.marketSymbols"] = ["MSFT"]
-        changed["notchcast.day.excludedCalendars"] = ["test-calendar"]
         changed["notchcast.day.weatherPlace"] = "{\"name\":\"Test\",\"country\":\"XX\",\"latitude\":20,\"longitude\":30}"
         changed["notchcast.dictationCleanup.settings"] = "{\"effort\":\"high\",\"promptAddition\":\"Use commas\",\"vocabulary\":[]}"
         changed["notchcast.colorPicker.format"] = "hsl"

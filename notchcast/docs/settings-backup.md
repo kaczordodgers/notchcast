@@ -96,7 +96,6 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | notchcast.quitProtection.mode | String: hold, doublePress | Known modes |
 | notchcast.quitProtection.exceptions | String array: 500 × 256 characters | App exceptions |
 | notchcast.day.marketSymbols | String array: 100 × 64 characters | Selected symbols |
-| notchcast.day.excludedCalendars | String array: 500 × 256 characters | Calendar exclusions |
 | notchcast.day.weatherPlace | JSON String ≤262144 bytes | Name/country ≤256, latitude ±90, longitude ±180 |
 | notchcast.dictationCleanup.settings | JSON String ≤262144 bytes | Plain cleanup configuration; no key material |
 | notchcast.appearance.surface | String: glass, black, matte | Surface style |

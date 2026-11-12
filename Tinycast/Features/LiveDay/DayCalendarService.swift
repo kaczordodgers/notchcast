@@ -9,16 +9,9 @@ final class DayCalendarService {
     private(set) var revision = 0
     @ObservationIgnored private var rangeStore: EKEventStore?
     @ObservationIgnored private var observer: NotificationToken?
-    private let defaults: UserDefaults
-    private var excludedIDs: Set<String>
-    var excludedCalendarIDs: Set<String> { excludedIDs }
-    private let excludedKey: String
 
-    init(store: CalendarStore, excludedKey: String, defaults: UserDefaults = DayStorage.defaults) {
+    init(store: CalendarStore) {
         self.store = store
-        self.defaults = defaults
-        self.excludedKey = excludedKey
-        excludedIDs = Set(defaults.stringArray(forKey: excludedKey) ?? [])
     }
 
     /// Each visible event with its EventKit record, for a caller that needs alarms, colour or links.
@@ -29,7 +22,7 @@ final class DayCalendarService {
         let eventStore = rangeStore ?? EKEventStore()
         rangeStore = eventStore
         observeChanges(eventStore)
-        let calendars = eventStore.calendars(for: .event).filter { !excludedIDs.contains($0.calendarIdentifier) }
+        let calendars = eventStore.calendars(for: .event)
         guard !calendars.isEmpty else { return [] }
         let predicate = eventStore.predicateForEvents(
             withStart: interval.start, end: interval.end, calendars: calendars)
@@ -58,11 +51,4 @@ final class DayCalendarService {
         }
         observer = NotificationToken(token, center: center)
     }
-
-    func setExcludedCalendars(_ ids: Set<String>) {
-        excludedIDs = ids
-        defaults.set(Array(ids), forKey: excludedKey)
-        revision += 1
-    }
-
 }
