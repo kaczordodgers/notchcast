@@ -66,6 +66,17 @@ struct DictationIslandHUDTest {
         precondition(center.message == nil, "closing ends the pill's own notice")
         print("Dictation island pill: own handle, survives hideProgress, follows phase passed")
 
+        let origin = panel.frame.origin
+        pill.show(panel: panel, state: state)
+        center.hasPresenter = false
+        await settle()
+        precondition(center.message == nil && panel.frame.origin == origin,
+                     "Losing the presenter restores the capsule and dismisses its notice")
+        center.hasPresenter = true
+        await settle()
+        precondition(center.message?.text == transcribing, "Regaining the presenter restores the island pill")
+        pill.close()
+
         var huds: [String] = []
         NotchcastHost.current.showMessage = { text, _ in huds.append(text) }
         NotchcastCore.remoteResult("Backup done")

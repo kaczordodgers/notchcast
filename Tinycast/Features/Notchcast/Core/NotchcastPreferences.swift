@@ -41,12 +41,12 @@ final class NotchcastPreferences {
         aiUsageGateway = defaults.string(forKey: Self.aiUsageGatewayKey) ?? "http://127.0.0.1:3425"
         buildStatsPath = defaults.string(forKey: Self.buildStatsPathKey) ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: Self.greenMaximizeExcludedAppsKey) ?? ""
-        monitorCPU = Self.threshold(defaults, Self.monitorCPUKey, 90, 10...100)
-        monitorTemperature = Self.threshold(defaults, Self.monitorTemperatureKey, 90, 40...110)
-        monitorMemory = Self.threshold(defaults, Self.monitorMemoryKey, 1, 0...1)
-        monitorDisk = Self.threshold(defaults, Self.monitorDiskKey, 10, 1...50)
-        monitorBattery = Self.threshold(defaults, Self.monitorBatteryKey, 15, 1...50)
-        monitorBatteryTemperature = Self.threshold(defaults, Self.monitorBatteryTemperatureKey, 40, 30...60)
+        monitorCPU = Self.threshold(defaults, Self.monitorCPUKey, .cpu)
+        monitorTemperature = Self.threshold(defaults, Self.monitorTemperatureKey, .temperature)
+        monitorMemory = Self.threshold(defaults, Self.monitorMemoryKey, .memory)
+        monitorDisk = Self.threshold(defaults, Self.monitorDiskKey, .disk)
+        monitorBattery = Self.threshold(defaults, Self.monitorBatteryKey, .battery)
+        monitorBatteryTemperature = Self.threshold(defaults, Self.monitorBatteryTemperatureKey, .batteryTemperature)
         fanMode = defaults.string(forKey: Self.fanModeKey) ?? "auto"
         chargePercent = Self.chargeLimits.last(where: { $0 <= (defaults.object(forKey: Self.batteryChargePercentKey) as? Int ?? 80) }) ?? 60
         awakeDuration = Self.allowed(defaults.integer(forKey: Self.keepAwakeMinutesKey), Self.awakeDurations, 60)
@@ -95,7 +95,7 @@ extension NotchcastPreferences {
     nonisolated static let monitorBatteryTemperatureKey = "monitorBatteryTemperature"
     nonisolated static let batteryChargePercentKey = "batteryChargePercent"
     nonisolated static let keepAwakeMinutesKey = "keepAwakeMinutes"
-    static let chargeLimits = [60, 70, 80, 90]
+    static let chargeLimits = RootContract.Command.chargeLimits
     static let awakeDurations = [15, 30, 60, 120, 240]
 
     enum HoverDelay: Double, CaseIterable, Identifiable {
@@ -108,9 +108,9 @@ extension NotchcastPreferences {
         }
     }
 
-    private static func threshold(_ defaults: UserDefaults, _ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
-        let value = defaults.object(forKey: key) as? Int ?? fallback
-        return min(range.upperBound, max(range.lowerBound, value))
+    private static func threshold(_ defaults: UserDefaults, _ key: String, _ threshold: MonitorAlertThreshold) -> Int {
+        let value = defaults.object(forKey: key) as? Int ?? threshold.defaultValue
+        return min(threshold.range.upperBound, max(threshold.range.lowerBound, value))
     }
 
     private static func allowed(_ value: Int, _ choices: [Int], _ fallback: Int) -> Int {
