@@ -8,12 +8,10 @@
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Service/MachSSHProcessRunner.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: host
 import Foundation
 
 enum DialogTone { case danger }
-@MainActor final class AppCore {}
 
 @MainActor
 final class RemoteCalls {
@@ -101,7 +99,7 @@ struct MacRemoteWiringTest {
         send.send([URL(fileURLWithPath: "/synthetic-file")])
         update.update()
         precondition(calls.calls.count == count)
-        let entries = MachRemoteModule.register(AppCore())
+        let entries = MachRemoteModule.register()
         precondition(entries.map(\.requires) == [[.machRemote], [.sendFiles], [.updateRemote]])
         precondition(entries.allSatisfy(\.requiresAny.isEmpty) && entries[0].module === MachRemoteModule.shared)
         precondition(entries[1].module === SendFilesModule.shared && entries[2].module === UpdateRemoteModule.shared)

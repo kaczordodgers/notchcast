@@ -7,7 +7,6 @@ import Foundation
 
 enum DialogTone { case neutral }
 enum NotchcastFeature { case copyPath }
-@MainActor final class AppCore {}
 @main struct CopyTests {
     @MainActor static func main() async {
         let module = CopyPathModule(makeService: { CopyPathService { request in
@@ -53,7 +52,7 @@ enum NotchcastFeature { case copyPath }
         release.yield()
         await task?.value
         precondition(!lateCopied)
-        let entries = CopyPathModule.register(AppCore())
+        let entries = CopyPathModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.copyPath] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === CopyPathModule.shared)
         print("Verified launcher action resolves with fake reader, copies result and reports success; a stopped module copies nothing")

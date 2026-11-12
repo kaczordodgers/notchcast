@@ -12,7 +12,6 @@ import SQLite3
 enum TestFeature { case agentThreads }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor final class AppCore {}
 
 private struct FakeProjects: AgentThreadProjectReading {
     var values = [AgentThreadProject(id: "demo", title: "Demo")]
@@ -232,7 +231,7 @@ struct AgentThreadsTest {
         module.start()
         module.stop()
         precondition(availabilityCalls == 2)
-        let entries = AgentThreadsModule.register(AppCore())
+        let entries = AgentThreadsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.agentThreads] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === AgentThreadsModule.shared)
         print("PASS: registration entry")

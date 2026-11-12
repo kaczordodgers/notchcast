@@ -8,12 +8,9 @@
 // notchcast-sources: Tinycast/Features/CaptureScrolling/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule+Registration.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Registration.swift
 import Foundation
-
-@MainActor final class AppCore {}
 
 @main @MainActor
 struct CaptureWiringTest {
@@ -101,10 +98,10 @@ struct CaptureWiringTest {
         precondition(CaptureFailure(CocoaError(.fileNoSuchFile)) == nil)
         precondition(ScrollingCaptureModule.failureMessage(CocoaError(.fileNoSuchFile)) == CaptureFailure.captureFailed.message)
         await testInFlightStop(defaults: defaults)
-        let textEntries = ScreenTextModule.register(AppCore())
+        let textEntries = ScreenTextModule.register()
         precondition(textEntries.count == 1 && textEntries[0].requires == [.screenText] && textEntries[0].requiresAny.isEmpty)
         precondition(textEntries[0].module === ScreenTextModule.shared)
-        let scrollingEntries = ScrollingCaptureModule.register(AppCore())
+        let scrollingEntries = ScrollingCaptureModule.register()
         precondition(scrollingEntries.count == 1 && scrollingEntries[0].requires == [.scrollingCapture])
         precondition(scrollingEntries[0].requiresAny.isEmpty && scrollingEntries[0].module === ScrollingCaptureModule.shared)
         print("PASS: OCR/scroll switches start and stop, no startup prompts, independent of Island, persisted OCR option")

@@ -1,7 +1,7 @@
 extension LowDiskModule: NotchcastRegistrant {
     static let shared = LowDiskModule()
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         [.init(requires: [.lowDiskWarning], module: shared)]
     }
 }

@@ -34,7 +34,7 @@ enum NotchcastFeature { case pastePlain }
         precondition(command.feature == .pastePlain, "The catalog switches the command off with this feature")
         command.run()
         precondition(PlainPasteModule.shared.pastes == 1, "The command reaches the module before registration")
-        let entries = PlainPasteModule.register(AppCore.shared)
+        let entries = PlainPasteModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.pastePlain] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === PlainPasteModule.shared)
         precondition(PlainPasteModule.shared.clipboard === AppCore.shared.clipboardManager)

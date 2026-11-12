@@ -4,7 +4,6 @@
 // notchcast-sources: Tinycast/Features/Music/MusicNowPlayingModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Microphone/Settings/MicrophoneFailure+Settings.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
@@ -40,7 +39,6 @@ final class CountingModule: NotchcastModule {
     func stop() { stops += 1 }
 }
 
-@MainActor final class AppCore {}
 enum DialogTone { case success, danger }
 
 @main
@@ -121,7 +119,7 @@ struct MusicModuleTests {
             .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect, .microphoneMute, .inUseMarks
         ]
         precondition(MusicNowPlayingModule.shared == nil && MicrophoneMuteModule.shared == nil)
-        let registered = MusicNowPlayingModule.register(AppCore()) + MicrophoneMuteModule.register(AppCore())
+        let registered = MusicNowPlayingModule.register() + MicrophoneMuteModule.register()
         precondition(registered.count == 7 && registered.allSatisfy { $0.requiresAny.isEmpty })
         precondition(registered[0].module === MusicNowPlayingModule.shared)
         precondition(registered[1].module is MusicLastPlayerModule)

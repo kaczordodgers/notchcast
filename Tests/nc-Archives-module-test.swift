@@ -3,11 +3,9 @@
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchivesBackupKeys.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host platform
 import Foundation
 
-@MainActor final class AppCore {}
 enum DialogTone { case neutral, danger }
 
 @MainActor
@@ -71,7 +69,7 @@ struct ArchiveModuleLifecycleTests {
         var messages: [String] = []
         var tones: [DialogTone] = []
         NotchcastHost.current.showMessage = { messages.append($0); tones.append($1) }
-        let entries = ArchiveModule.register(AppCore())
+        let entries = ArchiveModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.archives] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === ArchiveModule.shared)
         var finished = ArchiveJob(id: UUID(), archive: URL(fileURLWithPath: "/fixture/out.zip"))

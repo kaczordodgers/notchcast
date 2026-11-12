@@ -4,11 +4,8 @@
 // notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillModule.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core
 import Foundation
-
-@MainActor final class AppCore {}
 
 @MainActor
 final class IslandActivityCenter {
@@ -100,7 +97,7 @@ private struct TreadmillTests {
     }
 
     private static func registration() {
-        let entries = TreadmillCoordinator.register(AppCore())
+        let entries = TreadmillCoordinator.register()
         expect(entries.map(\.requires) == [[.treadmillWalk], [.treadmillHistory]], "Walk and history each register an entry")
         expect(entries.allSatisfy { $0.requiresAny.isEmpty }, "Both entries are switch modules")
         expect(entries.map { ($0.module as? TreadmillModule)?.capability } == [.walk, .history],

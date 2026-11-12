@@ -325,14 +325,24 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_register_outside_its_registration_file(self):
         source = ("extension LowDiskModule: NotchcastRegistrant {\n"
-                  "    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] { [] }\n}\n")
+                  "    static func register() -> [NotchcastModuleController.Entry] { [] }\n}\n")
         home = Path("Tinycast/Features/LowDisk/LowDiskModule+Registration.swift")
         (self.root / home).parent.mkdir(parents=True, exist_ok=True)
         (self.root / home).write_text(source)
         self.assertEqual(SHAPE.check(self.root), [])
+        instance = Path("Tinycast/Features/LowDisk/LowDiskCommands.swift")
+        (self.root / instance).write_text("final class Device { private func register() {} }\n")
+        self.assertEqual(SHAPE.check(self.root), [])
+        command = ["python3", str(CHECKER), str(self.root)]
+        before = subprocess.run(command, text=True, capture_output=True, timeout=15)
+        (self.root / instance).write_text("extension Device { static func register() " + "->" * 80 + "\n}\n")
+        after = subprocess.run(command, text=True, capture_output=True, timeout=15)
+        self.assertEqual((after.returncode, after.stdout, after.stderr),
+                         (before.returncode, before.stdout, before.stderr))
+        (self.root / instance).unlink()
         (self.root / home).unlink()
         brace_below = source.replace("Entry] { [] }", "Entry]\n    {\n        []\n    }")
-        arrow_below = source.replace("AppCore) ->", "AppCore)\n        ->")
+        arrow_below = source.replace("register() ->", "register()\n        ->")
         for path, code in ((Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), source),
                            (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), brace_below),
                            (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), arrow_below),
@@ -341,7 +351,7 @@ class FeatureShapeTests(unittest.TestCase):
                            (Path("Tinycast/Features/Notchcast/LowDiskModule+Registration.swift"), source)):
             with self.subTest(path=path, brace_below=code is brace_below):
                 (self.root / path).parent.mkdir(parents=True, exist_ok=True)
-                self.rejected(path, code, "implement register(_: AppCore) in")
+                self.rejected(path, code, "implement register() in")
                 (self.root / path).unlink()
         protocol = Path("Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift")
         (self.root / protocol).write_text((ROOT / protocol).read_text())
@@ -365,7 +375,7 @@ class FeatureShapeTests(unittest.TestCase):
             "commit", "-qm", "Upstream")
         run(self.root, "git", "update-ref", "refs/remotes/upstream/main", "HEAD")
         self.rejected(Path("Tinycast/Features/Launcher/CopyPathModule+Registration.swift"),
-                      "extension CopyPathModule {\n    static func register(_ core: AppCore) -> [Entry] { [] }\n}\n",
+                      "extension CopyPathModule {\n    static func register() -> [Entry] { [] }\n}\n",
                       "upstream ships Features/Launcher/")
 
     def test_repeated_static(self):
