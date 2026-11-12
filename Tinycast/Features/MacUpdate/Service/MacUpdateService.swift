@@ -47,11 +47,11 @@ final class MacUpdateService {
     func cancel() { task?.cancel() }
 
     func stop() async {
-        task?.cancel()
-        let deadline = ContinuousClock.now + .seconds(2)
-        while task != nil && ContinuousClock.now < deadline {
-            await Task.detached { try? await Task.sleep(for: .milliseconds(25)) }.value
-        }
+        guard let task else { return }
+        task.cancel()
+        let limit = Task { try? await Task.sleep(for: .seconds(2)) }
+        Task { await task.value; limit.cancel() }
+        await limit.value
     }
 
     private func perform(_ progress: AsyncStream<Progress>.Continuation) async {
@@ -71,7 +71,7 @@ final class MacUpdateService {
                     emit(.running)
                     var count = 0
                     for command in commands {
-                        if command.path.hasSuffix("/brew") {
+                        if command.kind != .tool {
                             let deadline = ContinuousClock.now + lockTimeout
                             while locked() {
                                 guard ContinuousClock.now < deadline else {
@@ -87,12 +87,12 @@ final class MacUpdateService {
                             emit(.failed(result.timedOut ? "timeout" : String(result.output.suffix(200))))
                             return
                         }
-                        let output = String(result.output.suffix(65536))
+                        let output = String(result.output.suffix(MacUpdateRunner.outputLimit))
                         count += output.split(whereSeparator: \.isNewline).reduce(0) { sum, line in
                             guard let match = line.firstMatch(of: /Upgrading (\d+) outdated/) else { return sum }
                             return sum + (Int(match.1) ?? 0)
                         }
-                        if command.path.hasSuffix("/brew"), command.arguments.first == "upgrade" {
+                        if command.kind == .homebrewUpgrade {
                             for app in Set(MacUpdatePlan.upgradedApps(output: output, root: appRoot)) {
                                 let real = resolve(app)
                                 guard real == app, exists("/usr/bin/xattr") else { continue }
