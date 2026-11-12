@@ -24,6 +24,7 @@ struct ArchiveRoutingTests {
             fatalError("Info.plist declares no Archives document type")
         }
         let identifiers = archives["LSItemContentTypes"] as? [String] ?? []
+        precondition(Set(ArchiveFormat.entries.map(\.identifier)) == Set(identifiers))
         var extensions: [String] = []
         for imported in imports {
             let tags = imported["UTTypeTagSpecification"] as? [String: Any]
