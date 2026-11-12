@@ -46,16 +46,17 @@ struct ProcessRunnerTest {
         _ = try await blocked.output()
         let bytes = Mutex(Data())
         let consuming = Mutex(false)
-        var binary = request("/usr/bin/perl", ["-e", #"print pack("C*", 0..255) x 4096"#])
+        var binary = request("/usr/bin/perl", ["-e", #"print pack("C*", 0..255) x 256"#])
+        binary.groupCleanup = .drainThenKill
         binary.onData = { chunk in
             check(!consuming.withLock { let old = $0; $0 = true; return old })
-            try await Task.sleep(for: .milliseconds(1))
+            try await Task.sleep(for: .milliseconds(300))
             bytes.withLock { $0.append(chunk) }
             consuming.withLock { $0 = false }
         }
         let binaryOutput = try await ProcessRunner.run(binary)
         check(binaryOutput.stdout.isEmpty)
-        check(bytes.withLock { $0 } == Data((0..<(256 * 4096)).map { UInt8($0 % 256) }))
+        check(bytes.withLock { $0 } == Data((0..<(256 * 256)).map { UInt8($0 % 256) }))
         final class ConsumerError: Error {}
         let consumerError = ConsumerError()
         let callbacks = Mutex(0)
