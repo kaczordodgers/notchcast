@@ -8,6 +8,7 @@
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/DownloadTool.swift
 // notchcast-kit: platform
+import AppKit
 import Darwin
 import Foundation
 
@@ -46,8 +47,8 @@ import Foundation
             "Working directory \(directory.debugDescription), expected \(root.resolvingSymlinksInPath().path.debugDescription)")
         precondition(output.standardError == Data("error output".utf8), "stderr must be captured separately")
         let longOutput = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
-            arguments: ["-c", "printf 'prefix%s' '" + String(repeating: "x", count: 70_000)
-                + "'; printf 'prefix%s' '" + String(repeating: "y", count: 70_000) + "' >&2"], workingDirectory: nil))
+            arguments: ["-c", "dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' x; "
+                + "dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' y >&2"], workingDirectory: nil))
         precondition(longOutput.standardOutput == Data(String(repeating: "x", count: 65_536).utf8))
         precondition(longOutput.standardError == Data(String(repeating: "y", count: 65_536).utf8))
         let signaled = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
@@ -63,6 +64,28 @@ import Foundation
             .trimmingCharacters(in: .whitespacesAndNewlines))!
         for _ in 0..<100 where kill(timedPID, 0) == 0 { try await Task.sleep(for: .milliseconds(10)) }
         precondition(kill(timedPID, 0) != 0, "Timeout must stop grandchildren")
-        print("Command cancellation, timeout, process groups, output, directory and PATH passed")
+        let quitPIDFile = root.appending(path: "quit-group")
+        let childPIDFile = root.appending(path: "quit-child")
+        let quitting = Task {
+            try await CommandProcessRunner.run(.init(executable: "/bin/sh", arguments: ["-c",
+                "trap '' TERM; echo $$ > \"$1\"; "
+                    + "/bin/sh -c 'trap \"\" TERM; echo $$ > \"$1\"; exec sleep 120' sh \"$2\" & wait",
+                "sh", quitPIDFile.path, childPIDFile.path], workingDirectory: root.path))
+        }
+        let quitDeadline = ContinuousClock.now + .seconds(10)
+        while !FileManager.default.fileExists(atPath: childPIDFile.path) {
+            precondition(ContinuousClock.now < quitDeadline, "Quit command must start its TERM-ignoring child")
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let group = Int32(try String(contentsOf: quitPIDFile, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines))!
+        let child = Int32(try String(contentsOf: childPIDFile, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines))!
+        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+        do { _ = try await quitting.value; preconditionFailure("Quit must cancel the command") } catch is CancellationError {}
+        for _ in 0..<100 where kill(-group, 0) == 0 { try await Task.sleep(for: .milliseconds(10)) }
+        precondition(kill(-group, 0) == -1 && errno == ESRCH, "Quit must kill the entire process group")
+        precondition(kill(child, 0) == -1 && errno == ESRCH, "Quit must kill the TERM-ignoring child")
+        print("Command cancellation, timeout, quit process groups, 64 KB output tails, directory and PATH passed")
     }
 }
