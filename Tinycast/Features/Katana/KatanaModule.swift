@@ -24,7 +24,7 @@ final class KatanaModule: NotchcastModule {
     private func register() {
         guard let index else { return }
         unregister()
-        do { try AgentDeviceActions.register(.katana, backend: self, in: index) } catch {
+        do { try AgentDeviceActions.register(self, in: index) } catch {
             Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Katana")
                 .error("Action registration failed: \(error.localizedDescription, privacy: .public)")
             unregister()
@@ -32,8 +32,7 @@ final class KatanaModule: NotchcastModule {
     }
 
     private func unregister() {
-        let ids = ["device.katana"] + AgentDeviceActions.Device.katana.operations.map { "device.katana.\($0)" }
-        for id in ids { index?.unregister(id) }
+        if let index { AgentDeviceActions.unregister(self, from: index) }
     }
 
     func start() {
@@ -52,6 +51,16 @@ final class KatanaModule: NotchcastModule {
 }
 
 extension KatanaModule: AgentDeviceBackend {
+    var deviceName: String { "katana" }
+
+    var operations: [(name: String, parameters: AgentParameterSchema)] {
+        let channel = AgentParameterSchema.Property(kind: .integer,
+            allowedValues: KatanaChannel.allCases.map { .number(Double($0.rawValue)) })
+        return [("channel", .init(properties: ["channel": channel], required: ["channel"])),
+                ("tone", .init(properties: ["toneID": .init(kind: .string, minimumLength: 1), "channel": channel],
+                               required: ["toneID", "channel"]))]
+    }
+
     var isAvailable: Bool { client.isConnected }
 
     func readState() async throws -> AgentJSON {
@@ -63,8 +72,8 @@ extension KatanaModule: AgentDeviceBackend {
     func perform(_ operation: String, parameters: AgentJSON) async throws -> AgentJSON {
         guard case .object(let fields) = parameters,
               case .number(let value)? = fields["channel"],
-              [0, 1, 2, 5, 6].contains(value),
-              let channel = KatanaChannel(rawValue: UInt8(value)) else { throw AgentReply.Code.badRequest }
+              let channel = KatanaChannel.allCases.first(where: { Double($0.rawValue) == value })
+        else { throw AgentReply.Code.badRequest }
         switch operation {
         case "channel": try await client.selectChannel(channel)
         case "tone":

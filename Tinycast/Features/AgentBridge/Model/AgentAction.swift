@@ -27,10 +27,9 @@ struct AgentAction: Sendable {
         return ([heading] + lines).joined(separator: "\n")
     }
 
-    func json(available: Bool) -> AgentJSON {
-        .object([
-            "id": .string(id), "title": .string(title), "parameters": parameters.json,
-            "danger": .string(danger.rawValue), "available": .bool(available)
-        ])
+    func catalogEntry(available: Bool) -> AgentCatalog.Action {
+        .init(id: id, title: title, parameters: parameters.json, danger: danger, available: available)
     }
+
+    func json(available: Bool) -> AgentJSON { catalogEntry(available: available).json }
 }

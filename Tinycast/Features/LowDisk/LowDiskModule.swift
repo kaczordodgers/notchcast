@@ -8,7 +8,6 @@ final class LowDiskModule: NotchcastModule {
     init(manager: LowDiskManager = LowDiskManager()) { self.manager = manager }
 
     func start() {
-        NotchcastHost.current.refreshNotchcastCommands()
         manager.onNotice = { [weak self] in
             self?.latest = $0
             Self.postNotice($0)
@@ -17,7 +16,6 @@ final class LowDiskModule: NotchcastModule {
     }
 
     func stop() {
-        NotchcastHost.current.refreshNotchcastCommands()
         manager.stop()
         manager.onNotice = nil
         latest = nil

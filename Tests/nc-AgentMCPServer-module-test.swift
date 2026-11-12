@@ -10,7 +10,7 @@ final class ModuleBackend: AgentMCPBackend {
     var calls = 0
     var fails = false
     func actions() async throws -> [AgentMCPAction] {
-        [.init(id: "agents.list", title: "Fixture", inputSchema: Data(#"{"type":"object"}"#.utf8), danger: "harmless")]
+        [.init(id: "agents.list", title: "Fixture", inputSchema: Data(#"{"type":"object"}"#.utf8), danger: "harmless", isDestructive: false)]
     }
     func states() async throws -> [AgentMCPState] { [] }
     func call(_ id: String, arguments: Data) async throws -> Data {
@@ -25,7 +25,8 @@ final class ModuleBackend: AgentMCPBackend {
 struct ModuleTest {
     @MainActor static func main() async {
         let backend = ModuleBackend()
-        let module = AgentMCPModule(backend: backend)
+        let module = AgentMCPModule()
+        module.engine.configure(backend: backend)
         let suite = "agent-mcp-module-\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -39,7 +40,7 @@ struct ModuleTest {
         precondition(module.engine.isRunning)
         func exchange(_ method: String, _ params: String) async -> String {
             let line = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"\(method)\",\"params\":\(params)}"
-            let output = await module.engine.receive(line: Data(line.utf8))!
+            let output = await module.engine.receive(line: Data(line.utf8), session: "direct")!
             precondition(output.last == 10)
             return String(bytes: output, encoding: .utf8)!
         }

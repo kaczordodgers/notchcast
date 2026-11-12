@@ -99,7 +99,9 @@ final class ArchiveModule: NotchcastModule {
     }
 
     @concurrent private static func recoverArchives() async throws -> [ArchiveJob] {
-        try ArchiveRecovery.recoverKnown()
+        try await ArchiveExtractionGate.enter()
+        defer { ArchiveExtractionGate.leave() }
+        return try ArchiveRecovery.recoverKnown()
     }
 
     private func observeDefaultApplication(generation: Int) {

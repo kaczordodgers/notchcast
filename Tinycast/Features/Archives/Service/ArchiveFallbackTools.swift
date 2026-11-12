@@ -9,7 +9,7 @@ nonisolated struct ArchiveFallbackTools: Sendable {
     }
 
     func require(_ name: String) throws -> URL {
-        let directories = paths.filter { $0.hasPrefix("/") }.map { URL(fileURLWithPath: $0) }
+        let directories = paths.map { URL(fileURLWithPath: $0) }
         guard let tool = ExecutableLocator.find(name, in: directories) else {
             throw ArchiveFailure.fallbackToolMissing(name == "zstd" ? "brew install zstd" : "brew install unar")
         }

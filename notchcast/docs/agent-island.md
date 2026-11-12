@@ -16,10 +16,7 @@ with the full count retained. Any observed non-completed phase transitioning to 
 starts a 5.2-second window at the injected clock. An initially completed item instead uses
 its source timestamp and expires 5.2 seconds after that timestamp.
 The newest observed completion wins. Repeated snapshots never restart its window.
-Failures persist while the source item is unchanged; dismissal records the entire item,
-so a changed failure reappears. A missing or disabled source preserves dismissals until a
-different version of that item is observed. The summary counts all waiting and working items,
-including those hidden by a higher-priority mode.
+A failure shows for as long as its source lists it; nothing dismisses one. The summary counts all waiting and working items, including those hidden by a higher-priority mode.
 
 OpenBot approvals and browser takeovers count as approval attention, prompts as questions;
 otherwise its mode is idle. This uses only the landed public data model. No PolyForm
@@ -39,9 +36,6 @@ including after an external stop/start invalidates the island's remembered polli
 Resuming OpenBot necessarily triggers one immediate extra pass through its public API;
 avoiding that requires a source API change, outside this engine's scope. Activity is forwarded
 only when its value changes; an island that was never visible forwards no activity calls.
-Opening a T3
-item exposes its verified URL to the caller; OpenBot has no open action yet. Failed-item
-dismissal is engine-only.
 
 ## Commands
 

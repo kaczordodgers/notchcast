@@ -23,8 +23,8 @@ enum NotchcastCore {
         RecordingModule.shared.stop()
         await RecordingModule.shared.waitUntilIdle()
         await editor.flushForTermination()
-        machineBackup.stop()
-        await machineBackup.waitUntilIdle()
+        MachineBackupCoordinator.shared.stop()
+        await MachineBackupCoordinator.shared.waitUntilIdle()
         BatteryModule.shared.stop()
         MonitorModule.shared.stop()
         await RootWait.drainForTermination {
@@ -45,11 +45,10 @@ enum NotchcastCore {
             confirm: { [weak core] in await core?.confirm(title: $0, message: $1, symbol: $2, confirmTitle: $3) ?? false }
         )
         NSApp.servicesProvider = archiveServices
-        ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
-            core?.appIndex.refreshNotchcastCommands()
+            NotchcastHost.current.refreshNotchcastCommands()
             core?.hotKeys.syncNotchcastCommands()
         }
         confirmMacUpdate = { [weak core] in
@@ -61,14 +60,6 @@ enum NotchcastCore {
                     """, table: "Notchcast"),
                 symbol: "arrow.triangle.2.circlepath", confirmTitle: String(localized: "Run"))
         }
-        spacesOrder.onFailure = { [weak core] in
-            core?.showMessage(String(localized: "Could not update Spaces ordering.", table: "Notchcast"), tone: .danger)
-        }
-        spacesOrder.restoreIfDisabled()
-        dictationCleanup.reportFailure = { [weak core] in
-            core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
-        }
-        dictationCleanup.load()
         let shelfChannel = MachLinkShelfChannel(channel: macLink.channel, module: ShelfModule.shared) {
             macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
         }
@@ -98,7 +89,8 @@ enum NotchcastCore {
         if !NotchcastPreferences.shared.isOn(.systemMonitor) || !NotchcastPreferences.shared.isOn(.fanControl) {
             MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)
         }
-        let controller = NotchcastModuleController(modules, preferences: preferences)
+        let controller = NotchcastModuleController(modules.map(\.gatedOnDependencies), preferences: preferences,
+                                                   modulesChanged: { NotchcastHost.current.refreshNotchcastCommands() })
         self.controller = controller
         controller.run()
         services?.keys.run()

@@ -12,14 +12,10 @@ extension DictationEnglishModule {
         let swallowing = EventTapSubscription(hub: hub)
         self.init(register: { action in
             swallowing.startKeyPress(Int64(kVK_ANSI_Grave), skipsSynthetic: true) { event in
-                let other: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]
-                return event.flags.contains(.maskSecondaryFn) && event.flags.isDisjoint(with: other)
+                Self.isFnGrave((event.getIntegerValueField(.keyboardEventKeycode), event.flags))
             }
             return hub.register(mask: EventTapPolicy.mask(for: .keyDown)) { event in
-                let other: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]
-                guard !event.isSynthetic, !event.isRepeat,
-                      event.keyCode == kVK_ANSI_Grave,
-                      event.flags.contains(.maskSecondaryFn), event.flags.isDisjoint(with: other)
+                guard !event.isSynthetic, !event.isRepeat, Self.isFnGrave((event.keyCode, event.flags))
                 else { return }
                 action()
             }
@@ -27,5 +23,11 @@ extension DictationEnglishModule {
             hub.remove($0)
             swallowing.stop()
         }, toggle: { family.toggleEnglish() }, onStop: { family.cancelEnglish() })
+    }
+
+    nonisolated private static func isFnGrave(_ event: (keyCode: Int64, flags: CGEventFlags)) -> Bool {
+        let other: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]
+        return event.keyCode == kVK_ANSI_Grave
+            && event.flags.contains(.maskSecondaryFn) && event.flags.isDisjoint(with: other)
     }
 }

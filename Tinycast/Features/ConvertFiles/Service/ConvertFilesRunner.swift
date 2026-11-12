@@ -47,6 +47,7 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
     }
 
     private func execute(_ item: ConvertFilesPlan.Item, context: DownloadRunContext) async throws -> URL {
+        if item.tool == "archives" { return try await Self.archive(item.arguments[0], item.sources) }
         let manager = FileManager.default
         let folder = item.sources[0].deletingLastPathComponent()
         let scratch = folder.appending(path: ".convert-" + UUID().uuidString)
@@ -54,9 +55,6 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         defer { try? manager.removeItem(at: scratch) }
         let staged = scratch.appending(path: item.stem + item.suffix)
         let arguments = item.arguments.map { $0 == ConvertFilesPlan.outputPlaceholder ? staged.path : $0 }
-        if item.tool == "tar", arguments.first == "-x" {
-            try manager.createDirectory(at: staged, withIntermediateDirectories: false)
-        }
         if item.tool == "ffmpeg", !["srt", "ass", "ssa", "vtt"].contains(item.sources[0].pathExtension.lowercased()) {
             let probe = DownloadTool(name: "ffprobe", installCommand: "brew install ffmpeg")
             guard let path = context.tools.find(probe) else {

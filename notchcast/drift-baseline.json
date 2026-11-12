@@ -89,7 +89,7 @@
   },
   "constants": {
     "app.notchcast": 2,
-    "app.notchcast.dev": 4,
+    "app.notchcast.dev": 0,
     "com.apple.": 2,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
@@ -115,15 +115,12 @@
   },
   "file-size": {
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
-    "Tinycast/Features/Battery/Store/BatteryModule.swift": 440,
+    "Tinycast/Features/Battery/Store/BatteryModule.swift": 438,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 2275,
     "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
     "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0
   },
   "test-only": {
-    "Tinycast/Features/AgentSessions/Pricing/AgentPricingEngine.swift:roundedUSD": 1,
-    "Tinycast/Features/CommandRunner/Model/CommandListItem.swift:CommandListItem": 1,
-    "Tinycast/Features/CommandRunner/Service/CommandQuickAdd.swift:CommandQuickAdd": 1,
     "Tinycast/Features/DocumentEditor/Service/EditorStatistics.swift:EditorStatistics": 1,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift:GitHubHTMLEntities": 1,
     "Tinycast/Features/IslandHome/Model/IslandHomeModel.swift:IslandHomeModel": 1,
@@ -151,7 +148,6 @@
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastPaste": 1,
     "Tinycast/Features/SystemMonitor/Model/MonitorFormat.swift:MonitorFormat": 1,
     "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 1,
-    "Tinycast/Features/SystemTools/Service/TouchIDService.swift:TouchIDService": 1,
     "Tinycast/Features/Todo/Model/TodoReminder.swift:Snooze": 0,
     "Tinycast/Features/Todo/Model/TodoTaskDetail.swift:TodoTaskDetail": 0,
     "Tinycast/Features/Todo/Service/TodoAgentGateway.swift:TodoAgentGateway": 0,

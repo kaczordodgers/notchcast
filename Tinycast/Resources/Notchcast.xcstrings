@@ -16940,58 +16940,6 @@
         }
       }
     },
-    "Existing extraction progress needs in-place mode to resume." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der bestehende Entpackfortschritt benötigt zum Fortsetzen den Modus „Am selben Ort“."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El progreso de extracción existente requiere el modo en el sitio para reanudarse."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La reprise de l’extraction existante nécessite le mode sur place."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "既存の展開を再開するには、その場での展開モードが必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기존 압축 풀기를 재개하려면 제자리 모드가 필요합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O progresso de extração existente requer o modo no local para retomar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для продолжения распаковки требуется режим на месте."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要启用原地解压模式才能恢复现有进度。"
-          }
-        }
-      }
-    },
     "Expand save dialogs" : {
       "localizations" : {
         "de" : {
@@ -35421,6 +35369,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢复上次使用的播放器"
+          }
+        }
+      }
+    },
+    "Resume this unfinished extraction in Archives with Extract in place on." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses unvollständige Entpacken lässt sich in „Archive“ mit aktiviertem „Am selben Ort entpacken“ fortsetzen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reanuda esta extracción sin terminar en Archivos comprimidos con «Extraer en el sitio» activado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprenez cette extraction inachevée dans Archives avec « Extraire sur place » activé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この未完了の展開は、「アーカイブ」で「その場で展開」をオンにして再開してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 미완료 압축 풀기는 ‘압축 파일’에서 ‘제자리에서 압축 풀기’를 켜고 재개하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retome esta extração inacabada em Arquivos compactados com “Extrair no local” ativado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Возобновите эту незавершённую распаковку в разделе «Архивы», включив «Распаковывать на месте»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“归档”中开启“原地解压”以继续这次未完成的解压。"
           }
         }
       }

@@ -18,7 +18,8 @@ extension ArchiveFailure {
         case .insufficientSpace: String(localized: "Extraction would leave less than 2 GB free.", table: "Notchcast")
         case .passwordRequired: String(localized: "This archive requires a password.", table: "Notchcast")
         case .damagedArchive: String(localized: "The archive is damaged or incomplete.", table: "Notchcast")
-        case .existingProgress: String(localized: "Existing extraction progress needs in-place mode to resume.", table: "Notchcast")
+        case .existingProgress:
+            String(localized: "Resume this unfinished extraction in Archives with Extract in place on.", table: "Notchcast")
         case .toolFailed(let status): String(localized: "hatchzip stopped with code \(status).", table: "Notchcast")
         case .filesystem: String(localized: "Couldn’t read or write the archive’s files.", table: "Notchcast")
         }

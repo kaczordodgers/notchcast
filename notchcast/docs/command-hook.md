@@ -13,7 +13,7 @@ can retain both the old and edited arm when another branch appends nearby.
 
 A new module registers from its own folder: see
 [feature-descriptors.md](feature-descriptors.md#registering-a-module). Modules not moved yet live in
-`Core/NotchcastCore+Modules.swift`: one `static let` line and one entry line each. Settings search anchors and rows live one per line in
+`Core/NotchcastCore+Modules.swift`: one `static let` line and one entry line each; a module nothing else reads is built on its entry line and has no `static let`. Settings search anchors and rows live one per line in
 `Settings/NotchcastSettingsSearch.swift`. Both files use `merge=union`; the same checker
 rejects an entry split over lines, a repeated `static` name, a module registered twice and
 a search row whose anchor and title repeat. It cannot tell a renamed module or a retitled
@@ -50,7 +50,7 @@ Execution dismisses the palette, checks availability and runs synchronously.
 Each module page in Notchcast settings lists its feature's commands as `FeatureCommandRow`s,
 which render alias, shortcut and visibility controls.
 Shortcuts use a typed `HotKeyAction.notchcastCommand` and the ordinary binding store.
-Feature availability also gates hotkey execution. A combo registers with Carbon only while its feature switch and that switch's dependencies are on (`NotchcastCommandCatalog.registersHotKey`), so a switched-off feature gives its combos back to the system. The saved binding still reserves its combo and modifier in conflict detection while releasing its Carbon registration and modifier tap. On every availability change, `commandAvailabilityChanged` refreshes the index through `AppIndex.refreshNotchcastCommands()` and re-registers hotkeys through `HotKeyManager.syncNotchcastCommands()`.
+Feature availability also gates hotkey execution. A combo registers with Carbon only while its feature switch and that switch's dependencies are on (`NotchcastCommandCatalog.registersHotKey`), so a switched-off feature gives its combos back to the system. The saved binding still reserves its combo and modifier in conflict detection while releasing its Carbon registration and modifier tap. On every availability change, `commandAvailabilityChanged` refreshes the index through `NotchcastHost.current.refreshNotchcastCommands()` and re-registers hotkeys through `HotKeyManager.syncNotchcastCommands()`.
 
 BatteryModule owns `nc-keep-awake`, which pauses or resumes its assertion without changing
 the Keep Awake switch. FanControl owns `nc-fans-max` and `nc-fans-auto`; these update the
@@ -98,7 +98,7 @@ Convert Files, Media Tools or Command Runner switch. Convert Files additionally 
 Downloads to be on; it reports that requirement and attaches to the Downloads queue owner.
 Conversion targets and resize dimensions use the existing choice dialog. File input is
 Finder's selection, never clipboard file URLs. Completion and input errors use island status
-messages. Quick Add Task retains its engine but has no launcher registration or live client.
+messages.
 
 Host commands are read at use from `Notchcast/host-commands.json` under Application Support.
 The JSON is an array of entries with `id`, `title`, absolute `executable`, `arguments` (array),

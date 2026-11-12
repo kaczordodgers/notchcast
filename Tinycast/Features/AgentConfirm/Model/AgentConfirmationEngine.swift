@@ -16,10 +16,7 @@ struct AgentConfirmationEngine {
     }
 
     enum Choice: Sendable { case allowOnce, alwaysAllow, deny }
-    enum Verdict: Equatable, Sendable {
-        case allowOnce, alwaysAllow, deny
-        var exitCode: Int { self == .deny ? 5 : 0 }
-    }
+    enum Verdict: Equatable, Sendable { case allowOnce, alwaysAllow, deny }
 
     struct Reply: Equatable, Sendable {
         let id: UUID

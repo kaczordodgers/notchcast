@@ -2,8 +2,6 @@ import Foundation
 
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
-import Foundation
-
 extension NotchcastCore {
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
@@ -19,14 +17,12 @@ extension NotchcastCore {
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner")))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
-    static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
+    static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static let accessoryNotices = AccessoryNoticesModule()
     static let brightness = DisplayBrightnessModule()
-    static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
-    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNoticePresenter.present($0) })
     static let timers = LiveTimerModule.shared
     static let weather = DayWeatherModule.shared
     static let markets = DayMarketsModule.shared
@@ -36,17 +32,13 @@ extension NotchcastCore {
     static let hideCommandM = HideCommandMModule(hub: eventTapHub)
     static let middleClick = MiddleClickModule(hub: eventTapHub)
     static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
-    static let spacesOrder = SpacesOrderModule()
-    static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
-    static let dictationCleanup = DictationCleanupModule.shared
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let editor = EditorCoordinator.shared
-    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
@@ -63,11 +55,12 @@ extension NotchcastCore {
         voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
         let downloadServices = NotchcastDownloadServices(core: core)
+        let levelNotices = SystemLevelIslandPresenter(center: .shared)
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
             .init(requires: [.agentActions], module: agents),
-            .init(requires: [.agentActions, .agentCLI], module: agentCLI),
+            .init(requires: [.agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),
             .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID], module: systemTools),
             .init(requires: [.cleaningMode], module: cleaning),
@@ -79,7 +72,7 @@ extension NotchcastCore {
             .init(requires: [.launcherAnswers], module: answers),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
-            .init(requires: [.tasksSync, .tasks, .machLink], module: tasksSync),
+            .init(requires: [.tasksSync], module: tasksSync),
             .init(requires: [.urlCleaner], module: urlCleaner),
             .init(requires: [.convertFiles], module: convertFiles),
             .init(requires: [.mediaTools], module: mediaTools),
@@ -87,30 +80,27 @@ extension NotchcastCore {
             .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
             .init(requires: [.backupStatus], module: backupStatus),
-            .init(requires: [.machLink, .linkHealth], module: linkHealth),
+            .init(requires: [.linkHealth], module: linkHealth),
             .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),
             .init(requires: [.hideCommandM], module: hideCommandM),
             .init(requires: [.middleClick], module: middleClick),
             .init(requires: [.greenMaximize], module: greenMaximize),
-            .init(requires: [.spacesOrder], module: spacesOrder),
             .init(requires: [.island, .accessoryNotices], module: accessoryNotices),
             .init(requires: [.displayBrightness], module: brightness),
-            .init(requires: [], module: levelKeys),
-            .init(requires: [.quitProtection], module: quitProtectionModule),
+            .init(requires: [], module: SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNotices.present($0) })),
+            .init(requires: [.quitProtection], module: QuitProtectionModule(store: quitProtection, hub: eventTapHub)),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
-            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
+            .init(requires: [.eventReminder], module: eventReminder),
             .init(requires: [.agentChatTools], module: chatTools),
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.dictationEnglish], module: DictationEnglishModule(hub: eventTapHub, coordinator: core.dictationCoordinator)),
-            .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
-            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
         ]
     }
 }

@@ -66,11 +66,4 @@ struct AgentPricingEngine: Sendable {
         }
         return result
     }
-
-    static func roundedUSD(_ amount: Decimal) -> Decimal {
-        var source = amount
-        var result = Decimal()
-        NSDecimalRound(&result, &source, 2, .plain)
-        return result
-    }
 }

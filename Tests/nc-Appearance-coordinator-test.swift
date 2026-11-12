@@ -12,11 +12,6 @@ final class VolumeState {}
 final class SnippetArgumentsState {}
 final class ClipboardEditState {}
 
-@MainActor final class AppIndex {
-    var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
-
 @MainActor final class PaletteState {
     var mode = PaletteMode.launcher
 }
@@ -30,7 +25,6 @@ final class ClipboardEditState {}
 }
 
 @MainActor final class AppCore {
-    let appIndex = AppIndex()
     let palette = PaletteState()
     let paletteCoordinator = PaletteCoordinator()
     var messages: [String] = []
@@ -76,13 +70,15 @@ struct AppearanceCoordinatorTests {
         let store = AppearanceStore(defaults: defaults)
         let core = AppCore()
         let coordinator = AppearanceCoordinator(core: core, store: store, preferences: preferences)
+        var refreshes = 0
         let controller = NotchcastModuleController(
-            [.init(requires: [.appearance], module: coordinator)], preferences: preferences)
+            [.init(requires: [.appearance], module: coordinator)], preferences: preferences,
+            modulesChanged: { refreshes += 1 })
         controller.run()
-        precondition(coordinator.isEnabled && core.appIndex.refreshes == 1)
+        precondition(coordinator.isEnabled && refreshes == 1)
         preferences.set(.island, false)
         await settle()
-        precondition(store.isEnabled && coordinator.isEnabled && core.appIndex.refreshes == 1)
+        precondition(store.isEnabled && coordinator.isEnabled && refreshes == 1)
 
         let dark = RaycastThemeCatalog.all.first { $0.appearance == .dark }!
         let light = RaycastThemeCatalog.all.first { $0.appearance == .light }!
@@ -131,7 +127,7 @@ struct AppearanceCoordinatorTests {
         preferences.set(.appearance, false)
         await settle()
         precondition(!store.isEnabled && !coordinator.isEnabled && store.pendingImport == nil)
-        precondition(core.appIndex.refreshes == 2)
+        precondition(refreshes == 2)
         let count = core.messages.count
         core.answer(0)
         await settle()
