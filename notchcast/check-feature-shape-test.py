@@ -332,6 +332,12 @@ class FeatureShapeTests(unittest.TestCase):
         instance = Path("Tinycast/Features/LowDisk/LowDiskCommands.swift")
         (self.root / instance).write_text("final class Device { private func register() {} }\n")
         self.assertEqual(SHAPE.check(self.root), [])
+        command = ["python3", str(CHECKER), str(self.root)]
+        before = subprocess.run(command, text=True, capture_output=True, timeout=15)
+        (self.root / instance).write_text("extension Device { static func register() " + "->" * 80 + "\n}\n")
+        after = subprocess.run(command, text=True, capture_output=True, timeout=15)
+        self.assertEqual((after.returncode, after.stdout, after.stderr),
+                         (before.returncode, before.stdout, before.stderr))
         (self.root / instance).unlink()
         (self.root / home).unlink()
         brace_below = source.replace("Entry] { [] }", "Entry]\n    {\n        []\n    }")

@@ -30,7 +30,8 @@ FEATURE_FOLDER = r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))(?:(?!(?:Mode
 DESCRIPTOR_FILE = re.compile(FEATURE_FOLDER + r"(\w+)Descriptor\.swift")
 REGISTRATION_FILE = re.compile(FEATURE_FOLDER + r"(\w+)\+Registration\.swift")
 # A body, with its brace on any following line; the protocol's bodiless requirement is not one.
-REGISTER = re.compile(r"\bstatic\s+func\s+register\s*\(\s*\)(?:\s*(?:async|throws|->[^{}\n]*))*\s*\{")
+REGISTER = re.compile(r"\bstatic\s++func\s++register\s*+\(\s*+\)\s*+"
+                      r"(?:async\s++)?(?:throws\s++)?(?:->[^{}\n]*+)?\s*+\{")
 DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*(?:\.init\s*)?\("
                                     r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?Descriptor\b"
                                     r"|->\s*(?:NotchcastFeature\.)?Descriptor\b")
