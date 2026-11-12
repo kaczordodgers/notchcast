@@ -167,6 +167,10 @@ struct ConvertFilesTests {
         precondition(zipped?.lastPathComponent == "a 'quoted' file.txt.zip", "Archives builds and names the zip")
         let savedParents = UserDefaults.standard.stringArray(forKey: "archiveRecoveryParents")
         defer { UserDefaults.standard.set(savedParents, forKey: "archiveRecoveryParents") }
+        do {
+            _ = try await ConvertFilesRunner.archive("unknown", [zipped!])
+            preconditionFailure("Unknown archive operation accepted")
+        } catch is ConvertFilesPlan.Failure {}
         let bundle = url("bundle")
         try manager.createDirectory(at: bundle, withIntermediateDirectories: false)
         for name in ["one.txt", "two.txt"] { try Data(name.utf8).write(to: bundle.appending(path: name)) }
