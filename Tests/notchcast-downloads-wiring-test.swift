@@ -456,8 +456,9 @@ struct NotchcastDownloadsWiringTest {
 @MainActor
 final class AppCore {
     struct AppIndex { func refreshNotchcastCommands() {} }
-    static let shared = AppCore()
     let appIndex = AppIndex()
+    enum Tone { case danger }
+    func showMessage(_ message: String, tone: Tone) { preconditionFailure(message) }
     struct Settings {
         var dictationIdleRelease = DictationIdleRelease.never
         var dictationModel = DictationModel.allCases[0]
