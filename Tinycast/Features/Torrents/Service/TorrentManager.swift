@@ -259,8 +259,7 @@ import Observation
             if let index = self.index(id), jobs[index].state.isRunning { continue }
             if let gid = requests[id]?.gid {
                 do { try await session.remove(gid) } catch let failure as TorrentFailure {
-                    guard case .rpc(_, let message) = failure,
-                          message.lowercased().contains("not found") else { throw failure }
+                    guard case .rpc(1, _) = failure else { throw failure }
                 }
             }
             try Task.checkCancellation()
