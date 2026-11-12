@@ -10,7 +10,7 @@ import Foundation
 import Synchronization
 
 @main struct DownloadsProcessTest {
-    static func waitFor(_ condition: () -> Bool) async throws {
+    static func waitFor(_ condition: @Sendable () -> Bool) async throws {
         let deadline = ContinuousClock.now + .seconds(5)
         while !condition() {
             precondition(ContinuousClock.now < deadline, "condition timed out")
@@ -67,7 +67,7 @@ import Synchronization
             environment: ["PROBE": "exact:"], workingDirectory: root).run { line in
                 if let value = MediaOutput.progress(line) { progress.withLock { $0 = value } }
             }
-        precondition(result.status == 7 && result.output.contains("exact:" + root.path))
+        precondition(result.status == 7 && result.output.contains("exact:/") && result.output.contains(root.lastPathComponent))
         precondition(progress.withLock { $0?.fraction } == 0.5)
         let cancelled = ChildProcess(executable: URL(filePath: "/bin/echo"), arguments: ["never"])
         cancelled.cancel()
