@@ -57,7 +57,8 @@ struct CleanupTests {
             expect(modified.url?.path == "/v1/messages")
         }
         for base in ["https://example.com", "file:///tmp/proxy", "http://localhost@evil.example",
-                     "http://localhost:8317/?key=bad"] {
+                     "http://localhost:8317/?key=bad", "http://localhost/#fragment", "http://user@localhost",
+                     "http://localhost/other", "http:///", "localhost:3425", "HTTP://localhost", "http://LOCALHOST"] {
             settings.baseURL = base
             do {
                 _ = try DictationCleanupHTTPClient.request(raw: "a", language: nil, settings: settings, key: "k")
