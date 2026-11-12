@@ -1,5 +1,5 @@
 name: Upstream tests
-description: Run upstream's Scripts/run-tests.sh in src, minus CI_SKIP_TESTS (config.env), harnesses the hosted VM cannot run.
+description: Run upstream's Scripts/run-tests.sh in src, minus CI_SKIP_TESTS (config.env) on GitHub-hosted runners only, harnesses the hosted VM cannot run.
 inputs:
   upstream:
     description: The pristine upstream commit under our commits; a harness that also fails there is not ours. Default, the merge base with upstream main.

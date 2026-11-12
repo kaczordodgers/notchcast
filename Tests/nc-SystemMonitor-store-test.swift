@@ -103,41 +103,46 @@ struct MonitorStoreTests {
 
         let wakeProbe = SampleProbe()
         let wakeAlerts = SampleProbe(percent: 95)
+        let wakeNaps = Naps()
         let waking = MonitorStore(sample: { await wakeProbe.sample() },
-                                  alertSample: { await wakeAlerts.sample() })
+                                  alertSample: { await wakeAlerts.sample() },
+                                  sleep: { _ in try await wakeNaps.nap() })
         waking.start()
         let wakeBackground = waking.beginDemand(alertsOnly: true)
-        try? await Task.sleep(for: .milliseconds(100))
+        await until("alerts-only sample parks before the page opens") {
+            waking.latest.cpu?.usage?.totalPercent == 95 && wakeNaps.isParked
+        }
         precondition(waking.latest.cpu?.usage?.totalPercent == 95)
         let wakePage = waking.beginDemand()
         precondition(waking.latest.cpu?.usage?.totalPercent != 95)
-        try? await Task.sleep(for: .milliseconds(300))
-        precondition(wakeProbe.count > 0, "page must wake full sampler within 300 ms")
+        await until("page wakes full sampler without advancing its clock") {
+            wakeProbe.count > 0 && waking.latest.cpu?.usage?.totalPercent == 25
+        }
         precondition(waking.latest.cpu?.usage?.totalPercent == 25)
         wakePage.cancel()
         wakeBackground.cancel()
         waking.stop()
 
         let gated = SampleProbe()
+        let raceNaps = Naps()
         let racing = MonitorStore(sample: { await wakeProbe.sample() }, alertSample: {
             await gated.gatedSample()
-        })
+        }, sleep: { _ in try await raceNaps.nap() })
         racing.start()
         let raceBackground = racing.beginDemand(alertsOnly: true)
-        while gated.pending == nil { await Task.yield() }
+        await until("alerts-only sample is in flight") { gated.pending != nil }
         let racePage = racing.beginDemand()
         gated.pending?.resume(returning: wakeAlerts.sample())
-        for _ in 0..<200 {
-            await Task.yield()
+        await until("full sampler replaces the in-flight alerts reading") {
             precondition(racing.latest.cpu?.usage?.totalPercent != 95,
                          "in-flight alerts reading must never reach visible page")
+            return racing.latest.cpu?.usage?.totalPercent == 25
         }
-        try? await Task.sleep(for: .milliseconds(300))
         precondition(racing.latest.cpu?.usage?.totalPercent == 25)
         racePage.cancel()
         raceBackground.cancel()
         racing.stop()
-        print("PASS: page wakes within 300 ms and rejects in-flight alerts-only readings")
+        print("PASS: page wakes without advancing its clock and rejects in-flight alerts-only readings")
 
         let naps = Naps()
         let probe = SampleProbe()

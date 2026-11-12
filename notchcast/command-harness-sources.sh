@@ -63,13 +63,14 @@ symbol_sources=(
 )
 # Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
 symbol_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
+symbol_stubs=$(for source in "$@"; do [[ $source == Tests/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
 for symbol_row in "${symbol_sources[@]}"; do
     grep -lqsw "${symbol_row%% *}" $symbol_readers /dev/null || continue
     for source in ${symbol_row#* }; do
         declared=${source##*/}
-        # A harness that declares the file's type itself keeps its stub.
+        # A harness or kit that declares the file's type keeps its stub.
         [[ " $symbol_readers " == *" $source "* ]] ||
-            grep -qswE "^(@?[A-Za-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" ||
+            grep -qswE "^(@?[A-Za-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" $symbol_stubs /dev/null ||
             { set -- "$@" "$source"; symbol_readers+=" $source"; }
     done
 done
