@@ -13,16 +13,6 @@
 import AppKit
 
 enum DialogTone { case danger, success }
-@MainActor final class AppCore {
- static let shared = AppCore()
- enum Target { case section(Anchor) }
- enum Anchor { case notchcastSpotify }
- let settingsCoordinator = Settings()
- final class Settings {
-     var opens = 0
-     func showSettings(tab: SettingsTab, revealing: Target) { opens += 1 }
- }
-}
 extension MusicNowPlayingModule { static var shared: MusicNowPlayingModule? }
 extension MicrophoneMuteModule { static var shared: MicrophoneMuteModule? }
 extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
@@ -50,10 +40,12 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
 @main @MainActor struct MusicCommandTests {
  static var shown: [String] = []
  static var refreshes = 0
+ static var settingsOpens = 0
 
  static func main() async {
  NotchcastHost.current.showMessage = { message, _ in shown.append(message) }
  NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
+ NotchcastHost.current.showSpotifySettings = { settingsOpens += 1 }
  do {
      for mode in [RepeatMode.off, .all, .one] {
          let encoded = try SoloistProtocol.encode(.repeat(mode), isPlaying: false)
@@ -187,10 +179,10 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
  }
  preferences.set(.spotifyConnect, false)
  precondition(speakerListed(), "both speaker commands stay listed while the speaker is off")
- let opens = AppCore.shared.settingsCoordinator.opens
+ let opens = settingsOpens
  MusicCommands.speakerOnCommand.run()
  precondition(preferences.isOn(.spotifyConnect), "On without a key still turns the speaker on")
- precondition(AppCore.shared.settingsCoordinator.opens == opens + 1, "On without a key opens Settings")
+ precondition(settingsOpens == opens + 1, "On without a key opens Settings")
  hasKey = true
  MusicCommands.speakerOnCommand.run()
  precondition(shown.last == String(localized: "Spotify Connect Speaker is already on."))
@@ -202,7 +194,7 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
  precondition(shown.last == String(localized: "Spotify Connect Speaker is already off."))
  MusicCommands.speakerOnCommand.run()
  precondition(preferences.isOn(.spotifyConnect), "On with a key starts the speaker directly")
- precondition(AppCore.shared.settingsCoordinator.opens == opens + 1, "On with a key opens no Settings")
+ precondition(settingsOpens == opens + 1, "On with a key opens no Settings")
  precondition(shown.last == String(localized: "Starting…"))
  preferences.set(.musicLastPlayer, true)
  music.model.lastPlayer.setEnabled(false)
