@@ -12,7 +12,8 @@ nonisolated enum ArchiveFormat {
     static let entries: [Entry] = [
         .init(suffix: "zip", identifier: "public.zip-archive", route: .hatchzip, defaultOrder: 2),
         .init(suffix: "7z", identifier: "org.7-zip.7-zip-archive", route: .hatchzip, defaultOrder: 3),
-        .init(suffix: #"(?:part[0-9]+\.)?rar|r[0-9]{2}"#, identifier: "com.rarlab.rar-archive", route: .hatchzip, defaultOrder: 0),
+        .init(suffix: #"(?:part[0-9]+\.)?rar|r[0-9]{2}"#, identifier: "com.rarlab.rar-archive",
+              route: .hatchzip, defaultOrder: 0),
         .init(suffix: "tar", identifier: "public.tar-archive", route: .hatchzip, defaultOrder: 4),
         .init(suffix: #"tar\.gz|tgz"#, identifier: "org.gnu.gnu-zip-tar-archive", route: .hatchzip, defaultOrder: 5),
         .init(suffix: "gz", identifier: "org.gnu.gnu-zip-archive", route: .bsdtar, defaultOrder: 6, singleStream: true),

@@ -1,5 +1,4 @@
 import AppKit
-import Observation
 import UniformTypeIdentifiers
 
 @MainActor
@@ -11,10 +10,8 @@ enum ArchiveCommands {
         slug: "cancel-extractions", name: String(localized: "Cancel All Extractions", table: "Notchcast"),
         sfSymbol: "xmark.circle", feature: .archives, isEnabled: { enabled }, run: { cancelAll() })
 
-    private static let availability = ArchiveCommandAvailability()
     static var enabled: Bool {
-        _ = availability
-        return NotchcastPreferences.shared.isEnabled(.archives)
+        NotchcastPreferences.shared.isEnabled(.archives)
     }
 
     static func submit(_ urls: [URL], to module: ArchiveModule) -> String? {
@@ -51,23 +48,6 @@ enum ArchiveCommands {
             if let message = submit(panel.urls, to: .shared) {
                 NotchcastHost.current.showMessage(message, .danger)
             }
-        }
-    }
-}
-
-@MainActor
-private final class ArchiveCommandAvailability {
-    private var previous: Bool?
-
-    init() { observe() }
-
-    private func observe() {
-        withObservationTracking {
-            let current = NotchcastPreferences.shared.isEnabled(.archives)
-            if let previous, previous != current { NotchcastHost.current.refreshNotchcastCommands() }
-            previous = current
-        } onChange: { [weak self] in
-            Task { @MainActor [weak self] in self?.observe() }
         }
     }
 }

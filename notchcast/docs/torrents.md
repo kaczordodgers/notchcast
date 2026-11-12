@@ -12,7 +12,7 @@ receive the Notchcast quarantine attribute. Jobs are retained in memory for the 
 RPC errors affect one job; transport failures are retried while the child lives. The no-peer deadline
 uses a suspending clock so time asleep does not consume its ten minutes.
 
-`TorrentModule` owns the manager and interface monitor. Its entry requires only `.torrents`.
+`TorrentModule` owns the manager and interface monitor. Its entry requires only `.torrents`. `NotchcastModuleController` refreshes launcher commands once per switch change.
 Turning the switch off immediately rejects inputs and cancels job state, then asynchronously stops
 the child. Opens received after re-enabling during shutdown wait for that shutdown to finish.
 

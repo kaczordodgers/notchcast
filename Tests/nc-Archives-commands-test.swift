@@ -74,15 +74,23 @@ struct MissingTool: ArchiveToolLocating {
         await module.queue.waitUntilIdle()
         precondition(module.isRunning && module.queue.jobs.last?.state == .cancelled)
         precondition(module.queue.jobs.first?.state == .cancelled || module.queue.jobs.first?.state == .failed)
+        for _ in 0..<100 { await Task.yield() }
+        let controller = NotchcastModuleController([.init(requires: [.archives], module: module)], preferences: preferences,
+            modulesChanged: { NotchcastHost.current.refreshNotchcastCommands() })
+        controller.run()
         let refreshes = AppCore.shared.appIndex.refreshes
         preferences.set(.archives, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(commands.allSatisfy { !$0.isEnabled() })
-        precondition(AppCore.shared.appIndex.refreshes > refreshes)
+        precondition(AppCore.shared.appIndex.refreshes == refreshes + 1)
+        precondition(!module.isRunning)
         precondition(ArchiveCommands.submit([archive], to: module) == nil)
         precondition(module.queue.jobs.count == 2)
-        module.stop()
         preferences.set(.archives, true)
+        for _ in 0..<100 { await Task.yield() }
+        precondition(commands.allSatisfy { $0.isEnabled() } && module.isRunning)
+        precondition(AppCore.shared.appIndex.refreshes == refreshes + 2)
+        module.stop()
         ArchiveCommands.cancelAll(in: module)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
         print("PASS: switch gating, index refresh, module routing, unsupported/empty input and cancellation")

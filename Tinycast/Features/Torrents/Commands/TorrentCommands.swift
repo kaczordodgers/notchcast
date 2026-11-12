@@ -1,5 +1,4 @@
 import AppKit
-import Observation
 import UniformTypeIdentifiers
 
 @MainActor
@@ -18,10 +17,8 @@ enum TorrentCommands {
         NotchcastCommand(slug: "cancel-all-torrents", name: String(localized: "Cancel All Torrents", table: "Notchcast"),
                          sfSymbol: "xmark.circle", feature: .torrents, isEnabled: { enabled }, run: { cancelAll() })
 
-    private static let availability = TorrentCommandAvailability()
     static var enabled: Bool {
-        _ = availability
-        return NotchcastPreferences.shared.isOn(.torrents)
+        NotchcastPreferences.shared.isOn(.torrents)
     }
 
     static func clipboardURLs(_ pasteboard: NSPasteboard) -> [URL] {
