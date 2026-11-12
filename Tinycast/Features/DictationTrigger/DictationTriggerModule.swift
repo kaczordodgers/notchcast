@@ -24,7 +24,10 @@ final class DictationTriggerModule: NotchcastModule {
         observeRecording()
     }
 
-    func stop() {
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { if phase == .beforeSettingsBackup { shutdown() } }
+
+    private func shutdown() {
         guard enabled else { return }
         enabled = false
         teardown()

@@ -32,7 +32,14 @@ final class MachineBackupCoordinator: NotchcastModule {
 
     func waitUntilIdle() async { _ = await operation?.result }
 
-    func stop() {
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async {
+        guard phase == .beforeRootDrain else { return }
+        shutdown()
+        await waitUntilIdle()
+    }
+
+    private func shutdown() {
         running = false
         generation = UUID()
         operation?.cancel()

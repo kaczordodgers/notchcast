@@ -1,9 +1,21 @@
 import Observation
 
+enum NotchcastTerminationPhase {
+    case beforeMacUpdate
+    case beforeSettingsBackup
+    case beforeRootDrain
+    case afterRootDrain
+}
+
 @MainActor
 protocol NotchcastModule: AnyObject {
     func start()
     func stop()
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async
+}
+
+extension NotchcastModule {
+    func stopForTermination(_: NotchcastTerminationPhase) async {}
 }
 
 @MainActor
@@ -31,6 +43,10 @@ final class NotchcastModuleController {
             // Fires before the new value is stored, so the re-run waits for the main actor's next turn.
             Task { @MainActor [weak self] in self?.run() }
         }
+    }
+
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async {
+        for entry in entries { await entry.module.stopForTermination(phase) }
     }
 
     private func update() {

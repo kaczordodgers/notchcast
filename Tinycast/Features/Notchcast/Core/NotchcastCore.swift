@@ -12,26 +12,18 @@ enum NotchcastCore {
 
     static func stopForTermination() async {
         tasksSync.stop()
-        KatanaModule.shared.stop()
-        cleaning.stop()
-        appUpdates.stop()
+        await controller?.stopForTermination(.beforeMacUpdate)
         await macUpdate.stopForTermination()
-        dictationTrigger?.stop()
-        await TreadmillCoordinator.shared.stopForTermination()
+        await controller?.stopForTermination(.beforeSettingsBackup)
         ForkSettingsBackupModule.shared.stop()
-        voiceAsk?.stop()
-        RecordingModule.shared.stop()
-        await RecordingModule.shared.waitUntilIdle()
-        await editor.flushForTermination()
-        MachineBackupCoordinator.shared.stop()
-        await MachineBackupCoordinator.shared.waitUntilIdle()
+        await controller?.stopForTermination(.beforeRootDrain)
         BatteryModule.shared.stop()
         MonitorModule.shared.stop()
         await RootWait.drainForTermination {
             await BatteryModule.shared.waitUntilIdle()
             await MonitorModule.shared.fans.waitUntilIdle()
         }
-        await DictationHistoryModule.shared.waitUntilIdle()
+        await controller?.stopForTermination(.afterRootDrain)
     }
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {

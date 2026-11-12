@@ -8,8 +8,10 @@ import Foundation
 final class TestModule: NotchcastModule {
     var starts = 0
     var stops = 0
+    var terminations: [NotchcastTerminationPhase] = []
     func start() { starts += 1 }
     func stop() { stops += 1 }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { await Task.yield(); terminations.append(phase) }
 }
 
 /// Lets the controller's re-armed observation run, which happens on the main actor's next turn.
@@ -134,6 +136,10 @@ struct NotchcastCoreTests {
         preferences.set(.launcherFromIsland, false)
         await settle()
         precondition(ungated.stops == 1 && hover.stops == 2)
-        print("PASS: M0 switches default on, isolated persistence, requires-set gating through Observation")
+        let phases: [NotchcastTerminationPhase] = [.beforeMacUpdate, .beforeSettingsBackup, .beforeRootDrain, .afterRootDrain]
+        for phase in phases { await controller.stopForTermination(phase) }
+        precondition([hover, ungated, battery].allSatisfy { $0.terminations == phases })
+        precondition(hover.stops == 2 && ungated.stops == 1 && battery.stops == 1)
+        print("PASS: switches, persistence, Observation gating, awaited termination hooks for running and stopped modules")
     }
 }
