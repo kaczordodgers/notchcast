@@ -42,6 +42,20 @@ import Synchronization
         precondition(exited.status == 0)
         let orphan = Int32(try String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
         try await waitFor { kill(orphan, 0) == -1 && errno == ESRCH }
+        let escapedFile = root.appending(path: "escaped")
+        let escaped = ChildProcess(executable: URL(filePath: "/usr/bin/perl"), arguments: ["-e",
+            #"use POSIX; if (fork()==0) { setsid(); open F, '>', $ARGV[0] or die; print F $$; close F; sleep 30; exit; } while (!-s $ARGV[0]) { select undef,undef,undef,.01; }"#,
+            escapedFile.path])
+        let started = ContinuousClock.now
+        _ = try await escaped.run()
+        let escapedPID = Int32(try String(contentsOf: escapedFile, encoding: .utf8))!
+        defer { kill(escapedPID, SIGKILL) }
+        precondition(ContinuousClock.now - started < .seconds(5))
+        precondition(kill(escapedPID, 0) == 0)
+        kill(escapedPID, SIGKILL)
+        try await waitFor { kill(escapedPID, 0) == -1 && errno == ESRCH }
+        let signaled = try await ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c", "kill -TERM $$"]).run()
+        precondition(signaled.status == 128 + SIGTERM)
         let progress = Mutex<MediaOutput.Progress?>(nil)
         let result = try await ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c",
             "printf 'MEDIA_PROGRESS 50 100 NA 10 5\\r'; printf '%s' \"$PROBE\"; pwd; exit 7"],
