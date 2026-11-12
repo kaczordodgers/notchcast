@@ -36,10 +36,6 @@ export CHANGED=Tests/nc-ScreenText-ocr-test.swift GITHUB_ACTIONS=true
 for runner in local self-hosted github-hosted; do
     export RUNNER_ENVIRONMENT=$runner
     bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
-    if [ "$runner" = github-hosted ]; then
-        if grep -qx nc-ScreenText-ocr-test "$scratch/selected"; then echo 'FAIL: hosted runner selected OCR'; exit 1; fi
-    else
-        grep -qx nc-ScreenText-ocr-test "$scratch/selected" || { echo "FAIL: $runner omitted OCR"; exit 1; }
-    fi
+    grep -qx nc-ScreenText-ocr-test "$scratch/selected" || { echo "FAIL: selection on $runner omitted OCR"; exit 1; }
 done
-echo 'PASS: only GitHub-hosted runners omit VM-incompatible harnesses'
+echo 'PASS: selection keeps VM-incompatible harnesses on every runner; the shard runner drops them on hosted VMs'
