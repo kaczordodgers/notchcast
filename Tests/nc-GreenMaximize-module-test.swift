@@ -1,10 +1,9 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/*.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Service/*.swift
-// notchcast-kit: platform input
+// notchcast-kit: core platform input isolated-identity
 // notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 
-@MainActor protocol NotchcastModule { func start(); func stop() }
 func AXIsProcessTrusted() -> Bool { false }
 // The harness never maximizes: a full-screen answer ends any maximize before it moves a window.
 enum AXWindowAccess {
@@ -19,10 +18,6 @@ enum AXWindowAccess {
 struct AXGeometry {
     init(screens: [NSScreen]) {}
     func flip(_ rect: CGRect) -> CGRect { rect }
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var greenMaximizeExcludedApps = ""
 }
 
 @main @MainActor

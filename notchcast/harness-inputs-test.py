@@ -198,6 +198,16 @@ class HarnessInputsTest(unittest.TestCase):
         attributed = self.compiled_as_the_runner_does("nc-Example-attributed-test", EXAMPLE)
         self.assertEqual([1, 0], [attributed.count(identity), attributed.count(paths)])
 
+    def test_kit_stand_in_keeps_the_production_shared_symbol_out(self):
+        (self.root / EXAMPLE).write_text("NotchcastIdentity.current")
+        self.add_kit("isolated", "Tests/Kit/NotchcastIdentityFake.swift\n")
+        (self.root / "Tests/Kit/NotchcastIdentityFake.swift").write_text("struct NotchcastIdentity {}\n")
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text(
+            f"// notchcast-kit: isolated\n// notchcast-sources: {EXAMPLE}\n")
+        line = next(line for line in self.runner_lines() if line.startswith("nc-Example-kit-test "))
+        self.assertIn("Tests/Kit/NotchcastIdentityFake.swift", line)
+        self.assertNotIn(SYMBOL_SOURCES["NotchcastIdentity"][0], line)
+
     def test_runner_batches_conditional_inputs_in_one_bash_invocation(self):
         calls = self.root / "bash-calls"
         (self.root / "bin/bash").write_text(

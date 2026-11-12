@@ -1,29 +1,10 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: core host command isolated-identity
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 import AppKit
-import Observation
-
-@MainActor @Observable final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    private var enabled = false
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-    func set(_ feature: NotchcastFeature, _ value: Bool) { enabled = value }
-}
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-    var id: String { "command:nc-" + slug }
-}
 extension ScrollingCaptureModule {
     static var instance: ScrollingCaptureModule?
     static var shared: ScrollingCaptureModule { instance! }
@@ -63,6 +44,8 @@ enum DialogTone { case neutral, danger }
         let module = ScrollingCaptureModule(area: area, session: session, write: { output.append($0); return true })
         ScrollingCaptureModule.instance = module
         let preferences = NotchcastPreferences.shared
+        defer { preferences.engineDefaults.removePersistentDomain(forName: NotchcastIdentity.current.suiteName()) }
+        preferences.set(.scrollingCapture, false)
         let controller = NotchcastModuleController(
             [.init(requires: [.scrollingCapture], module: module)], preferences: preferences)
         controller.run()

@@ -6,7 +6,6 @@ source notchcast/config.env
 export CI_SKIP_TESTS
 python3 - "$@" <<'PY'
 import fnmatch
-import os
 import subprocess
 import sys
 
@@ -26,7 +25,6 @@ for path, inputs in harnesses():
     touched = any(fnmatch.fnmatchcase(file, pattern) for pattern in patterns for file in changed)
     if str(path) in changed or touched:
         selected.add(name)
-# CI_SKIP_TESTS names what the hosted VM cannot run; a Mac runs them, and core always runs.
-skipped = set(os.environ['CI_SKIP_TESTS'].split()) if os.environ.get('GITHUB_ACTIONS') else set()
-print('\n'.join(sorted((selected - skipped) | {'notchcast-core-test'})))
+# Selection keeps CI_SKIP_TESTS harnesses: the shard runner drops them only on a hosted VM.
+print('\n'.join(sorted(selected | {'notchcast-core-test'})))
 PY
