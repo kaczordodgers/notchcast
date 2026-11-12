@@ -53,6 +53,7 @@ ran=
 status=0
 run() {
     local name=$1
+    case " $NOTCHCAST_ONLY_TESTS " in *" $name "*) ;; *) return 0 ;; esac
     local file red=1 needs
     needs=$(sed -n 's/^red-with: //p' "Tests/$name.swift")
     : > "$BIN/$name.log"

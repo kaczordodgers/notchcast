@@ -212,17 +212,14 @@ build_chain() {
     done
     tree_at "$tip"
 }
-# Upstream's runner takes one name; the hook ci-tests.sh uses makes it run "$@" in one parallel pass. Sets failed.
+# The fork queue filter runs the selected names in one parallel pass. Sets failed.
 run_harnesses() {
     local name file status=0
     failed=
     [ "$#" -gt 0 ] || return 0
     rm -rf "$scratch/tmp"
     mkdir "$scratch/tmp"
-    grep -q '^    local name=\$1$' Scripts/run-tests.sh || refuse 'run-tests.sh changed shape; update the list hook in land.sh'
-    sed -i '' -E 's/^    local name=\$1$/    local name=$1; case " $NOTCHCAST_ONLY_TESTS " in *" $name "*) ;; *) return 0;; esac/' Scripts/run-tests.sh
     NOTCHCAST_ONLY_TESTS="$*" TMPDIR="$scratch/tmp" TINYCAST_TEST_JOBS="${CHAD_BUILD_QUEUE_JOBS:-4}" ./Scripts/run-tests.sh || status=$?
-    git checkout -q -- Scripts/run-tests.sh
     for name in "$@"; do
         [ -e "$(echo "$scratch"/tmp/tinycast-harness*/"$name.log")" ] || refuse "$name is selected but run-tests.sh does not run it"
     done
