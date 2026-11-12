@@ -46,3 +46,4 @@ struct SMCRetryTests {
         print("SMC retry tests passed")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

@@ -243,7 +243,8 @@ struct MachineBackupActionsTest {
         let response = try await runner.run(request)
         precondition(response == Data("fixture output".utf8))
         let path = try await runner.run(.init(executable: URL(fileURLWithPath: "/bin/sh"), arguments: ["-c", "echo $PATH"]))
-        precondition(path == Data("/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin\n".utf8), "System ssh before Homebrew's")
+        precondition(path == Data("/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\n".utf8),
+            "Backup commands use the shared executable environment")
         let failure = MachineBackupRequest(executable: URL(fileURLWithPath: "/usr/bin/false"), arguments: [])
         do { _ = try await runner.run(failure); fatalError("Process failure") } catch let error as MachineBackupFailure {
             precondition(error == .toolFailed(1))

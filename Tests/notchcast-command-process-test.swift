@@ -45,7 +45,7 @@ import Foundation
         let path = try await CommandProcessRunner.run(.init(
             executable: "/usr/bin/env", arguments: ["sh", "-c", "echo $PATH"], workingDirectory: nil))
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
-            .hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true, "env finds Homebrew tools before /usr/bin")
+            .hasPrefix("/usr/bin:/opt/homebrew/bin:/usr/local/bin:") == true, "Commands use the shared executable environment")
         let output = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "pwd; printf 'error output' >&2; exit 7"], workingDirectory: root.path))
         precondition(output.exitStatus == 7, "Expected exit 7, got \(output.exitStatus)")

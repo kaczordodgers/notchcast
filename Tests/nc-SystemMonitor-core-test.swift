@@ -87,3 +87,4 @@ struct MonitorCoreTests {
         print("\(checks) passed, 0 failed")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

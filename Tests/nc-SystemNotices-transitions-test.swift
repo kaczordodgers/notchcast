@@ -104,3 +104,4 @@ struct SystemNoticesTests {
         print("PASS: \(checks) notice edges, re-arming and bounded CLI checks")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
