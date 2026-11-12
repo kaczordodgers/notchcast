@@ -567,7 +567,6 @@
 		43F4A1301F41967C76E25A1C /* MusicLastPlayerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40219D5CF6DAD41D15022A41 /* MusicLastPlayerDescriptor.swift */; };
 		44646A576847F2D9FB68D8CF /* MCPServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F8B8787A7197579A6F6ECC /* MCPServerManager.swift */; };
 		4492C7D6855102289D42B675 /* NotchcastCore+Modules.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6B5EA9794CA8166E8239DC /* NotchcastCore+Modules.swift */; };
-		44A0EE8B80C33528A325F174 /* EventReminderBackupKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC04EF06F8C61F09F2567FD /* EventReminderBackupKeys.swift */; };
 		44A3046B5651CDBF82223952 /* FileIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CC89B6C271E28F2373B50B /* FileIndexer.swift */; };
 		44BC61F12478588B4E59A1F1 /* DisplayBrightnessModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787CD626EB94B95A814942C3 /* DisplayBrightnessModule.swift */; };
 		44F698152AD29E77E053D4A8 /* GalleryPages+ShelfReceived.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AB0355BC9220438F479FE1 /* GalleryPages+ShelfReceived.swift */; };
@@ -3584,7 +3583,6 @@
 		9F1798C6CF803D5E1BB2FFE4 /* ChatTranscriptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTranscriptView.swift; sourceTree = "<group>"; };
 		9F68818AADF06B215966D678 /* WebpageArticle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageArticle.swift; sourceTree = "<group>"; };
 		9F9A0A3867D1B8E1D3284471 /* ExtensionNodeShims.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionNodeShims.swift; sourceTree = "<group>"; };
-		9FC04EF06F8C61F09F2567FD /* EventReminderBackupKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventReminderBackupKeys.swift; sourceTree = "<group>"; };
 		9FD3D5C54985DE337DEE0879 /* FanControl+Completion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FanControl+Completion.swift"; sourceTree = "<group>"; };
 		9FE2C89AE98F604578E0A51D /* LidClosedAwakeDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LidClosedAwakeDescriptor.swift; sourceTree = "<group>"; };
 		A022043AE60501848E0C5026 /* AIModelChecklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModelChecklist.swift; sourceTree = "<group>"; };
@@ -5369,7 +5367,6 @@
 			children = (
 				8E242D6F8F44A41B748DE71D /* Model */,
 				CEBF7BE5B7CFBECDDBECD159 /* Service */,
-				9FC04EF06F8C61F09F2567FD /* EventReminderBackupKeys.swift */,
 				D038D61263619A731B29D1C2 /* EventReminderDescriptor.swift */,
 				CE5010D8D49E99CA57422D81 /* EventReminderModule+Shared.swift */,
 			);
@@ -11359,7 +11356,6 @@
 				84511D8815734953965B1903 /* EventEditorScreen.swift in Sources */,
 				1DCD31110681F23A2B17EA14 /* EventEditorSession.swift in Sources */,
 				567BF142060D11190D5A949A /* EventEditorView.swift in Sources */,
-				44A0EE8B80C33528A325F174 /* EventReminderBackupKeys.swift in Sources */,
 				9F41BB14FEDC3273918784E7 /* EventReminderDescriptor.swift in Sources */,
 				8F94C8F81AF5542397F68C91 /* EventReminderEngine.swift in Sources */,
 				07EF0E091521FA9963F9AB3B /* EventReminderModule+Shared.swift in Sources */,
