@@ -4,9 +4,7 @@ nonisolated enum AIUsageProvider {
     static func gatewayURL(_ gateway: String) throws -> URL {
         let address = gateway.trimmingCharacters(in: .whitespacesAndNewlines)
         let qualified = address.contains("://") ? address : "http://" + address
-        guard let base = URL(string: qualified), ["http", "https"].contains(base.scheme),
-              let host = base.host, !host.isEmpty, base.user == nil, base.password == nil,
-              base.query == nil, base.fragment == nil else { throw URLError(.badURL) }
+        guard let base = MagpieGateway.url(qualified) else { throw URLError(.badURL) }
         return base
     }
 

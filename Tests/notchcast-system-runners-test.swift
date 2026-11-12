@@ -7,16 +7,20 @@ import Foundation
 @main
 struct SystemRunnerTests {
     static func main() throws {
-        do {
-            _ = try SystemToolsProcessRunner().run("/bin/sh", arguments: [])
-            preconditionFailure("Shell execution must be rejected")
-        } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
-        let domains = try SystemToolsProcessRunner().run("/usr/bin/defaults", arguments: ["domains"])
+        for executable in ["/bin/sh", "/usr/bin/defaults", "/usr/bin/open", "/usr/bin/killall", "/bin/chflags"] {
+            do {
+                _ = try SystemToolsProcessRunner().run(executable, arguments: [])
+                preconditionFailure("Unexpected SystemTools capability: \(executable)")
+            } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
+        }
+        let help = try SystemToolsProcessRunner().run("/bin/launchctl", arguments: ["help"])
+        precondition(help.contains("launchctl"))
+        let domains = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["domains"])
         precondition(domains.contains("com.apple"))
         do {
-            _ = try SystemToolsProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"])
+            _ = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"])
             preconditionFailure("A failing tool must throw")
-        } catch SystemToolsProcessRunner.Failure.failed(let status) { precondition(status == 1) }
+        } catch TweaksProcessRunner.Failure.failed(let status) { precondition(status == 1) }
         let item = StartupItem(label: "example.agent", kind: .userAgent,
                                path: "/example/Library/LaunchAgents/example.plist",
                                program: nil, disabled: false, loaded: true)
@@ -25,6 +29,6 @@ struct SystemRunnerTests {
             calls.append($0)
         }
         precondition(calls == [["disable", "gui/501/example.agent"], ["bootout", "gui/501/example.agent"]])
-        print("Runner shell rejection, real defaults runs and injected startup reversal passed")
+        print("PASS SystemTools rejects Tweaks tools; launchctl, Tweaks defaults and startup reversal work")
     }
 }

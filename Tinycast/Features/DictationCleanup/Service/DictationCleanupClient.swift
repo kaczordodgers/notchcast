@@ -33,10 +33,8 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
         raw: String, language: String?, settings: DictationCleanupSettings, key: String,
         systemPrompt: String? = nil
     ) throws -> URLRequest {
-        guard let base = URL(string: settings.baseURL),
-              ["http", "https"].contains(base.scheme),
-              let host = base.host(), ["localhost", "127.0.0.1", "::1"].contains(host),
-              base.user == nil, base.password == nil, base.query == nil, base.fragment == nil,
+        guard let base = MagpieGateway.url(settings.baseURL),
+              ["localhost", "127.0.0.1", "::1"].contains(base.host()),
               ["", "/", "/v1", "/v1/"].contains(base.path)
         else { throw Failure.invalidEndpoint }
         let endpoint = base.path.hasPrefix("/v1")
