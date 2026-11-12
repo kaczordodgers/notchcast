@@ -61,6 +61,13 @@ struct MacUpdateTests {
         let app = root.appendingPathComponent("Updated.app")
         let child = try await MacUpdateRunner().run(.init(path: "/bin/sh", arguments: ["-c", "echo $PATH"]))
         precondition(child.output.hasPrefix("/bin:/opt/homebrew/bin:/usr/local/bin:"), "Child PATH")
+        let flood = try await MacUpdateRunner().run(.init(path: "/bin/sh", arguments: [
+            "-c", "/usr/bin/yes | /usr/bin/head -c 200000; exit 7"
+        ]))
+        precondition(flood.status == 7 && flood.output.utf8.count == MacUpdateRunner.outputLimit, "Output tail")
+        let slow = try await MacUpdateRunner().run(.init(path: "/bin/sleep", arguments: ["20"],
+                                                         timeout: .milliseconds(100)))
+        precondition(slow.timedOut && slow.status == 128 + SIGTERM, "Timeout stops the child")
         for (beside, expected) in [(false, "/opt/homebrew/bin/npm"), (true, "/fixture/.volta/bin/npm")] {
             let npmPlan = MacUpdatePlan.make(.commandLineTools,
                 tools: ["codex": "/fixture/.volta/bin/codex", "npm": "/opt/homebrew/bin/npm"],
@@ -76,6 +83,11 @@ struct MacUpdateTests {
                                        exists: { _ in false }, resolve: { $0 })
         guard case .commands(let intelCommands) = intel else { preconditionFailure("Intel Homebrew must run") }
         precondition(intelCommands.map(\.path) == ["/usr/local/bin/brew"])
+        precondition(intelCommands.map(\.kind) == [.homebrewUpgrade])
+        let cask = MacUpdatePlan.make(.commandLineTools, tools: ["codex": "/fixture/codex", "brew": "/fixture/brew"],
+            exists: { _ in false }, resolve: { _ in "/fixture/Caskroom/codex/1/codex" })
+        guard case .commands(let caskCommands) = cask else { preconditionFailure("Missing cask plan") }
+        precondition(caskCommands.map(\.kind) == [.homebrewUpgrade])
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         let lock = root.appendingPathComponent("maintenance.lock")
         func service(_ runner: FakeRunner, missing: Bool = false,
@@ -93,6 +105,12 @@ struct MacUpdateTests {
         let events = await collect(service(ordered))
         assert(events.filter { $0.state == .running }.map(\.step) == MacUpdateStep.allCases)
         assert(ordered.commands.map(\.arguments) == [["update"], ["upgrade"], ["update"], ["upgrade"]])
+        assert(ordered.commands.map(\.kind) == [.homebrew, .homebrewUpgrade, .tool, .tool])
+        let renamed = FakeRunner()
+        let byKind = await collect(MacUpdateService(
+            runner: renamed, appRoot: root.path, exists: { _ in true }, resolve: { $0 }, locked: { true },
+            lockTimeout: .milliseconds(60), locate: { "/fixture/" + $0 + "/run" }))
+        assert(byKind.last?.state == .failed("homebrew-lock-timeout") && renamed.commands.isEmpty)
         let missing = FakeRunner()
         let skips = await collect(service(missing, missing: true))
         assert(skips.count == 4 && missing.commands.isEmpty)
