@@ -17,18 +17,18 @@ unset GITHUB_ACTIONS
 for support in Command HotKey; do
     export CHANGED="Tests/Notchcast${support}HarnessSupport.swift"
     bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
-    for name in app-installation-test launcher-settings-file-test hotkey-dispatch-test; do
+    for name in AppInstallationTests LauncherSettingsFileTests HotKeyDispatchTests; do
         sources=$(name=$name bash -c 'source "$ROOT/notchcast/command-harness-sources.sh"; printf "%s\n" "$@"')
         if [[ "$sources" = *"$CHANGED"* ]]; then
             grep -qx "$name" "$scratch/selected" || { echo "FAIL: $CHANGED omitted $name"; exit 1; }
         fi
     done
     # An empty path once matched an empty pattern and selected every harness, upstream ones included.
-    if grep -qx ext-fetch-test "$scratch/selected"; then echo "FAIL: $CHANGED selected an unrelated upstream harness"; exit 1; fi
+    if grep -qx ExtensionTests "$scratch/selected"; then echo "FAIL: $CHANGED selected an unrelated upstream harness"; exit 1; fi
 done
 echo 'PASS: shared command and hotkey support select all consumers'
 # A harness with no extra sources must not match every change (printf of no arguments prints one empty line).
 export CHANGED="Tinycast/Features/Todo/TodoModule.swift"
 bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
-if grep -qx ext-fetch-test "$scratch/selected"; then echo 'FAIL: an unrelated change selected ext-fetch-test'; exit 1; fi
+if grep -qx ExtensionTests "$scratch/selected"; then echo 'FAIL: an unrelated change selected ExtensionTests'; exit 1; fi
 echo 'PASS: unrelated upstream harnesses stay unselected'
