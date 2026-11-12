@@ -92,7 +92,7 @@ class HarnessInputsTest(unittest.TestCase):
             "notchcast/docs/katana.md": ["nc-Katana-core-test"],
             "Tests/Fixtures/todoist-export.json": ["nc-Todo-import-test", "nc-Todo-settings-test"],
             "Tests/fixtures/build-stats-v1.json": ["notchcast-build-stats-test"],
-            "Tests/Fixtures/ai-usage/cache-shapes.json": ["notchcast-l5-ai-usage-test"],
+            "Tests/Fixtures/ai-usage/magpie-quotas.json": ["nc-AIUsage-magpie-test"],
             "notchcast/test-archives-fallback.py": ["nc-Archives-fallback-test"],
             "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift": ["notchcast-root-client-test"],
         }

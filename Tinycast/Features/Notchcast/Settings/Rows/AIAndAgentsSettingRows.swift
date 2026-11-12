@@ -1,10 +1,10 @@
 import SwiftUI
 
-struct AIUsageCacheDirectorySettingRow: View {
+struct AIUsageGatewaySettingRow: View {
     @Bindable private var preferences = NotchcastPreferences.shared
 
     var body: some View {
-        TextField(String(localized: "AI usage cache directory", table: "Notchcast"), text: $preferences.aiUsageCachePath)
+        TextField(String(localized: "Magpie gateway", table: "Notchcast"), text: $preferences.aiUsageGateway)
             .textFieldStyle(.roundedBorder)
     }
 }
