@@ -7,14 +7,28 @@
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule.swift
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-kit: core root platform
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: core platform
 import Foundation
 
 @MainActor
 final class AppCore {
     enum Tone { case success, danger }
-    func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { false }
-    func showMessage(_ message: String, tone: Tone = .success) { preconditionFailure(message) }
+    var approved = false
+    var messages: [String] = []
+    func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { approved }
+    func showMessage(_ message: String, tone: Tone = .success) { messages.append(message) }
+}
+
+@MainActor
+struct RootHelperClient {
+    static var commands: [RootContract.Command] = []
+    static var fails = false
+    func run(_ command: RootContract.Command) async throws -> RootContract.Reply {
+        if Self.fails { throw CocoaError(.fileWriteNoPermission) }
+        Self.commands.append(command)
+        return .ok
+    }
 }
 
 @main
@@ -66,6 +80,22 @@ struct SystemModuleTests {
             preconditionFailure("An unreadable journal must block replacement")
         } catch TweaksJournalFailure.unreadable {}
         precondition(journalDefaults.data(forKey: journalKey) == corrupt)
+        let core = AppCore()
+        let spotlight = TweaksModule(key: UUID().uuidString, preferences: preferences)
+        spotlight.configure(core)
+        await spotlight.setSpotlight(enabled: true)
+        precondition(RootHelperClient.commands.isEmpty && !preferences.isOn(.spotlightOff))
+        core.approved = true
+        RootHelperClient.fails = true
+        await spotlight.setSpotlight(enabled: true)
+        precondition(!preferences.isOn(.spotlightOff) && core.messages.count == 1)
+        RootHelperClient.fails = false
+        await spotlight.setSpotlight(enabled: true)
+        await spotlight.setSpotlight(enabled: true)
+        await spotlight.setSpotlight(enabled: false)
+        precondition(RootHelperClient.commands == [.spotlightOff, .spotlightOn])
+        precondition(!preferences.isOn(.spotlightOff))
+        print("Spotlight decline, failure, duplicate request and reversal preserve preferences")
         var effects: [Bool] = []
         let store = SystemToolsStore(preferences: preferences, available: { _ in true }, apply: { _, value in
             effects.append(value)

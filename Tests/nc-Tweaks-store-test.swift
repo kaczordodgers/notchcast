@@ -3,8 +3,6 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 // notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift Tinycast/Features/Tweaks/Service/*.swift
-// notchcast-sources: Tinycast/Features/SystemTools/Model/*.swift Tinycast/Features/SystemTools/Service/*.swift
-// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift
 import Foundation
 
 @main
@@ -59,21 +57,29 @@ struct TweaksStoreTests {
                 extraRevert: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: false)])
             return plan.apply + plan.revert
         }
-        precondition(Set(emitted.map(\.executable)).isSubset(of: SystemToolsProcessRunner.allowedExecutables),
+        precondition(Set(emitted.map(\.executable)).isSubset(of: TweaksProcessRunner.allowedExecutables),
                      "The runner refuses a tool a catalog emits")
-        precondition(SystemToolsProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
+        precondition(TweaksProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
+        precondition(!TweaksProcessRunner.allowedExecutables.contains("/bin/kill"))
+        precondition(!TweaksProcessRunner.allowedExecutables.contains("/bin/launchctl"))
+        let domains = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["domains"])
+        precondition(domains.contains("com.apple"))
         do {
-            _ = try SystemToolsProcessRunner().run("/untrusted/journal", arguments: [])
+            _ = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"])
+            preconditionFailure("A failing tool must throw")
+        } catch TweaksProcessRunner.Failure.failed(let status) { precondition(status == 1) }
+        do {
+            _ = try TweaksProcessRunner().run("/untrusted/journal", arguments: [])
             preconditionFailure("Untrusted executable accepted")
-        } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
+        } catch TweaksProcessRunner.Failure.invalidExecutable {}
         let timeout = TweaksStore(read: { _ in nil }, run: { _ in
-            throw SystemToolsProcessRunner.Failure.timedOut
+            throw TweaksProcessRunner.Failure.timedOut
         }, save: { _ in })
         timeout.start()
         do {
             try await timeout.set("timeout", writes: writes, on: true)
             preconditionFailure("Expected timeout")
-        } catch SystemToolsProcessRunner.Failure.timedOut {}
+        } catch TweaksProcessRunner.Failure.timedOut {}
         precondition(!timeout.busy)
         let kept = TypingPreferencePlan(entries: writes.map { .init(write: $0, previous: nil) })
         let keptJSON = String(decoding: try JSONEncoder().encode(kept), as: UTF8.self)

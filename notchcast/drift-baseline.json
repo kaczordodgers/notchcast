@@ -74,7 +74,7 @@
     "Features/Todo -> Features/MachLink": 1,
     "Features/Torrents -> Features/NetMerge": 1,
     "Features/Treadmill -> Features/AgentBridge": 2,
-    "Features/Tweaks -> Features/SystemTools": 1,
+    "Features/Tweaks -> Features/SystemTools": 0,
     "notchcast/root -> Features/Clean": 1,
     "notchcast/root -> Features/SystemTools": 1
   },
