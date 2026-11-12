@@ -57,6 +57,7 @@ nonisolated enum ArchiveProcess {
         do { output = try await ProcessRunner.run(request) } catch {
             ticker.cancel()
             await ticker.value
+            try Task.checkCancellation()
             throw error
         }
         ticker.cancel()
