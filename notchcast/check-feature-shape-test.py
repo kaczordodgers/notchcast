@@ -135,7 +135,8 @@ BREAKS = (
     ("source-hooks", "hook missing or out of order: case .about: AboutView()",
      "Tinycast/Features/Settings/SettingsDetailView.swift", "case .about: AboutView()", "case .about: EmptyView()"),
     ("plist", "declare one Archives document type", SHAPE.PLIST, "<string>Alternate</string>", "<string>Owner</string>"),
-    ("plist", "declare one Archives document type", SHAPE.ARCHIVE_FORMATS, '"public.zip-archive", ', ""),
+    ("plist", "declare one Archives document type", SHAPE.ARCHIVE_FORMATS,
+     '"public.zip-archive"', '"app.notchcast.mismatched-archive"'),
     ("plist", "imported type com.example.zoo-archive is neither app.notchcast.* nor in FOREIGN_TYPES", SHAPE.PLIST,
      "<key>UTTypeIdentifier</key>\n\t\t\t<string>app.notchcast.zoo-archive<", "<key>UTTypeIdentifier</key>\n\t\t\t<string>com.example.zoo-archive<"),
     ("plist", "an imported type carries the split-archive extension 001", SHAPE.PLIST, "<string>001</string>", "<string>002</string>"),
@@ -685,6 +686,19 @@ class FeatureFactTests(unittest.TestCase):
 
     def test_shipped_tree_holds_every_fact(self):
         self.assertEqual(SHAPE.fact_errors(self.root), [])
+
+    def test_archive_document_identifiers_match_metadata(self):
+        self.assertEqual(SHAPE.plist_errors(self.root), [])
+        path = self.root / SHAPE.PLIST
+        shipped = path.read_text()
+        identifier = "<string>public.zip-archive</string>"
+        self.assertIn(identifier, shipped)
+        path.write_text(shipped.replace(identifier, "<string>app.notchcast.mismatched-archive</string>", 1))
+        try:
+            errors = SHAPE.plist_errors(self.root)
+        finally:
+            path.write_text(shipped)
+        self.assertTrue(any("declare one Archives document type" in message for _, _, message in errors))
 
     def test_a_comment_above_a_descriptor_field_passes(self):
         path = self.root / GLOBE

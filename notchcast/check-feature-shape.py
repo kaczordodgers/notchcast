@@ -682,10 +682,12 @@ def plist_errors(root):
     errors = []
     with (root / PLIST).open("rb") as file:
         plist = plistlib.load(file)
-    formats = re.search(r"static let typeIdentifiers = \[(.*?)\]", (root / ARCHIVE_FORMATS).read_text(), re.S)
+    source = (root / ARCHIVE_FORMATS).read_text()
+    formats = re.search(r"static let entries: \[Entry\] = \[(.*?)\n    \]", source, re.S)
+    derived = "static let typeIdentifiers = entries.map(\\.identifier)" in source
     archives = [kind for kind in plist.get("CFBundleDocumentTypes", []) if kind.get("CFBundleTypeName") == "Archives"]
-    if (len(archives) != 1 or archives[0].get("LSHandlerRank") != "Alternate" or not formats
-            or set(archives[0].get("LSItemContentTypes", [])) != set(re.findall(r'"([^"]+)"', formats[1]))):
+    if (len(archives) != 1 or archives[0].get("LSHandlerRank") != "Alternate" or not formats or not derived
+            or set(archives[0].get("LSItemContentTypes", [])) != set(re.findall(r'identifier: "([^"]+)"', formats[1]))):
         errors.append((PLIST, 1, "declare one Archives document type, ranked Alternate, listing ArchiveFormat.typeIdentifiers"))
     extensions = []
     for imported in plist.get("UTImportedTypeDeclarations", []):
