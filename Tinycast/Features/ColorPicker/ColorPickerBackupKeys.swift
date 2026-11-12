@@ -2,7 +2,7 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let colorPicker = Self(allowed: [
-        ColorPickerService.formatKey: .string(14, ColorPickerFormat.allCases.map(\.rawValue)),
+        ColorPickerService.formatKey: .string(14, ["hex", "hexLowercase", "rgb", "hsl", "swiftUIColor", "nsColorLiteral"]),
     ], excluded: [], snapshot: {
         [ColorPickerService.formatKey: ColorPickerModule.shared.format.rawValue]
     }, apply: { values in

@@ -25,8 +25,10 @@ struct FinderToolsServicesTest {
         event.markSynthetic()
         precondition(event.getIntegerValueField(.eventSourceUserData) == Paster.tinycastEventTag)
         precondition(event.isSynthetic && EventTapHub.Event(type: .keyDown, event: event).isSynthetic)
-        event.setIntegerValueField(.eventSourceUserData, value: 1)
-        precondition(!event.isSynthetic && !EventTapHub.Event(type: .keyDown, event: event).isSynthetic)
+        let otherSource = CGEventSource(stateID: .privateState)!
+        otherSource.userData = 1
+        let otherEvent = CGEvent(source: otherSource)!
+        precondition(!otherEvent.isSynthetic && !EventTapHub.Event(type: .keyDown, event: otherEvent).isSynthetic)
         let hub = EventTapHub()
         let coordinator = FinderToolsCoordinator(hub: hub)
         coordinator.cut()
