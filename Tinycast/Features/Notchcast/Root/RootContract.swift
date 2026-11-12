@@ -53,9 +53,17 @@ enum RootContract {
             self = command
         }
 
+        static var chargeLimits: [Int] { allCases.compactMap(\.chargeLimit).sorted() }
+
+        private var chargeLimit: Int? {
+            guard rawValue.hasPrefix("charge-limit-") else { return nil }
+            return Int(rawValue.dropFirst("charge-limit-".count))
+        }
+
         init?(chargeLimit percent: Int?) {
             guard let percent else { self = .chargeLimitOff; return }
-            self.init(rawValue: "charge-limit-\(percent)")
+            guard let command = Self.allCases.first(where: { $0.chargeLimit == percent }) else { return nil }
+            self = command
         }
 
         var arguments: [String] { [rawValue] }
