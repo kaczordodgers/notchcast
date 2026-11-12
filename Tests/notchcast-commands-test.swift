@@ -1,4 +1,4 @@
-// notchcast-kit: core
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
@@ -138,21 +138,7 @@ extension NotchcastCommandCatalog {
     ]
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let paletteCoordinator = PaletteCoordinator()
-}
-
-@MainActor final class PaletteCoordinator {
-    var isVisible = false
-    var hideCalls = 0
-    var restoredFocus = false
-    func hidePalette(restoreFocus: Bool) {
-        hideCalls += 1
-        restoredFocus = restoreFocus
-        isVisible = false
-    }
-}
+enum DialogTone {}
 
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
@@ -177,26 +163,20 @@ extension NotchcastCommandCatalog {
         assert(island.runs == 1 && dismissed == 1)
         assert(!NotchcastCommandCatalog.dispatch("command:unknown", dismiss: {}))
         island.commandsAvailable = true
-        let palette = AppCore.shared.paletteCoordinator
+        var paletteDismissals = 0
+        NotchcastHost.current.dismissPalette = { paletteDismissals += 1 }
         NotchcastCommandCatalog.perform(commands[0].entry.id)
-        assert(palette.hideCalls == 0 && island.runs == 2)
-        palette.isVisible = true
-        assert(NotchcastCommandCatalog.dispatch(commands[0].id, dismiss: {
-            palette.hidePalette(restoreFocus: false)
-        }))
-        assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
-        palette.isVisible = true
+        assert(paletteDismissals == 1 && island.runs == 2)
+        assert(NotchcastCommandCatalog.dispatch(commands[0].id, dismiss: { dismissed += 1 }))
+        assert(dismissed == 2 && island.runs == 3)
         NotchcastCommandCatalog.perform(commands[0].entry.id)
-        assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
-        palette.isVisible = true
-        assert(NotchcastCommandCatalog.dispatch("command:nc-theme", dismiss: {
-            palette.hidePalette(restoreFocus: false)
-        }))
+        assert(paletteDismissals == 2 && island.runs == 4)
+        assert(NotchcastCommandCatalog.dispatch("command:nc-theme", dismiss: { assertionFailure() }))
         NotchcastCommandCatalog.perform("command:nc-theme")
-        assert(palette.hideCalls == 2 && palette.isVisible && island.runs == 6)
+        assert(paletteDismissals == 2 && island.runs == 6)
         let branded = CommandCatalog.all.filter { $0.id.hasPrefix("command:") && $0.name.contains("Tinycast") }
         assert(branded.isEmpty)
         assert(CommandCatalog.all.contains { $0.name == "Quit Notchcast" && $0.alternateTitles.contains("Quit Tinycast") })
-        print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility, dispatch, palette screens, brand")
+        print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility, dispatch, host dismissal, brand")
     }
 }
