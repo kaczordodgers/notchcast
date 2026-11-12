@@ -29,7 +29,7 @@ if [ "${1:-}" = --mutate-only ]; then
     sed -i '' 's/NOTCHCAST_ONLY_TESTS/DISABLED_ONLY_TESTS/g' "$WORK/notchcast/test-harnesses.sh"
 fi
 cd "$WORK"
-export PATH="$WORK/bin:$PATH" RUNNER_TEMP="$WORK" TMPDIR="$WORK"
+export PATH="$WORK/bin:$PATH" RUNNER_TEMP="$WORK" TMPDIR="$WORK" RUNNER_ENVIRONMENT=github-hosted
 unset NOTCHCAST_ONLY_TESTS NOTCHCAST_SHARD NOTCHCAST_SWIFTC_CACHE
 bash notchcast/ci-tests.sh > baseline 2>&1
 printf 'skipped on the runner: skip\n4:alpha alphabet beta gamma \n' > expected
