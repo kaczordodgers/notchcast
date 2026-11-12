@@ -4,7 +4,7 @@ import OSLog
 
 @MainActor @Observable
 final class DownloadQueue {
-    nonisolated private static let logger = Logger(subsystem: NotchcastIdentity.upstreamSubsystem, category: "Downloads")
+    nonisolated private static let logger = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Downloads")
     private(set) var jobs: [DownloadJob] = []
     private(set) var persistenceError: String?
     let maxConcurrent: Int

@@ -10,7 +10,7 @@ nonisolated struct DistillConverter: Sendable {
     var trash: Trash = { source in try FileManager.default.trashItem(at: source, resultingItemURL: nil) }
 
     static var manifestName: String {
-        ".distill-convert-\(Bundle.main.bundleIdentifier ?? "tests").json"
+        ".distill-convert-\(NotchcastIdentity.current.bundleID).json"
     }
 
     private struct Receipt: Codable {
