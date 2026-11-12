@@ -57,7 +57,7 @@ extension NotchcastCore {
         let downloadServices = NotchcastDownloadServices(core: core)
         let levelNotices = SystemLevelIslandPresenter(center: .shared)
         pasteImage.configureFeedback(core)
-        core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
+        core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)); pasteImage.refresh() }
         return [
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentCLI], module: agentCLI),
