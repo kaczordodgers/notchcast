@@ -1,4 +1,4 @@
-/// What fork modules need from the app, set once in `NotchcastCore.start`; harnesses keep the no-ops.
+/// What fork modules need from the app, set once in `NotchcastCore.start`; harnesses inject what they test.
 @MainActor
 struct NotchcastHost {
     static var current = NotchcastHost()
