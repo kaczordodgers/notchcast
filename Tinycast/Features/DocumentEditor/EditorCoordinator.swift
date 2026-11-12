@@ -80,6 +80,10 @@ final class EditorCoordinator: NotchcastModule {
         for document in documents where document.isEnabled { try await document.flush() }
     }
 
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async {
+        if phase == .beforeRootDrain { await flushForTermination() }
+    }
+
     func flushForTermination() async {
         for document in documents where document.isEnabled {
             let logger = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "editor")

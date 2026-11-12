@@ -40,6 +40,7 @@ final class DictationHistoryModule: NotchcastModule {
     }
 
     func waitUntilIdle() async { await pendingWork?.value }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { if phase == .afterRootDrain { await waitUntilIdle() } }
 
     private func schedule(_ operation: @escaping @MainActor (DictationHistoryModule) async -> Void) {
         let previous = pendingWork

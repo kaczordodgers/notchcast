@@ -41,7 +41,9 @@ final class VoiceAskModule: NotchcastModule {
     }
 
     func start() { guard !enabled else { return }; enabled = true; onStart?() }
-    func stop() { enabled = false; onStop?(); cancel() }
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { if phase == .beforeRootDrain { shutdown() } }
+    private func shutdown() { enabled = false; onStop?(); cancel() }
 
     func press(alone: Bool) {
         guard enabled, transport != nil, !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,

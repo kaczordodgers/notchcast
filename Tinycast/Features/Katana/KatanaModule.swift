@@ -42,7 +42,10 @@ final class KatanaModule: NotchcastModule {
         register()
     }
 
-    func stop() {
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { if phase == .beforeMacUpdate { shutdown() } }
+
+    private func shutdown() {
         unregister()
         client.stop()
         transport.stop()
