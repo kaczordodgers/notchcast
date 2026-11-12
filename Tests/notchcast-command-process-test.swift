@@ -41,6 +41,12 @@ import Foundation
             .hasPrefix("/usr/bin:/opt/homebrew/bin:/usr/local/bin:") == true, "Commands use the shared executable environment")
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
             .hasSuffix("\nLANG=en_US.UTF-8\nLC_ALL=en_US.UTF-8\n") == true, "Commands preserve the UTF-8 locale")
+        precondition(String(bytes: path.standardOutput, encoding: .utf8)?
+            .contains(FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin").path) == true,
+            "Commands preserve the user tool directory")
+        let shell = try await CommandProcessRunner.run(.init(executable: "/usr/bin/printenv",
+            arguments: ["SHELL"], workingDirectory: nil))
+        precondition(shell.standardOutput.isEmpty, "Commands preserve filtered environment inheritance")
         let output = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "pwd; printf 'error output' >&2; exit 7"], workingDirectory: root.path))
         precondition(output.exitStatus == 7, "Expected exit 7, got \(output.exitStatus)")
