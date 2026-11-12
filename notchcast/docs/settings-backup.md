@@ -96,7 +96,6 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | notchcast.quitProtection.mode | String: hold, doublePress | Known modes |
 | notchcast.quitProtection.exceptions | String array: 500 × 256 characters | App exceptions |
 | notchcast.day.marketSymbols | String array: 100 × 64 characters | Selected symbols |
-| notchcast.day.excludedCalendars | String array: 500 × 256 characters | Calendar exclusions |
 | notchcast.day.weatherPlace | JSON String ≤262144 bytes | Name/country ≤256, latitude ±90, longitude ±180 |
 | notchcast.dictationCleanup.settings | JSON String ≤262144 bytes | Plain cleanup configuration; no key material |
 | notchcast.appearance.surface | String: glass, black, matte | Surface style |
@@ -174,7 +173,8 @@ screen-recording capability and capture-output policy. `backupRunNow` and `backu
 excluded: they run the machine backup tool with its repository password command.
 `archivesInPlace` is excluded because it consumes the source archive, and `machineSetupProfile`
 because it gates a command that changes the Dock default. Backups written before these left the
-list are refused; the next daily file restores normally.
+list restore with those switches skipped; `notchcast.day.excludedCalendars`, removed with its only
+setter, is skipped the same way.
 The document editor carries `notchcast.editor.font` (system/jetBrainsMono),
 `notchcast.editor.theme` (system/githubDark), and `notchcast.editor.pairsAutomatically` (Bool).
 Restore updates `EditorCoordinator.shared.editorPreferences`; its setters retain the bare keys
