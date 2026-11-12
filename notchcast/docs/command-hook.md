@@ -104,4 +104,5 @@ Host commands are read at use from `Notchcast/host-commands.json` under Applicat
 The JSON is an array of entries with `id`, `title`, absolute `executable`, `arguments` (array),
 `hosts` (array; empty allows every host) and `workingDirectory` (optional string).
 Host filtering resolves `gethostname` off the main actor. A missing profile is empty; an invalid one reports its error; a command stops after 300 s.
+While running, host commands retain only the last 64 KB of stdout and stderr in memory; app quit kills the command's entire process group immediately.
 No executable or credentials are compiled in. Run Host Command asks which configured entry to run, and List Commands reports the filtered titles. Arguments are passed directly to the process without a shell. Command deep links retain the ordinary consent gate.

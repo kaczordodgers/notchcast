@@ -14,6 +14,8 @@
 
 ## Ownership and storage
 
+`ChildProcess` adapts Downloads calls to the shared `ProcessRunner`: it streams non-empty stdout lines, keeps the last 64 KB of stdout and stderr while running, and preserves the existing cancellation ladder and signal exit mapping. It kills the process group on application termination and after its leader exits, then bounds pipe draining so inherited descriptors cannot hold completion open.
+
 `NotchcastCore` owns `DownloadsModule` and `DistillModule` through its module controller. Their wiring lives in `Tinycast/Features/Notchcast/Downloads/`; the engines remain in `Features/Downloads/` and `Features/Distill/`. The job contract every runner implements (`DownloadJob`, `DownloadState`, `DownloadProgress`, `DownloadTool`, `DownloadRunner`, `DownloadRunContext` and the `JobOutput` publication helper) lives in the kernel folder `Features/Notchcast/Jobs/`. Distill, Convert Files and Media Tools name only that contract, but the contract still depends on Downloads: `DownloadRunContext` builds a `ChildProcess` and holds a `DownloadToolLookup`, both in `Features/Downloads/Service/`.
 
 The current bundle's Application Support directory holds `Notchcast/downloads.json` and `Notchcast/distill.json`. Downloads writes to `~/Downloads`; Distill writes to `~/Downloads/Distill/Raw` and runs one job at a time. Temporary transcription audio lives in the current bundle's `Notchcast/Transcription` cache directory.
