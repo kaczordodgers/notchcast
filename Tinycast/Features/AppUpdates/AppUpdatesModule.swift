@@ -13,7 +13,9 @@ final class AppUpdatesModule: NotchcastModule {
 
     init(check: @escaping () async throws -> [AppUpdate]) { checkApps = check }
     func start() { enabled = true }
-    func stop() {
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { if phase == .beforeMacUpdate { shutdown() } }
+    private func shutdown() {
         enabled = false
         generation = UUID()
         task?.cancel()

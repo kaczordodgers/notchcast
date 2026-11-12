@@ -400,8 +400,8 @@ class FeatureShapeTests(unittest.TestCase):
     def test_init_statement_split_over_lines(self):
         source = (self.root / PREFS).read_text()
         self.rejected(PREFS, source.replace(
-            "Self.threshold(defaults, Self.monitorCPUKey, 90, 10...100)",
-            "Self.threshold(defaults, Self.monitorCPUKey,\n            90, 10...100)"),
+            "Self.threshold(defaults, Self.monitorCPUKey, .cpu)",
+            "Self.threshold(defaults, Self.monitorCPUKey,\n            .cpu)"),
             "keep each init statement on one line")
 
     def test_union_duplicated_preferences_class(self):
@@ -646,6 +646,9 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertEqual(SHAPE.check(self.root), [])
         run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(PREFS),
             str(DESCRIPTORS), *map(str, DESCRIBED),
+            str(ROOT / "Tinycast/Features/Notchcast/Core/NotchcastFeature+BackupKeys.swift"),
+            str(ROOT / "Tinycast/Features/SystemMonitor/MonitorAlertsBackupKeys.swift"),
+            str(ROOT / "Tinycast/Features/Notchcast/Root/RootContract.swift"),
             str(ROOT / "Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift"), str(ROOT / "Tinycast/Platform/AppPaths.swift"))
         run(self.root, "git", "switch", "-qc", "edit", "base~2")
         prefs.write_text(base.replace('?? "auto"', '?? "quiet"'))

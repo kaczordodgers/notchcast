@@ -51,8 +51,9 @@ struct SettingsBackupTest {
         let cleanup = #"{"effort":"high","promptAddition":"","vocabulary":[]}"#
         for key in excluded.subtracting(retired) { invalid.append(try archive(["monitorCPU": 70, key: true])) }
         let early = try ForkSettingsBackupEngine.decode(archive(["monitorCPU": 70, "archivesInPlace": true,
-            "machineSetupProfile": false, "dictationCleanup": cleanup]))
+            "machineSetupProfile": false, "dictationCleanup": cleanup, "notchcast.day.excludedCalendars": ["work"]]))
         precondition(early["archivesInPlace"] == nil && early["machineSetupProfile"] == nil)
+        precondition(early["notchcast.day.excludedCalendars"] == nil)
         precondition(early["monitorCPU"] as? Int == 70 && early["notchcast.dictationCleanup.settings"] as? String == cleanup)
         print("PASS: archives from before #199 skip retired switches and still restore")
         for input in invalid {

@@ -1,10 +1,10 @@
 // notchcast-sources: Tinycast/Features/DictationTrigger/DictationTriggerModule*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 
 import Observation
 
-@MainActor protocol NotchcastModule { func start(); func stop() }
 @MainActor enum NotchcastCore { static let eventTapHub = 0 }
 @MainActor @Observable final class HotKeys {
     var recordingAction: String?

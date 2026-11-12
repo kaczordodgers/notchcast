@@ -60,7 +60,7 @@ final class FinderToolsCoordinator {
             let (decision, request) = input.receive(.init(
                 keyCode: event.getIntegerValueField(.keyboardEventKeycode), modifiers: modifiers,
                 isKeyDown: type == .keyDown, isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
-                isSynthetic: event.getIntegerValueField(.eventSourceUserData) == Paster.tinycastEventTag))
+                isSynthetic: event.isSynthetic))
             if let request {
                 DispatchQueue.main.async { [weak self] in self?.enqueue(request) }
             }

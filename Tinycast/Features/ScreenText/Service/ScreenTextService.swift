@@ -15,17 +15,6 @@ enum ScreenTextService {
         }
     }
 
-    @MainActor
-    static func copy(
-        selection: CaptureAreaSelection, removeLineBreaks: Bool,
-        writeClipboard: (String) -> Bool
-    ) async throws -> ScreenTextResult {
-        let result = try await recognize(selection: selection, removeLineBreaks: removeLineBreaks)
-        try Task.checkCancellation()
-        guard writeClipboard(result.content) else { throw Failure.clipboardWriteFailed }
-        return result
-    }
-
     @concurrent
     static func recognize(
         selection: CaptureAreaSelection, removeLineBreaks: Bool = false

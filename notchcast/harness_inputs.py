@@ -113,7 +113,7 @@ def fork_owned(path: Path) -> bool:
 def harnesses():
     registrations = upstream_registrations()
     entries = [(path, read_inputs(path, registrations.get(path.stem, [])))
-               for path in sorted(Path("Tests").glob("*-test.swift"))]
+               for path in sorted({*Path("Tests").glob("*-test.swift"), *Path("Tests").glob("*Tests.swift")})]
     script = 'set -ef\naugment() {\nlocal name=$1; shift\n' \
              'source notchcast/command-harness-sources.sh\n' \
              'printf "%s\\0" "$name" "$@"\nprintf "\\0"\n}\n'

@@ -91,7 +91,14 @@ final class RecordingModule: NotchcastModule {
         enabled = true
     }
 
-    func stop() {
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async {
+        guard phase == .beforeRootDrain else { return }
+        shutdown()
+        await waitUntilIdle()
+    }
+
+    private func shutdown() {
         requestedEnabled = false
         commandArea.stop()
         guard shutdownTask == nil else { return }

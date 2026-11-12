@@ -18,7 +18,6 @@ extension DayCalendarService: EventReminderSource {
 
 @MainActor
 final class EventReminderModule: NotchcastModule {
-    nonisolated static let excludedCalendarsKey = "notchcast.day.excludedCalendars"
     let calendar: DayCalendarService
     private let center: IslandActivityCenter
     private var engine = EventReminderEngine(armedAt: .distantFuture)
@@ -29,7 +28,7 @@ final class EventReminderModule: NotchcastModule {
     private var active: [(id: UUID, end: Date)] = []
 
     init(store: CalendarStore, center: IslandActivityCenter = .shared) {
-        calendar = DayCalendarService(store: store, excludedKey: Self.excludedCalendarsKey)
+        calendar = DayCalendarService(store: store)
         self.center = center
     }
 
