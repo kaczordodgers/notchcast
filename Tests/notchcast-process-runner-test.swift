@@ -37,14 +37,14 @@ struct ProcessRunnerTest {
             #"$|=1; print "\xc3"; select undef,undef,undef,.05; print "\xa9\r\n\na\rb\n"; sleep 1; print "last";"#])
         streaming.outputTail = 65_536
         streaming.onLine = { line in lines.withLock { $0.append(line) } }
-        let running = try ProcessRunner.start(streaming)
+        let streamingRun = try ProcessRunner.start(streaming)
         let deadline = ContinuousClock.now + .seconds(5)
         while lines.withLock({ $0.count < 3 }) {
             check(ContinuousClock.now < deadline)
             try await Task.sleep(for: .milliseconds(10))
         }
-        check(running.isRunning && running.processIdentifier > 0)
-        _ = try await running.output()
+        check(streamingRun.isRunning && streamingRun.processIdentifier > 0)
+        _ = try await streamingRun.output()
         check(lines.withLock { $0 } == ["é", "a", "b", "last"])
         streaming.arguments = ["-e", #"print "x" x 200000; print "END"; print STDERR "y" x 200000, "ERR";"#]
         streaming.stderr = .capture(limit: 65_536)

@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/DownloadTool.swift
 // notchcast-sources: Tinycast/Features/Downloads/Media/MediaOutput.swift
 // notchcast-kit: platform
