@@ -29,6 +29,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 - A Dynamic Island around the notch, or a small pill on displays without one, on the built-in and external displays and over full-screen apps.
 - Home and Day pages: live activities, status messages, progress with Cancel, calendar events and calendar reminders. ⌘R refreshes a page, ⌘P pins the island open.
+- AI usage page: the quota left on every Magpie account, with reset countdowns.
 - Opens on hover or by command (Toggle Island, Hyper+S, opens it pinned), and opens the launcher right under it.
 - Volume and brightness levels, now playing, dictation status, timers, low disk and Wi-Fi, Tailscale and battery notices show in the island.
 
