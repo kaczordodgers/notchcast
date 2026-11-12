@@ -47,7 +47,7 @@ nonisolated struct ArchiveJournal {
     static func validateStaging(_ staging: URL, archive: URL) throws {
         let staging = ArchiveFiles.resolvedParent(staging)
         let archive = ArchiveFiles.resolvedParent(archive)
-        let prefix = ".notchcast-extract-"
+        let prefix = ArchiveFiles.stagingPrefix
         guard ArchiveFiles.samePath(staging.deletingLastPathComponent(), archive.deletingLastPathComponent()),
               staging.lastPathComponent.hasPrefix(prefix),
               UUID(uuidString: String(staging.lastPathComponent.dropFirst(prefix.count))) != nil else {

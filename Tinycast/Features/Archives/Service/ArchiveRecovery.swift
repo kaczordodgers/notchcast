@@ -36,7 +36,7 @@ nonisolated struct ArchiveRecovery: Codable {
             guard ArchiveFiles.exists(parent) else { continue }
             try recover(in: parent)
             for file in try FileManager.default.contentsOfDirectory(at: parent, includingPropertiesForKeys: nil)
-            where file.lastPathComponent.hasPrefix(".notchcast-extract-") && file.pathExtension == "json" {
+            where file.lastPathComponent.hasPrefix(ArchiveFiles.stagingPrefix) && file.pathExtension == "json" {
                 let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: file)).resolved
                 let owner = record.owner ?? 0
                 guard record.inPlace, record.state == .running,
@@ -56,7 +56,7 @@ nonisolated struct ArchiveRecovery: Codable {
         let parent = ArchiveFiles.resolvedDirectory(parent)
         let archive = archive.map(ArchiveFiles.resolvedParent)
         let children = try FileManager.default.contentsOfDirectory(at: parent, includingPropertiesForKeys: nil)
-        for sidecar in children where sidecar.lastPathComponent.hasPrefix(".notchcast-extract-")
+        for sidecar in children where sidecar.lastPathComponent.hasPrefix(ArchiveFiles.stagingPrefix)
             && sidecar.pathExtension == "json" {
             let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: sidecar)).resolved
             if let archive, !ArchiveFiles.samePath(record.archive, archive) { continue }
@@ -76,8 +76,9 @@ nonisolated struct ArchiveRecovery: Codable {
             }
         }
         guard archive == nil else { return nil }
-        for staging in children where UUID(uuidString: String(staging.lastPathComponent.dropFirst(19))) != nil
-            && staging.lastPathComponent.hasPrefix(".notchcast-extract-") {
+        for staging in children
+        where UUID(uuidString: String(staging.lastPathComponent.dropFirst(ArchiveFiles.stagingPrefix.count))) != nil
+            && staging.lastPathComponent.hasPrefix(ArchiveFiles.stagingPrefix) {
             guard ArchiveFiles.exists(staging) else { continue }
             guard !ArchiveFiles.exists(URL(fileURLWithPath: staging.path + ".json")) else { continue }
             let journals = children.filter { $0.pathExtension == "hatchzip" }

@@ -2,6 +2,8 @@ import Darwin
 import Foundation
 
 nonisolated enum ArchiveFiles {
+    static let stagingPrefix = ".notchcast-extract-"
+
     static func samePath(_ lhs: URL, _ rhs: URL) -> Bool {
         resolvedParent(lhs).standardizedFileURL.path == resolvedParent(rhs).standardizedFileURL.path
     }
@@ -40,7 +42,7 @@ nonisolated enum ArchiveFiles {
     /// Hidden owner-only staging beside the archive, carrying its quarantine.
     static func stage(beside archive: URL) throws -> (staging: URL, quarantine: Data?) {
         let warning = try quarantine(archive)
-        let staging = archive.deletingLastPathComponent().appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let staging = archive.deletingLastPathComponent().appending(path: "\(stagingPrefix)\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false,
                                                 attributes: [.posixPermissions: 0o700])
         do { try applyQuarantine(warning, to: staging) } catch {
