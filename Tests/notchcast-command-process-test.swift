@@ -46,11 +46,28 @@ import Foundation
         precondition(URL(fileURLWithPath: directory).resolvingSymlinksInPath().path == root.resolvingSymlinksInPath().path,
             "Working directory \(directory.debugDescription), expected \(root.resolvingSymlinksInPath().path.debugDescription)")
         precondition(output.standardError == Data("error output".utf8), "stderr must be captured separately")
-        let longOutput = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
-            arguments: ["-c", "dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' x; "
-                + "dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' y >&2"], workingDirectory: nil))
-        precondition(longOutput.standardOutput == Data(String(repeating: "x", count: 65_536).utf8))
-        precondition(longOutput.standardError == Data(String(repeating: "y", count: 65_536).utf8))
+        let wrote = root.appending(path: "long-wrote"), release = root.appending(path: "long-release")
+        let long = Task { try await CommandProcessRunner.run(.init(executable: "/bin/sh", arguments: ["-c",
+            "printf START; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' x; printf END; "
+                + "printf START >&2; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' y >&2; "
+                + "printf END >&2; : > \"$1\"; while [ ! -e \"$2\" ]; do sleep .01; done",
+            "sh", wrote.path, release.path], workingDirectory: nil)) }
+        let longDeadline = ContinuousClock.now + .seconds(30)
+        while !FileManager.default.fileExists(atPath: wrote.path) {
+            precondition(ContinuousClock.now < longDeadline, "Long command must finish writing")
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let temp = FileManager.default.temporaryDirectory
+        let spooled = try FileManager.default.contentsOfDirectory(atPath: temp.path)
+            .filter { $0.hasPrefix("notchcast-run-") }
+            .flatMap { run in ["out", "err"].map { temp.appending(path: "\(run)/\($0)").path } }
+            .compactMap { try? FileManager.default.attributesOfItem(atPath: $0)[.size] as? Int }
+            .reduce(0, +)
+        precondition(spooled < 1_048_576, "A running command must not spool its whole output (\(spooled) bytes)")
+        try Data().write(to: release)
+        let longOutput = try await long.value
+        precondition(longOutput.standardOutput == Data((String(repeating: "x", count: 65_533) + "END").utf8))
+        precondition(longOutput.standardError == Data((String(repeating: "y", count: 65_533) + "END").utf8))
         let signaled = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "kill -TERM $$"], workingDirectory: nil))
         precondition(signaled.exitStatus == 128 + SIGTERM)
@@ -70,7 +87,7 @@ import Foundation
             try await CommandProcessRunner.run(.init(executable: "/bin/sh", arguments: ["-c",
                 "trap '' TERM; echo $$ > \"$1\"; "
                     + "/bin/sh -c 'trap \"\" TERM; echo $$ > \"$1\"; exec sleep 120' sh \"$2\" & wait",
-                "sh", quitPIDFile.path, childPIDFile.path], workingDirectory: root.path))
+                "sh", quitPIDFile.path, childPIDFile.path], workingDirectory: root.path, timeout: .seconds(5)))
         }
         let quitDeadline = ContinuousClock.now + .seconds(10)
         while !FileManager.default.fileExists(atPath: childPIDFile.path) {
