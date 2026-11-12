@@ -1,9 +1,9 @@
 case "$name" in
-    app-installation-test|launcher-settings-file-test)
+    app-installation-test|launcher-settings-file-test|AppInstallationTests|LauncherSettingsFileTests)
         set -- "$@" Tests/NotchcastCommandHarnessSupport.swift ;;
-    hotkey-dispatch-test)
+    hotkey-dispatch-test|HotKeyDispatchTests)
         set -- "$@" Tests/NotchcastHotKeyHarnessSupport.swift ;;
-    settings-history-test)
+    settings-history-test|SettingsHistoryTests)
         set -- "$@" Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift ;;
 esac
 
