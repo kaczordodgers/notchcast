@@ -64,6 +64,8 @@ nonisolated enum ProcessRunner {
         let signaled: Bool
         let stdout: Data
         let stderr: Data
+
+        var exitCode: Int32 { signaled ? 128 + status : status }
     }
 
     enum Failure: Error, Equatable { case timedOut, outputLimit }
