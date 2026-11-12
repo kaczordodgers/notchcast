@@ -23,7 +23,7 @@ func settle() async {
 @main
 @MainActor
 struct NotchcastCoreTests {
-    static func main() async {
+    static func main() async throws {
         for feature: NotchcastFeature in [.showDesktop, .spacesOrder, .hideCommandM,
                                          .middleClick, .greenMaximize] {
             precondition(feature.settingsGroup == .system)
@@ -137,9 +137,20 @@ struct NotchcastCoreTests {
         await settle()
         precondition(ungated.stops == 1 && hover.stops == 2)
         let phases: [NotchcastTerminationPhase] = [.beforeMacUpdate, .beforeSettingsBackup, .beforeRootDrain, .afterRootDrain]
+        let coreSource = try String(contentsOfFile: "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", encoding: .utf8)
+        let terminationStart = coreSource.range(of: "static func stopForTermination() async {")!.upperBound
+        let terminationEnd = coreSource.range(
+            of: "\n    static func start(", range: terminationStart..<coreSource.endIndex)!.lowerBound
+        var terminationBody = coreSource[terminationStart..<terminationEnd]
+        for phase in phases {
+            guard let call = terminationBody.range(of: "await controller?.stopForTermination(.\(phase))") else {
+                preconditionFailure("Core must await termination phase \(phase) in order")
+            }
+            terminationBody = terminationBody[call.upperBound...]
+        }
         for phase in phases { await controller.stopForTermination(phase) }
         precondition([hover, ungated, battery].allSatisfy { $0.terminations == phases })
         precondition(hover.stops == 2 && ungated.stops == 1 && battery.stops == 1)
-        print("PASS: switches, persistence, Observation gating, awaited termination hooks for running and stopped modules")
+        print("PASS: switches, persistence, Observation gating, Core phase order and awaited module termination hooks")
     }
 }
