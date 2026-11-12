@@ -8,8 +8,10 @@ import Foundation
 final class TestModule: NotchcastModule {
     var starts = 0
     var stops = 0
+    var terminations: [NotchcastTerminationPhase] = []
     func start() { starts += 1 }
     func stop() { stops += 1 }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { await Task.yield(); terminations.append(phase) }
 }
 
 /// Lets the controller's re-armed observation run, which happens on the main actor's next turn.
@@ -21,7 +23,7 @@ func settle() async {
 @main
 @MainActor
 struct NotchcastCoreTests {
-    static func main() async {
+    static func main() async throws {
         for feature: NotchcastFeature in [.showDesktop, .spacesOrder, .hideCommandM,
                                          .middleClick, .greenMaximize] {
             precondition(feature.settingsGroup == .system)
@@ -134,6 +136,21 @@ struct NotchcastCoreTests {
         preferences.set(.launcherFromIsland, false)
         await settle()
         precondition(ungated.stops == 1 && hover.stops == 2)
-        print("PASS: M0 switches default on, isolated persistence, requires-set gating through Observation")
+        let phases: [NotchcastTerminationPhase] = [.beforeMacUpdate, .beforeSettingsBackup, .beforeRootDrain, .afterRootDrain]
+        let coreSource = try String(contentsOfFile: "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", encoding: .utf8)
+        let terminationStart = coreSource.range(of: "static func stopForTermination() async {")!.upperBound
+        let terminationEnd = coreSource.range(
+            of: "\n    static func start(", range: terminationStart..<coreSource.endIndex)!.lowerBound
+        var terminationBody = coreSource[terminationStart..<terminationEnd]
+        for phase in phases {
+            guard let call = terminationBody.range(of: "await controller?.stopForTermination(.\(phase))") else {
+                preconditionFailure("Core must await termination phase \(phase) in order")
+            }
+            terminationBody = terminationBody[call.upperBound...]
+        }
+        for phase in phases { await controller.stopForTermination(phase) }
+        precondition([hover, ungated, battery].allSatisfy { $0.terminations == phases })
+        precondition(hover.stops == 2 && ungated.stops == 1 && battery.stops == 1)
+        print("PASS: switches, persistence, Observation gating, Core phase order and awaited module termination hooks")
     }
 }

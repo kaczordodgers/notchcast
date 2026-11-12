@@ -12,6 +12,9 @@ final class TreadmillModule: NotchcastModule {
 
     func start() { coordinator.setEnabled(capability, true) }
     func stop() { coordinator.setEnabled(capability, false) }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async {
+        if phase == .beforeSettingsBackup, capability == .walk { await coordinator.stopForTermination() }
+    }
 }
 
 extension TreadmillCoordinator {

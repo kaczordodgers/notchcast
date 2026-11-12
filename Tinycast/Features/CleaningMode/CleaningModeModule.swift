@@ -15,7 +15,9 @@ final class CleaningModeModule: NotchcastModule {
     }
 
     func start() { enabled = true }
-    func stop() { enabled = false; engine.stop(); needsGrant = false }
+    func stop() { shutdown() }
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async { if phase == .beforeMacUpdate { shutdown() } }
+    private func shutdown() { enabled = false; engine.stop(); needsGrant = false }
 
     func begin() {
         guard enabled else { return }
