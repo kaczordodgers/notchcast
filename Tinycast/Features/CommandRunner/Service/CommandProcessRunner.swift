@@ -9,7 +9,8 @@ enum CommandProcessRunner {
         do {
             let result = try await ProcessRunner.run(.init(
                 executable: executable, arguments: request.arguments,
-                environment: ExecutableLocator.environment(running: executable),
+                environment: ExecutableLocator.environment(running: executable,
+                    adding: ["LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8"]),
                 directory: request.workingDirectory.map { URL(fileURLWithPath: $0) },
                 stderr: .capture(limit: 65_536), timeout: request.timeout,
                 stopLadder: .terminating(grace: .milliseconds(250)), stopsGroup: true,
