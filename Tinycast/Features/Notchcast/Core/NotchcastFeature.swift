@@ -210,7 +210,6 @@ extension NotchcastFeature {
     static let unwired: Set<Self> = [
         .todoIsland,
         .githubSearch,
-        .aiUsage,
         .aiUsageOtherMac,
         .inUseMarks,
         .dayWeather,

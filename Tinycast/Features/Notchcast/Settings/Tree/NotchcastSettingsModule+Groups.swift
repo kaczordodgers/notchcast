@@ -205,7 +205,7 @@ extension NotchcastSettingsModule {
         ]
         case .aiAndAgents: [
             .init(title: LocalizedStringResource("AI usage", table: "Notchcast"), items: [
-                .feature(.aiUsage, settings: [.aiAndAgentsUsageCache]),
+                .feature(.aiUsage, settings: [.aiAndAgentsUsageGateway]),
                 .feature(.aiUsageOtherMac, settings: []),
                 .feature(.agentSessions, settings: []),
                 .feature(.agentPricing, settings: []),

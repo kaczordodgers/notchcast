@@ -1,32 +1,46 @@
 import Foundation
 import Observation
 
-@MainActor
+@MainActor @Observable
 final class AIUsageModule: NotchcastModule {
     private(set) var isRunning = false
     private(set) var snapshots: [AIUsageSnapshot] = []
+    private(set) var gatewayDown = false
+    private(set) var isLoading = false
+    private(set) var refreshedAt: Date?
     let otherMac: OtherMacUsageService
-    private let provider: AIUsageProvider?
-    private let source: AIUsageSnapshotAdapter
-    private let preferences: NotchcastPreferences
-    private var generation = 0
-    private var refreshing = false
+    @ObservationIgnored private let source: AIUsageSnapshotAdapter
+    @ObservationIgnored private let preferences: NotchcastPreferences
+    @ObservationIgnored private let clock: () -> Date
+    @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var refreshID: UUID?
+    @ObservationIgnored private var lastGateway: String?
+
+    var needsRefresh: Bool {
+        guard lastGateway == preferences.aiUsageGateway, let refreshedAt else { return true }
+        let now = clock()
+        return now.timeIntervalSince(refreshedAt) > 60 || snapshots.contains { snapshot in
+            snapshot.windows.contains { window in
+                window.resetsAt.map { refreshedAt < $0 && $0 <= now } ?? false
+            }
+        }
+    }
 
     var peerStatus: String {
         otherMac.peerStatus == .available ? String(localized: "Connected", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast")
     }
 
     init(
-        provider: AIUsageProvider? = nil,
         preferences: NotchcastPreferences = .shared,
-        channel: MachLinkChannel = MachLinkChannel()
+        channel: MachLinkChannel = MachLinkChannel(),
+        clock: @escaping () -> Date = { Date.now }
     ) {
-        self.provider = provider
         self.preferences = preferences
+        self.clock = clock
         let source = AIUsageSnapshotAdapter()
         self.source = source
         otherMac = OtherMacUsageService(source: source, channel: channel, clock: { Date() })
-        channel.registerUsageRoute(provider: provider, preferences: preferences)
+        channel.registerUsageRoute(source: source, preferences: preferences)
     }
 
     func start() {
@@ -40,24 +54,40 @@ final class AIUsageModule: NotchcastModule {
         isRunning = false
         generation += 1
         snapshots = []
+        refreshedAt = nil
+        gatewayDown = false
+        isLoading = false
         source.snapshots = []
         otherMac.configure(peerEnabled: false, providers: [])
     }
 
     func refresh() async throws {
-        guard isRunning, !refreshing else { return }
-        let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
-            path: preferences.aiUsageCachePath, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
-        refreshing = true
-        defer { refreshing = false }
+        guard isRunning else { return }
+        let request = UUID()
+        refreshID = request
+        isLoading = true
+        defer { if refreshID == request { isLoading = false } }
         let operation = generation
-        let values = await provider.refresh()
-        try Task.checkCancellation()
-        guard isRunning, generation == operation else { return }
-        snapshots = values
-        source.snapshots = values
-        configurePeer()
-        try await otherMac.refresh()
+        let gateway = preferences.aiUsageGateway
+        do {
+            let values = try await AIUsageProvider.fetch(gateway: gateway, now: clock())
+            try Task.checkCancellation()
+            guard isRunning, generation == operation, refreshID == request,
+                  preferences.aiUsageGateway == gateway else { return }
+            snapshots = values
+            source.snapshots = values
+            gatewayDown = false
+            refreshedAt = clock()
+            lastGateway = gateway
+        } catch {
+            try Task.checkCancellation()
+            guard isRunning, generation == operation, refreshID == request,
+                  preferences.aiUsageGateway == gateway else { return }
+            gatewayDown = true
+            refreshedAt = nil
+            snapshots = []
+            source.snapshots = []
+        }
     }
 
     private func trackPeerPolicy(generation operation: Int) {

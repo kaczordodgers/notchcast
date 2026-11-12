@@ -5,9 +5,13 @@ nonisolated enum MacUpdateStep: CaseIterable, Sendable {
 }
 
 nonisolated struct MacUpdateCommand: Equatable, Sendable {
+    /// Both Homebrew kinds wait for its lock; `homebrewUpgrade` also clears quarantine.
+    enum Kind: Sendable { case tool, homebrew, homebrewUpgrade }
+
     var path: String
     var arguments: [String]
     var timeout: Duration = .seconds(900)
+    var kind = Kind.tool
 }
 
 nonisolated enum MacUpdatePlan: Sendable {
@@ -26,7 +30,8 @@ nonisolated enum MacUpdatePlan: Sendable {
             guard let brew else { return .skipped("missing-homebrew") }
             return .commands([MacUpdateCommand(
                 path: brew, arguments: [step == .homebrewUpdate ? "update" : "upgrade"],
-                timeout: .seconds(step == .homebrewUpdate ? 900 : 3600))])
+                timeout: .seconds(step == .homebrewUpdate ? 900 : 3600),
+                kind: step == .homebrewUpdate ? .homebrew : .homebrewUpgrade)])
         case .appStore:
             guard let mas = tools["mas"] else { return .skipped("missing-mas") }
             return .commands([MacUpdateCommand(path: mas, arguments: ["upgrade"], timeout: .seconds(3600))])
@@ -40,7 +45,7 @@ nonisolated enum MacUpdatePlan: Sendable {
                    let brew {
                     commands.append(MacUpdateCommand(
                         path: brew, arguments: ["upgrade", "--cask", "--greedy", String(parts[index + 1])],
-                        timeout: .seconds(1800)))
+                        timeout: .seconds(1800), kind: .homebrewUpgrade))
                 } else if real.contains("/node_modules/") {
                     let beside = URL(filePath: path).deletingLastPathComponent().appending(path: "npm").path
                     guard let npm = exists(beside) ? beside : tools["npm"] else { continue }
