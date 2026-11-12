@@ -96,7 +96,6 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | notchcast.quitProtection.mode | String: hold, doublePress | Known modes |
 | notchcast.quitProtection.exceptions | String array: 500 × 256 characters | App exceptions |
 | notchcast.day.marketSymbols | String array: 100 × 64 characters | Selected symbols |
-| notchcast.day.excludedCalendars | String array: 500 × 256 characters | Calendar exclusions |
 | notchcast.day.weatherPlace | JSON String ≤262144 bytes | Name/country ≤256, latitude ±90, longitude ±180 |
 | notchcast.dictationCleanup.settings | JSON String ≤262144 bytes | Plain cleanup configuration; no key material |
 | notchcast.appearance.surface | String: glass, black, matte | Surface style |
@@ -158,7 +157,9 @@ Restored promptAddition changes cleanup instructions sent to the current endpoin
 punctuation, wording and formatting within DictationCleanupGuard's lexical checks; those checks
 limit changes but do not guarantee semantic equivalence.
 
-Snapshots skip individual invalid keys and log only their names. Appearance snapshots read defaults
+A snapshot skips a feature whose settings cannot be read, logging its key names and the error, and skips individual invalid keys, logging only their names. The hourly check still saves the copy of everything else, and ends with the module's `failed` set, as it does when the copy could not be written; no screen shows that state yet. A day's copy is written once, except that a whole snapshot replaces a partial copy the same module run wrote that day, so `failed` describes the copy on disk; a partial copy left by an earlier launch stays until the next day.
+
+Appearance snapshots read defaults
 without constructing AppearanceStore. Apply updates a running store if one exists. No store is
 owned at launch today: restore constructs a temporary store to persist selections and refresh colors;
 surface style uses AppStorage, and a later store reads the restored values.
@@ -172,7 +173,8 @@ screen-recording capability and capture-output policy. `backupRunNow` and `backu
 excluded: they run the machine backup tool with its repository password command.
 `archivesInPlace` is excluded because it consumes the source archive, and `machineSetupProfile`
 because it gates a command that changes the Dock default. Backups written before these left the
-list are refused; the next daily file restores normally.
+list restore with those switches skipped; `notchcast.day.excludedCalendars`, removed with its only
+setter, is skipped the same way.
 The document editor carries `notchcast.editor.font` (system/jetBrainsMono),
 `notchcast.editor.theme` (system/githubDark), and `notchcast.editor.pairsAutomatically` (Bool).
 Restore updates `EditorCoordinator.shared.editorPreferences`; its setters retain the bare keys

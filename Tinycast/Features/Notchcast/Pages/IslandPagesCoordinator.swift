@@ -7,7 +7,8 @@ final class IslandPagesCoordinator {
     private let refreshState = IslandPageRefresh()
     private var homeRevision = UUID()
     var headerFocus: Int?
-    let pages = IslandPage.allCases
+    private(set) var activePage: IslandPage?
+    var pages: [IslandPage] { IslandPage.allCases.filter { $0.isAvailable } }
     @ObservationIgnored private let day: IslandDayPage
     @ObservationIgnored private let openSettings: () -> Void
 
@@ -38,13 +39,16 @@ final class IslandPagesCoordinator {
     #endif
 
     func didOpen(page: IslandPage) {
+        activePage = page
         headerFocus = nil
         cancelRefresh()
         if page == .day { day.reloadIfStale() }
+        if page == .usage, NotchcastCore.aiUsage.needsRefresh { refresh(page) }
         day.clock.start()
     }
 
     func didClose() {
+        activePage = nil
         cancelRefresh()
         headerFocus = nil
         day.clock.stop()
@@ -53,7 +57,9 @@ final class IslandPagesCoordinator {
     func refresh(_ page: IslandPage) {
         refreshState.run { [weak self] in
             guard let self else { return }
-            await page.refresh(home: { homeRevision = UUID() }, day: { day.refresh() })
+            await page.refresh(
+                home: { homeRevision = UUID() }, day: { day.refresh() },
+                usage: { try? await NotchcastCore.aiUsage.refresh() })
         }
     }
 

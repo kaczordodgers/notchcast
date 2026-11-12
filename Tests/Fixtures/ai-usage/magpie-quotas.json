@@ -1,0 +1,75 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Account A", "plan": "pro",
+      "windows": [
+        {"name": "5 hours", "used": 25, "remaining": 75, "resetsAt": null},
+        {"name": "7 days", "used": 40, "remaining": 60, "resetsAt": "2026-11-16T13:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 90, "remaining": 10, "resetsAt": "2026-11-16T13:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T23:30:00+01:00", "asOf": null
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Account B", "plan": "max",
+      "windows": [
+        {"name": "5 hours", "used": 100, "remaining": 0, "resetsAt": "2026-11-12T06:00:00+01:00"},
+        {"name": "7 days", "used": 15, "remaining": 85, "resetsAt": "2026-11-18T13:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 5, "remaining": 95, "resetsAt": "2026-11-18T13:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T23:30:00+01:00", "asOf": null
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Account C", "plan": "team",
+      "windows": [
+        {"name": "5 hours", "used": 70, "remaining": 30, "resetsAt": "2026-11-12T01:00:00+01:00"},
+        {"name": "7 days", "used": 20, "remaining": 80, "resetsAt": "2026-11-18T19:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 30, "remaining": 70, "resetsAt": "2026-11-18T19:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T22:00:00+01:00", "asOf": "2026-11-11T23:00:00+01:00"
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Account D", "plan": "pro",
+      "windows": [
+        {"name": "5 hours", "used": 35, "remaining": 65, "resetsAt": "2026-11-12T04:00:00+01:00"},
+        {"name": "7 days", "used": 60, "remaining": 40, "resetsAt": "2026-11-17T13:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 80, "remaining": 20, "resetsAt": "2026-11-17T13:00:00+01:00"},
+        {"name": "Extra window", "used": 50, "remaining": 50, "resetsAt": null}
+      ],
+      "readAt": "2026-11-11T23:30:00+01:00", "asOf": null
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Account E", "plan": "max",
+      "windows": [
+        {"name": "5 hours", "used": 45, "remaining": 55, "resetsAt": "2026-11-12T03:00:00+01:00"},
+        {"name": "7 days", "used": 55, "remaining": 45, "resetsAt": "2026-11-17T15:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 65, "remaining": 35, "resetsAt": "2026-11-17T15:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T22:00:00+01:00", "asOf": "2026-11-11T23:00:00+01:00"
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Account F", "plan": "team",
+      "windows": [
+        {"name": "5 hours", "used": 10, "remaining": 90, "resetsAt": "2026-11-12T01:00:00+01:00"},
+        {"name": "7 days", "used": 95, "remaining": 5, "resetsAt": "2026-11-16T13:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 85, "remaining": 15, "resetsAt": "2026-11-16T13:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T22:00:00+01:00", "asOf": "2026-11-11T23:00:00+01:00"
+    },
+    {
+      "provider": "grok", "name": "Account G", "alias": null, "plan": null,
+      "windows": [
+        {"name": "7 days", "used": 75, "remaining": 25, "resetsAt": "2026-11-13T12:00:00.000Z"}
+      ],
+      "readAt": "2026-11-11T22:30:00.000Z", "asOf": null
+    },
+    {
+      "provider": "codex", "name": "Account H", "alias": "", "plan": "plus",
+      "windows": [
+        {"name": "7 days", "used": 50, "remaining": 50, "resetsAt": "2026-11-18T13:00:00+01:00"},
+        {"name": "Image generation", "used": 0, "remaining": 100, "display": "Unknown", "text": true}
+      ],
+      "readAt": "2026-11-11T23:30:00+01:00", "asOf": null
+    }
+  ]
+}

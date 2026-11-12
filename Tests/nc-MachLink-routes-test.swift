@@ -52,7 +52,9 @@ struct MachLinkRoutesTest {
 
         let pairing = try MachLinkPairing.create()
         let server = MachLinkChannel()
-        _ = AIUsageModule(provider: AIUsageProvider(cacheDirectory: directory), preferences: preferences, channel: server)
+        let usage = AIUsageModule(preferences: preferences, channel: server)
+        usage.start()
+        defer { usage.stop() }
         let tasks = TodoLinkCoordinator.live(channel: server, preferences: preferences)
         let store = try await TodoStore.open(directory: directory.appending(path: "tasks"))
         defer { try? store.close() }
