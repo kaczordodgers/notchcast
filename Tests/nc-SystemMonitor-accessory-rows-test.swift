@@ -17,4 +17,6 @@ struct AccessoryRowsTests {
         print("6 passed, 0 failed; fake readings only")
     }
 }
+// notchcast-sources: Tinycast/Features/SystemMonitor/Model/*.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Service/*.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift

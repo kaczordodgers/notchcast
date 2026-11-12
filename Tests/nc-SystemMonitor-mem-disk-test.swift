@@ -49,4 +49,6 @@ struct MemoryDiskTests {
         print("Memory/disk fixed-input and live shape checks passed")
     }
 }
+// notchcast-sources: Tinycast/Features/SystemMonitor/Model/*.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Service/*.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
