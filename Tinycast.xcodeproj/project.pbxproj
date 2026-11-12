@@ -527,6 +527,7 @@
 		3FD96768E81105B8EC348499 /* ActionMenuSearchQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BF04E2CB1821C6AA3C7B0 /* ActionMenuSearchQuery.swift */; };
 		4003B2EA091BEC30DC386A3B /* RoomArrangement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAC61A9583AF468EC95C0B6 /* RoomArrangement.swift */; };
 		40098EF8D79CFFE3B476CA8D /* ForkSettingsBackupCopiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACBBEEC0B7C310568C7D4DBC /* ForkSettingsBackupCopiesView.swift */; };
+		40380811C6CAEA5DC054A452 /* IslandController+CommandAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A2F4C0651465F72C6CEA58 /* IslandController+CommandAvailability.swift */; };
 		404429C36A8142D2C01FCCAC /* CustomWindowSize+DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9445B74563C49EAAF97BA2A9 /* CustomWindowSize+DeepLink.swift */; };
 		4053E8E50ADDA5083544495C /* NotchcastAppProof+ArchiveFallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3F0E25911105D0541118C4 /* NotchcastAppProof+ArchiveFallback.swift */; };
 		4063942AF86A7BED5D8EEE57 /* ServicesMenu.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E63196B2768F546B091D66E8 /* ServicesMenu.xcstrings */; };
@@ -2283,6 +2284,7 @@
 		0548C62E98174F92E13437FB /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
 		05526BC0B7193D560F208BF5 /* BackupStatusFileMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStatusFileMonitor.swift; sourceTree = "<group>"; };
 		059EE288BB5EF35F9FB60F43 /* WindowShortcutPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowShortcutPreset.swift; sourceTree = "<group>"; };
+		05A2F4C0651465F72C6CEA58 /* IslandController+CommandAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IslandController+CommandAvailability.swift"; sourceTree = "<group>"; };
 		05A803EA633937B8C0A40636 /* TweaksStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweaksStore.swift; sourceTree = "<group>"; };
 		05F14DC78A6F9739DC066F49 /* NotchcastActionCommandRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastActionCommandRow.swift; sourceTree = "<group>"; };
 		061BF2CC921423F219DE3ED5 /* NotchcastDownloadServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastDownloadServices.swift; sourceTree = "<group>"; };
@@ -6912,6 +6914,7 @@
 				3DC7E2E86DB74B6CF8013A52 /* IslandController.swift */,
 				AE62DB2996376F19FA7F0917 /* IslandController+Closed.swift */,
 				6EF7C51C829651AEFD4443CC /* IslandController+Command.swift */,
+				05A2F4C0651465F72C6CEA58 /* IslandController+CommandAvailability.swift */,
 				1637127A8E49823F79F67751 /* IslandDescriptor.swift */,
 				9C5479D55191B97304BC0302 /* IslandExternalDisplaysDescriptor.swift */,
 				C303011DAC46108177EE9045 /* IslandFullScreenDescriptor.swift */,
@@ -11622,6 +11625,7 @@
 				36DB53BFAA489087DF001B74 /* IslandContentView.swift in Sources */,
 				07D7F21DACF8EBEC714ED7D5 /* IslandController+Closed.swift in Sources */,
 				59AE327ABF1DCEF3FF43A695 /* IslandController+Command.swift in Sources */,
+				40380811C6CAEA5DC054A452 /* IslandController+CommandAvailability.swift in Sources */,
 				2374271F8C231E473D777114 /* IslandController.swift in Sources */,
 				52F46457C3120DBD55A4398A /* IslandDayPage.swift in Sources */,
 				A2115F646516A7EA3CD7E447 /* IslandDayView.swift in Sources */,
