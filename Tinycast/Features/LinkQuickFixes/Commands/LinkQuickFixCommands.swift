@@ -13,7 +13,7 @@ extension LinkQuickFixModule {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString($0, forType: .string)
         }, open: { NSWorkspace.shared.open($0) }, settings: {
-            AppCore.shared.settingsCoordinator.showSettings(tab: .notchcast, revealing: .section(.notchcastAIUsage))
+            NotchcastHost.current.showLinkSettings()
         }, message: { NotchcastHost.current.showMessage($0, .success) })
         execute = executor.run
         choose = { actions, note in
@@ -27,10 +27,10 @@ extension LinkQuickFixModule {
                 case .copyCommand: title = String(localized: "Copy Sync Command", table: "Notchcast")
                 case .openMirrorLog: title = String(localized: "Open Log", table: "Notchcast")
                 }
-                return DialogAction(title: title)
-            } + [DialogAction(title: String(localized: "Cancel"), role: .cancel)]
-            let index = await AppCore.shared.choose(title: String(localized: "Fix Mac Link", table: "Notchcast"),
-                message: note, symbol: "link", options: options, defaultIndex: actions.count)
+                return title
+            }
+            let index = await NotchcastHost.current.choose(String(localized: "Fix Mac Link", table: "Notchcast"),
+                note, "link", options, String(localized: "Cancel"))
             return actions.indices.contains(index) ? index : nil
         }
         return self
