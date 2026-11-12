@@ -47,6 +47,7 @@ import Foundation
             "Working directory \(directory.debugDescription), expected \(root.resolvingSymlinksInPath().path.debugDescription)")
         precondition(output.standardError == Data("error output".utf8), "stderr must be captured separately")
         let wrote = root.appending(path: "long-wrote"), release = root.appending(path: "long-release")
+        let longStart = Date().addingTimeInterval(-1)
         let long = Task { try await CommandProcessRunner.run(.init(executable: "/bin/sh", arguments: ["-c",
             "printf START; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' x; printf END; "
                 + "printf START >&2; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' y >&2; "
@@ -60,7 +61,10 @@ import Foundation
         let temp = FileManager.default.temporaryDirectory
         let spooled = try FileManager.default.contentsOfDirectory(atPath: temp.path)
             .filter { $0.hasPrefix("notchcast-run-") }
+            .filter { run in ((try? FileManager.default.attributesOfItem(atPath: temp.appending(path: run).path))?[
+                .creationDate] as? Date).map { $0 >= longStart } ?? false }
             .flatMap { run in ["out", "err"].map { temp.appending(path: "\(run)/\($0)").path } }
+            .filter { (FileHandle(forReadingAtPath: $0)?.readData(ofLength: 5)).map { $0 == Data("START".utf8) } ?? false }
             .compactMap { try? FileManager.default.attributesOfItem(atPath: $0)[.size] as? Int }
             .reduce(0, +)
         precondition(spooled < 1_048_576, "A running command must not spool its whole output (\(spooled) bytes)")
