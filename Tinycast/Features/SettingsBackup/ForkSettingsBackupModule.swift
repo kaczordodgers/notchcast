@@ -12,14 +12,14 @@ final class ForkSettingsBackupModule: NotchcastModule {
             while !Task.isCancelled {
                 guard let self else { return }
                 do {
-                    let values = try ForkSettingsBackupState.live.snapshot()
+                    let (values, skipped) = ForkSettingsBackupState.liveSnapshot()
                     let now = Date.now
                     let data = try ForkSettingsBackupEngine.encode(values, created: now)
                     try await ForkSettingsBackupService.save(
                         data, folder: NotchcastIdentity.supportRoot.appendingPathComponent("fork-settings-backups"),
                         day: Int(now.timeIntervalSince1970 / 86_400))
                     guard !Task.isCancelled else { return }
-                    failed = false
+                    failed = !skipped.isEmpty
                 } catch {
                     guard !Task.isCancelled else { return }
                     failed = true

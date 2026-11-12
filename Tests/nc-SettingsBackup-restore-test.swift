@@ -116,6 +116,24 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
 }
 
 @main struct RestoreTest {
+    /// Runs the module as its hook does, until it has written today's copy and settled its state.
+    @MainActor static func hourlyCopy(waitsForFailure: Bool) async throws -> (keys: [String], failed: Bool) {
+        let folder = NotchcastIdentity.supportRoot.appendingPathComponent("fork-settings-backups")
+        try? FileManager.default.removeItem(at: folder)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let module = ForkSettingsBackupModule()
+        module.start()
+        defer { module.stop() }
+        var copies: [ForkSettingsBackupService.Copy] = []
+        for _ in 0..<200 where copies.isEmpty || module.failed != waitsForFailure {
+            copies = try await ForkSettingsBackupService.copies(folder: folder)
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        precondition(!copies.isEmpty, "the hourly backup wrote no copy")
+        let data = try await ForkSettingsBackupService.read(folder: folder, name: copies[0].name)
+        return (Array(try ForkSettingsBackupEngine.decode(data).keys), module.failed)
+    }
+
     @MainActor static func main() async throws {
         precondition(Bundle.main.bundleIdentifier == "test.notchcast.settings-backup")
         let liveDomain = Bundle.main.bundleIdentifier! + ".notchcast"
@@ -315,7 +333,14 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             try await ForkSettingsBackupService.save(encoded, folder: badFolder, day: 1)
             let written = try await ForkSettingsBackupService.read(folder: badFolder, name: "settings-v2-1.plist")
             precondition(written == encoded)
+            let partialCopy = try await hourlyCopy(waitsForFailure: true)
+            precondition(partialCopy.failed, "a backup that left a feature out reported itself healthy")
+            precondition(Set(partialCopy.keys) == Set(complete.keys).subtracting(["notchcast.dictationCleanup.settings"]))
         }
+        liveDefaults.removeObject(forKey: "dictationCleanupSettings")
+        let wholeCopy = try await hourlyCopy(waitsForFailure: false)
+        precondition(!wholeCopy.failed && Set(wholeCopy.keys) == Set(complete.keys))
+        print("PASS: the hourly backup saves the readable features and fails only when it left one out")
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
         let statusFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: statusFolder, withIntermediateDirectories: true)
