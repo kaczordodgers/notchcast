@@ -37,6 +37,10 @@ enum ForkSettingsBackupEngine {
                 values.removeValue(forKey: key)
             }
         }
+        // Calendar exclusions left with their only setter; older backups still carry the list.
+        if values["notchcast.day.excludedCalendars"] is [String] {
+            values.removeValue(forKey: "notchcast.day.excludedCalendars")
+        }
         try validate(values)
         return values
     }

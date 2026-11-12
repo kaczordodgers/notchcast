@@ -11,6 +11,7 @@ extension IslandPage {
         case .day:
             slug = "island-day"
             name = String(localized: "Show Island Day", table: "Notchcast")
+        case .usage: slug = "island-usage"; name = String(localized: "Show Island AI Usage", table: "Notchcast")
         }
         return NotchcastCommand(
             slug: slug, name: name, sfSymbol: symbol, feature: .island,
@@ -19,6 +20,7 @@ extension IslandPage {
                 guard IslandController.shared.commandsAvailable, preferences.isOn(.island) else { return false }
                 switch self {
                 case .home: return true
+                case .usage: return preferences.isOn(.aiUsage)
                 case .day: return [.dayCalendar, .dayWeather, .dayMarkets].contains { preferences.isOn($0) }
                 }
             }, run: {

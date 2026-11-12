@@ -1,30 +1,15 @@
-# AI usage and Mac link
+# AI usage
 
-The `aiUsage`, `aiUsageOtherMac` and `machLink` switches default off. They do not depend on Island.
-Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands.
-The other-Mac switch is effective only while AI usage and Mac link are enabled: its descriptor lists both as dependencies, and the requester and the `ai-usage` route both ask `isEnabled(.aiUsageOtherMac)`.
+Enable **AI usage** in Notchcast → AI & Agents to add **AI usage** after Home and Day in the island. The launcher command **Show Island AI Usage** follows the same feature switch. The switch defaults off. Cmd+R refreshes, Cmd+P pins, and page key 3 selects AI usage while the island is open. Opening the page fetches when the gateway changed, the last successful refresh is older than 60 seconds, or a quota reset has passed since that refresh.
 
-`AIUsageModule.refresh()` reads the local cache on demand. Starting a module does not read it, and
-there is no refresh timer. The provider accepts an injected directory and clock for fixture tests.
-An empty cache path resolves to `~/.t3/caches` at refresh time; an explicit path wins.
-Local snapshots retain optional reset credits (`availableCount`); malformed credits are ignored.
-`AIUsageSnapshotAdapter` projects provider windows into the peer engine's normalized wire readings;
-the wire representation intentionally carries no provider-specific display or reset metadata.
+`AIUsageModule.refresh()` calls `AIUsageProvider.fetch(gateway:now:)`, which requests `GET {gateway}/v1/magpie/quotas` through an ephemeral URLSession with no response cache and a 15-second request timeout. **Magpie gateway** in Settings defaults to `http://127.0.0.1:3425`. Surrounding whitespace is ignored and an address without a scheme assumes `http://`. A remote address has the same shape as `http://other-mac.local:3425`, but prefer loopback or HTTPS: the gateway response carries account identities that the app ignores, while the network still carries them. With the current Info.plist, App Transport Security blocks plain HTTP to non-loopback numeric addresses and public domains; `.local` names pass ATS but still need local network access. No ATS exception is configured.
 
-`MachLink/AIUsageLinkModule` owns the listener and browser. Switching Mac link off stops both and cancels
-incoming work. `MachLinkChannel+OtherMacUsage.swift` registers the `ai-usage` route; incoming requests require that rule to hold before and after reading a local
-snapshot. Outbound peer requests retain the engine's one-minute minimum interval.
+The first request shows **Loading AI accounts…**. A successful response with no accounts shows **No AI accounts available.** Connection, HTTP and malformed-response failures show **Magpie isn't running** with Retry. A failure invalidates the previous refresh time, so reopening retries immediately and Retry shows loading even after an earlier success. Malformed accounts and individual windows are skipped while valid entries remain available. Starting the module alone does not fetch. Gateway changes fetch only while the island is open on AI usage. Closing the island cancels its refresh. Late responses cannot overwrite a newer request, a changed gateway or a stopped module. If AI usage was the last page when its switch was disabled, the next island opening falls back to Day.
 
-Enable Mac link on both Macs. Pair with an empty code on one Mac, then enter that code and Pair on
-the other. The code contains the shared authentication secret: transfer it privately. The app stores
-the secret in its bundle-scoped Keychain service and only its identifier in fork-local defaults.
-Unpair removes that secret. Pairing codes are never included in settings backups or logs.
+The pure `MagpieQuotaDecoder` reads the list of accounts into `AIUsageSnapshot`. Each account keeps its provider, alias (falling back to name for a null or empty alias), optional plan, windows, optional read time and optional cache time. Missing windows default to an empty list. Windows marked `text: true`, including Codex's unknown image-generation quota, are omitted rather than presented as numeric quota. The `user` field is not decoded, displayed, persisted or logged, and is absent from fixtures. Snapshots stay in memory. Percent left is `100 - used`, clamped to 0–100; the gateway's `remaining` field is not used for display. ISO 8601 timestamps accept offsets and fractional seconds. A null or passed reset date produces no countdown. When a reset passes and the reading predates it, the page shows 100% left until a new reading arrives. A reading taken at or after that reset, or one with no read time, keeps its reported percentage. The decoder alone marks an account stale when `asOf` exists or `readAt` is missing or older than 15 minutes. The view uses that status and displays a stale timestamp only when one exists.
 
-`Tests/notchcast-l5-ai-usage-wire-test.swift` covers default-off lifecycle, a fixture read, a missing
-peer, a real loopback peer response, child dependency changes and teardown. Physical two-Mac pairing
-and Settings rendering require integration verification.
+`IslandUsageView` adapts snapshots and supplies the Retry action. Only countdown text ticks each second, only while the island is open on this page. A separate cancellable wait updates a window's bar once at its reset boundary. The hidden open host remains mounted after close, so the coordinator explicitly deactivates both schedules. Extra windows wrap into another row within the account's window area. Disabling AI usage removes its page and launcher command and clears module snapshots.
 
-## Local network validation
+`aiUsageOtherMac` remains unwired. Both Macs can read one gateway, so this page does not enable a peer route. The gated route reads the module's current Magpie snapshots and filters by requested provider. The retired cache parser, directory provider API, cache preference and cache tests are removed. Following the fork's retirement rules in [feature-descriptors.md](feature-descriptors.md#retiring-a-feature), a leftover cache-path default is ignored rather than migrated into upstream startup; it was excluded from backups and never had a settings.json key. Existing Mac link pairing and its Keychain secrets are unchanged.
 
-Local-network privacy may require `NSLocalNetworkUsageDescription` and `NSBonjourServices`.
-Verify discovery and pairing on two Macs before shipping; Info.plist changes are deferred.
+`Tests/nc-AIUsage-magpie-test.swift` covers a fully synthetic eight-account fixture, four windows, both reset date formats, null and empty aliases, null resets, cache and age staleness, clamping, partial account and window recovery, unknown text windows, reset rollover and omission of the identity field. The gallery renders the same fixture. `Tests/notchcast-l5-ai-usage-wire-test.swift` uses an HTTP listener on loopback to cover first-fetch loading, empty results, HTTP 503, whitespace and missing-scheme addresses, in-flight gateway changes, reset freshness, lifecycle and the snapshot-backed peer route. ATS was checked separately with a probe using the Debug app's built Info.plist; remote gateway connectivity is not covered by the loopback harness.

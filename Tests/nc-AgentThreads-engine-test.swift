@@ -70,7 +70,7 @@ struct AgentThreadsTest {
                      "Child PATH comes from ExecutableLocator")
         let agents = AgentPaths(home: URL(filePath: "/Users/fixture"))
         precondition(agents.t3State.path == "/Users/fixture/.t3/userdata/statev2.sqlite")
-        precondition(agents.t3UserData.path == "/Users/fixture/.t3/userdata" && agents.t3Caches.path == "/Users/fixture/.t3/caches")
+        precondition(agents.t3UserData.path == "/Users/fixture/.t3/userdata")
         precondition(agents.claudeProjects.map(\.path) == ["/Users/fixture/.claude/projects", "/Users/fixture/.config/claude/projects"])
         precondition(agents.codexSessions.map(\.path) == ["/Users/fixture/.codex/sessions", "/Users/fixture/.codex/archived_sessions"])
         precondition(AgentThreadProjects().url == AgentPaths(home: FileManager.default.homeDirectoryForCurrentUser).t3State)

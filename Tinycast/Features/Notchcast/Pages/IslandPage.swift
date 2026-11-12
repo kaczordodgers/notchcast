@@ -1,7 +1,7 @@
 import Foundation
 
 enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
-    case home = 1, day
+    case home = 1, day, usage
 
     var id: Self { self }
     var key: String { String(rawValue) }
@@ -10,6 +10,7 @@ enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
         switch self {
         case .home: "Home"
         case .day: LocalizedStringResource("Day", table: "Notchcast")
+        case .usage: LocalizedStringResource("AI usage", table: "Notchcast")
         }
     }
 
@@ -17,6 +18,7 @@ enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
         switch self {
         case .home: "house"
         case .day: "calendar"
+        case .usage: "gauge"
         }
     }
 
@@ -24,14 +26,16 @@ enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
         Int(key).flatMap(Self.init(rawValue:))
     }
 
-    func landingPage(hasLiveActivities: Bool) -> Self {
-        self == .home && !hasLiveActivities ? .day : self
+    func landingPage(hasLiveActivities: Bool, isAvailable: Bool = true) -> Self {
+        guard isAvailable else { return .day }
+        return self == .home && !hasLiveActivities ? .day : self
     }
 
-    @MainActor func refresh(home: () async -> Void, day: () async -> Void) async {
+    @MainActor func refresh(home: () async -> Void, day: () async -> Void, usage: () async -> Void) async {
         switch self {
         case .home: await home()
         case .day: await day()
+        case .usage: await usage()
         }
     }
 }

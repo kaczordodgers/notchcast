@@ -5,8 +5,8 @@ struct NotchcastSettingRowsD: View {
 
     @ViewBuilder var body: some View {
         switch setting {
-        case .aiAndAgentsUsageCache:
-            AIUsageCacheDirectorySettingRow()
+        case .aiAndAgentsUsageGateway:
+            AIUsageGatewaySettingRow()
         case .aiAndAgentsBuildSnapshot:
             BuildStatsSnapshotSettingRow()
         case .aiAndAgentsCLIInstall:
