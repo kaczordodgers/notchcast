@@ -80,6 +80,18 @@ class HarnessInputsTest(unittest.TestCase):
         self.assertIn("Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift", arguments)
         self.assertEqual(["-framework", "AppKit"], arguments[arguments.index("-framework"):][:2])
 
+    def test_upstream_camel_case_harness_gets_its_header_inputs(self):
+        (self.root / "Scripts/run-tests.sh").write_text(
+            'run AppearanceTests Tinycast/DesignSystem/Theme.swift\n')
+        (self.root / "Tests/AppearanceTests.swift").write_text(
+            '// notchcast-sources: Tinycast/Features/Example/Model/*.swift\n')
+        queue = self.root / "queue"
+        queue.write_text("0 AppearanceTests - Tinycast/DesignSystem/Theme.swift\n")
+        subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
+                        'run() { :; }; source notchcast/test-harnesses.sh'],
+                       cwd=self.root, env=self.env, check=True)
+        self.assertIn(EXAMPLE, queue.read_text().split())
+
     def test_text_read_selects_consumer_even_after_deletion(self):
         self.assertIn("notchcast-reader-test", self.selected("fixtures/deleted.txt"))
 
