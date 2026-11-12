@@ -141,6 +141,7 @@
 		108FCA885546F7C5D9ABACFE /* SpeedTestPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE8B1D456BD9C7812022DEF /* SpeedTestPhase.swift */; };
 		109E27ACDAADDA42FE33E119 /* SettingsNavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BEC0805A8F5C39444EAF5 /* SettingsNavigationState.swift */; };
 		10AEFE3E4DBCB684591F9577 /* DictationHistoryClearPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE84CA7EC485178E5650C285 /* DictationHistoryClearPolicy.swift */; };
+		10B61F23E93C2BF646E032F6 /* TweaksProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B980255574E95283DFBB7C64 /* TweaksProcessRunner.swift */; };
 		10B7252F61354D808C3FD82C /* AgentThreadRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6276CFDA9B30EA32D6FAB20B /* AgentThreadRunner.swift */; };
 		111C7849734672342763E47E /* AIUsageLinkModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B9934664D4E885435C6653 /* AIUsageLinkModule.swift */; };
 		111E36B0E213889FD850A7A7 /* AgentSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8FF5734FCF55E7CD106A50E /* AgentSocketServer.swift */; };
@@ -3813,6 +3814,7 @@
 		B940F40350111BF762B30276 /* DistillConvertDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistillConvertDescriptor.swift; sourceTree = "<group>"; };
 		B95EE36A1805571776CA7C48 /* TodoDateParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDateParser.swift; sourceTree = "<group>"; };
 		B97A8C3E88FEBCBBEADF415B /* LauncherScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherScreen.swift; sourceTree = "<group>"; };
+		B980255574E95283DFBB7C64 /* TweaksProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweaksProcessRunner.swift; sourceTree = "<group>"; };
 		B99BE1533DFEFBE8B945C7DC /* AiUsageOtherMacDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiUsageOtherMacDescriptor.swift; sourceTree = "<group>"; };
 		B9B724FD9A867189A6118DF7 /* SpaceGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceGesture.swift; sourceTree = "<group>"; };
 		B9D14B02D3FE262EADFD3404 /* MarkdownTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTableView.swift; sourceTree = "<group>"; };
@@ -5772,6 +5774,7 @@
 			children = (
 				F877ABA00BEEF66090AC6BA1 /* FinderService.swift */,
 				2EC8A1C35E347AF1E5359493 /* TweakProfileRunner.swift */,
+				B980255574E95283DFBB7C64 /* TweaksProcessRunner.swift */,
 				05A803EA633937B8C0A40636 /* TweaksStore.swift */,
 				AF3C227305E6114F78165AC2 /* TypingPreferenceService.swift */,
 			);
@@ -12576,6 +12579,7 @@
 				74D9F7F8C8CEA5EE27436E4D /* TweaksJournal.swift in Sources */,
 				335EA62CC3B4438DE7B62079 /* TweaksModule+Registration.swift in Sources */,
 				2D291EDC389621CBAE514A2F /* TweaksModule.swift in Sources */,
+				10B61F23E93C2BF646E032F6 /* TweaksProcessRunner.swift in Sources */,
 				FCB85830D3BB3592C0C9AB64 /* TweaksSettingRows.swift in Sources */,
 				1130E414461A3373899056A9 /* TweaksStore.swift in Sources */,
 				A9658E00D0EA7EA1558D7651 /* TwoMacsSettingRows.swift in Sources */,
