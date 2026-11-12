@@ -40,15 +40,16 @@ import Foundation
         let output = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "pwd; printf 'error output' >&2; exit 7"], workingDirectory: root.path))
         precondition(output.exitStatus == 7, "Expected exit 7, got \(output.exitStatus)")
-        let directory = String(decoding: output.standardOutput, as: UTF8.self)
+        let directory = String(bytes: output.standardOutput, encoding: .utf8)!
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        precondition(directory == root.resolvingSymlinksInPath().path,
+        precondition(URL(fileURLWithPath: directory).resolvingSymlinksInPath().path == root.resolvingSymlinksInPath().path,
             "Working directory \(directory.debugDescription), expected \(root.resolvingSymlinksInPath().path.debugDescription)")
-        precondition(output.standardError == Data("error output".utf8),
-            "Expected stderr, got \(String(decoding: output.standardError, as: UTF8.self).debugDescription)")
+        precondition(output.standardError == Data("error output".utf8), "stderr must be captured separately")
         let longOutput = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
-            arguments: ["-c", "printf '%s' '" + String(repeating: "x", count: 70_000) + "'"], workingDirectory: nil))
+            arguments: ["-c", "printf 'prefix%s' '" + String(repeating: "x", count: 70_000)
+                + "'; printf 'prefix%s' '" + String(repeating: "y", count: 70_000) + "' >&2"], workingDirectory: nil))
         precondition(longOutput.standardOutput == Data(String(repeating: "x", count: 65_536).utf8))
+        precondition(longOutput.standardError == Data(String(repeating: "y", count: 65_536).utf8))
         let signaled = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "kill -TERM $$"], workingDirectory: nil))
         precondition(signaled.exitStatus == 128 + SIGTERM)
