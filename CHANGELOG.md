@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Capture Editor marks up a capture with arrows, text, rectangles, ellipses and blur, with undo and Copy. It opens after Capture Area, or from Edit Capture for the clipboard image or the last capture, on the capture's display. Close keeps the marks for the next Edit Capture. [#408](https://github.com/kaczordodgers/notchcast/pull/408) [#411](https://github.com/kaczordodgers/notchcast/pull/411) [#414](https://github.com/kaczordodgers/notchcast/pull/414) [#418](https://github.com/kaczordodgers/notchcast/pull/418) [#432](https://github.com/kaczordodgers/notchcast/pull/432)
 - X post and article links download as Markdown files, and the island shows download progress and a message for each failed download with its reason. [#468](https://github.com/kaczordodgers/notchcast/pull/468)
 - Find sharp covers for Firefox and Zen: an opt-in Music switch that shows the YouTube thumbnail for a track playing in Firefox-family browsers, which publish no artwork or a tiny one. Off by default, and nothing is read or fetched while it is off. [#489](https://github.com/kaczordodgers/notchcast/pull/489)
+- AI usage island page, after Home and Day: the quota left on every Magpie account, with reset countdowns, ⌘R to refresh and ⌘P to pin. It reads the local Magpie gateway and is off by default. [#572](https://github.com/kaczordodgers/notchcast/pull/572)
 
 ### Changed
 
@@ -23,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The launcher stays open while a screenshot is taken and takes the keyboard back afterwards. [#481](https://github.com/kaczordodgers/notchcast/pull/481)
 - Spaces order is set only by the Spaces order switch; the matching Tweaks item is removed so the two no longer fight. [#429](https://github.com/kaczordodgers/notchcast/pull/429)
 - The launcher opened from the island is Tinycast's glass panel again: it follows Light and Dark, keeps its shadow and hangs just below the island instead of turning black and covering the menu bar. [#508](https://github.com/kaczordodgers/notchcast/pull/508)
+- Convert Files makes ZIP and 7z archives and extracts through Archives, so it names them the same way (zipping report.pdf gives report.pdf.zip) and gets the same safety checks when extracting. [#562](https://github.com/kaczordodgers/notchcast/pull/562)
 
 ### Fixed
 
@@ -44,6 +46,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Clean shows "Needs the Notchcast helper update" when the helper is outdated, Disk counts nested selections once, and cut error output ends with [truncated]. [#524](https://github.com/kaczordodgers/notchcast/pull/524) [#530](https://github.com/kaczordodgers/notchcast/pull/530)
 - "Show library" is back in Settings search. [#512](https://github.com/kaczordodgers/notchcast/pull/512)
 - The task sync failure message no longer promises a retry that does not exist. [#488](https://github.com/kaczordodgers/notchcast/pull/488)
+- Copy Path, Clear Notifications, Generate Password, Shorten Link, Switch Noise Control and AirDrop Selected Files say what went wrong instead of one generic error. [#537](https://github.com/kaczordodgers/notchcast/pull/537)
+- Compressing to an exFAT or network volume works, and a name already taken gets one number, such as x (2).pdf instead of x (2) (2).pdf. [#541](https://github.com/kaczordodgers/notchcast/pull/541)
+- Clean reports an Optimize tool that timed out, and odd characters in a tool's output no longer fail the run. [#534](https://github.com/kaczordodgers/notchcast/pull/534)
+- Capture Screen says when the display is no longer there instead of doing nothing. [#571](https://github.com/kaczordodgers/notchcast/pull/571)
 
 ## [v0.12.8.snapshot.20261105211139] - 2026-11-05
 
