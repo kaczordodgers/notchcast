@@ -11,11 +11,15 @@ final class TweaksModule: NotchcastModule {
     private var wantsEnabled = false
     private let profileRunner: (Data, String) async throws -> Void
     private let journalFailure: String?
+    private var spotlightBusy = false
+    private let preferences: NotchcastPreferences
 
     init(key: String = "macSetupPlans", setupProfileRunner: TweakProfileRunner = .system,
+         preferences: NotchcastPreferences = .shared,
          profileRunner: @escaping (Data, String) async throws -> Void = TweaksModule.openProfile) {
         self.setupProfileRunner = setupProfileRunner
         self.profileRunner = profileRunner
+        self.preferences = preferences
         let defaults = NotchcastIdentity.current.defaults
         let (plans, failure) = TweaksJournal.load(defaults.data(forKey: key), home: NSHomeDirectory())
         if failure == .entriesDropped, let kept = try? JSONEncoder().encode(plans) { defaults.set(kept, forKey: key) }
@@ -45,7 +49,21 @@ final class TweaksModule: NotchcastModule {
                 message: String(localized: "Restore the captured preferences before disabling this feature?", table: "Notchcast"),
                 symbol: "arrow.uturn.backward", confirmTitle: String(localized: "Restore", table: "Notchcast")) else { return }
         }
-        NotchcastPreferences.shared.set(feature, enabled)
+        preferences.set(feature, enabled)
+    }
+
+    func setSpotlight(enabled: Bool) async {
+        guard !spotlightBusy, let core else { return }
+        spotlightBusy = true
+        defer { spotlightBusy = false }
+        let feature = NotchcastFeature.spotlightOff
+        guard await core.confirm(title: feature.title, message: feature.subtitle,
+                                 symbol: "gearshape", confirmTitle: feature.title),
+              preferences.isOn(feature) != enabled else { return }
+        do {
+            _ = try await RootHelperClient().run(enabled ? .spotlightOff : .spotlightOn)
+            preferences.set(feature, enabled)
+        } catch { core.showMessage(error.localizedDescription, tone: .danger) }
     }
 
     func stop() {
@@ -125,18 +143,18 @@ final class TweaksModule: NotchcastModule {
 
     @concurrent
     private static func run(_ commands: [TypingPreferencePlan.Command]) async throws {
-        guard commands.allSatisfy({ SystemToolsProcessRunner.allowedExecutables.contains($0.executable) }) else {
-            throw SystemToolsProcessRunner.Failure.invalidExecutable
+        guard commands.allSatisfy({ TweaksProcessRunner.allowedExecutables.contains($0.executable) }) else {
+            throw TweaksProcessRunner.Failure.invalidExecutable
         }
         for command in commands {
             try Task.checkCancellation()
-            _ = try SystemToolsProcessRunner().run(command.executable, arguments: command.arguments)
+            _ = try TweaksProcessRunner().run(command.executable, arguments: command.arguments)
         }
     }
 }
 
 extension TweakProfileRunner {
     static let system = Self { file in
-        _ = try SystemToolsProcessRunner().run("/usr/bin/open", arguments: [file.path])
+        _ = try TweaksProcessRunner().run("/usr/bin/open", arguments: [file.path])
     }
 }

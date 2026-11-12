@@ -2,7 +2,7 @@ import Foundation
 
 struct QuitProtectionEngine: Sendable {
     enum Shortcut: String, Sendable { case quit, close }
-    enum Mode: String, Sendable { case doublePress, hold }
+    enum Mode: String, CaseIterable, Sendable { case doublePress, hold }
 
     struct Configuration: Sendable, Equatable {
         var quitEnabled = true

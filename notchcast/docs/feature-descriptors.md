@@ -105,7 +105,7 @@ Dropping a feature deletes its case, descriptor, hub line, every list and settin
 | Retired | Was | Left on disk |
 | --- | --- | --- |
 | `agentAnswer` | unwired since #209, module empty | the Bool switch only |
-| `killProcess` | unwired, no command; `KillProcessService`, `KillProcessEntry` and the `stopProcesses` seam stay (System Monitor stops processes through them) | the Bool switch only |
+| `killProcess` | unwired, no command; `KillProcessService` and `KillProcessEntry` stay (System Monitor stops processes through them) | the Bool switch only |
 | `macSetup` | unwired; `TweaksModule.apply` had no caller since #235 | the Bool switch only; no `mac-setup-rollback-*.json` journal could be written. `macSetupPlans` is the shared tweak journal and stays |
 
 ## What stays out of the descriptor
