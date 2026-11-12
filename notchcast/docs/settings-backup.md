@@ -157,7 +157,9 @@ Restored promptAddition changes cleanup instructions sent to the current endpoin
 punctuation, wording and formatting within DictationCleanupGuard's lexical checks; those checks
 limit changes but do not guarantee semantic equivalence.
 
-Snapshots skip individual invalid keys and log only their names. Appearance snapshots read defaults
+A snapshot skips a feature whose settings cannot be read, logging its key names and the error, and skips individual invalid keys, logging only their names. The hourly check still saves the copy of everything else, and ends with the module's `failed` set, as it does when the copy could not be written; no screen shows that state yet. A day's copy is written once, except that a whole snapshot replaces a partial copy the same module run wrote that day, so `failed` describes the copy on disk; a partial copy left by an earlier launch stays until the next day.
+
+Appearance snapshots read defaults
 without constructing AppearanceStore. Apply updates a running store if one exists. No store is
 owned at launch today: restore constructs a temporary store to persist selections and refresh colors;
 surface style uses AppStorage, and a later store reads the restored values.

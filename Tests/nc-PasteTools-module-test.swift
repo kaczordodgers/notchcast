@@ -19,7 +19,10 @@ struct PasteImageModuleTests {
         board.clearContents()
         board.setData(Data([0x89]), forType: .png)
         let hub = EventTapHub()
-        let module = PasteImageModule(hub: hub, pasteboard: board.name, finderIsFrontmost: { true })
+        var frontmost = true
+        var frontmostChecks = 0
+        let finderIsFrontmost: @MainActor () -> Bool = { frontmostChecks += 1; return frontmost }
+        let module = PasteImageModule(hub: hub, pasteboard: board.name, finderIsFrontmost: finderIsFrontmost)
         func send(_ down: Bool = true, flags: CGEventFlags = .maskCommand, repeatKey: Bool = false,
                   synthetic: Bool = false) -> EventTapHub.Verdict {
             let event = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: down)!
@@ -38,37 +41,42 @@ struct PasteImageModuleTests {
         precondition(send(false) == .pass, "A second release passes")
         board.clearContents()
         board.setString("text", forType: .string)
-        module.clipboardTick()
+        module.refresh()
         precondition(send() == .pass, "Command-V over text in Finder passes through untouched")
         precondition(send(repeatKey: true) == .pass, "Its repeats pass")
         precondition(send(false) == .pass, "Its release passes")
         board.clearContents()
         board.setData(Data([0x89]), forType: .png)
-        precondition(send() == .pass, "The tap never reads the pasteboard: an image the main actor has not seen passes")
+        precondition(send() == .pass, "The tap never reads the pasteboard: an image the hook has not reported passes")
         precondition(send(false) == .pass, "Its release passes")
-        module.clipboardTick()
-        precondition(send() == .swallow, "The next main-actor tick takes the image")
+        module.refresh()
+        precondition(send() == .swallow, "The clipboard hook takes the image")
         precondition(send(false) == .swallow, "Its release stays taken")
         precondition(send(flags: [.maskCommand, .maskShift]) == .pass, "Other chords pass")
+        frontmost = false
+        module.refresh()
+        precondition(send() == .pass, "The hook takes nothing while Finder is behind")
+        precondition(send(false) == .pass, "Its release passes")
         module.stop()
         module.stop()
         precondition(hub.consumerCount == 0 && hub.handler == nil)
         // The stopped module ignores its queued pastes, so only now may the harness suspend.
         board.clearContents()
-        var frontmostChecks = 0
-        let looping = PasteImageModule(hub: hub, pasteboard: board.name,
-                                       finderIsFrontmost: { frontmostChecks += 1; return true })
-        looping.start()
-        board.clearContents()
+        let second = PasteImageModule(hub: hub, pasteboard: board.name, finderIsFrontmost: finderIsFrontmost)
+        second.start()
         board.setData(Data([0x89]), forType: .png)
-        try? await Task.sleep(for: .seconds(1))
-        precondition(send() == .swallow, "The module's own half-second loop takes an image with no manual tick")
+        frontmost = true
+        precondition(send() == .pass, "An image copied behind Finder passes until Finder comes to the front")
+        precondition(send(false) == .pass, "Its release passes")
         let workspace = NSWorkspace.shared.notificationCenter
         workspace.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
-        looping.stop()
+        try? await Task.sleep(for: .milliseconds(200))
+        precondition(send() == .swallow, "Finder coming to the front reads the pasteboard once")
+        workspace.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
+        second.stop()
         let checksAtStop = frontmostChecks
         try? await Task.sleep(for: .milliseconds(200))
-        precondition(frontmostChecks == checksAtStop, "An activation queued before stop starts no ticker after it")
-        print("✓ PasteImage module: start once, take, repeat, release, text and chord pass-through checks passed")
+        precondition(frontmostChecks == checksAtStop, "An activation queued before stop reads nothing after it")
+        print("✓ PasteImage module: start once, hook, activation, repeat, release, text and chord pass-through checks passed")
     }
 }
