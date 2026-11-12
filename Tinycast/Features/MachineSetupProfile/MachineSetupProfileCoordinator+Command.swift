@@ -11,7 +11,7 @@ extension MachineSetupProfileCoordinator {
         })
 
     private static func importProfile(_ file: URL) async {
-        let core = AppCore.shared
+        let host = NotchcastHost.current
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         do {
             let profile = try await read(file)
@@ -19,18 +19,17 @@ extension MachineSetupProfileCoordinator {
                 enabled: { NotchcastPreferences.shared.isOn(.machineSetupProfile) },
                 preview: { await execute(profile, version: version, dryRun: true) },
                 confirm: { steps in
-                    await core.confirm(title: String(localized: "Machine Setup Profile", table: "Notchcast"),
-                        message: report(steps), symbol: "square.and.arrow.down",
-                        confirmTitle: String(localized: "Apply"))
+                    await host.confirm(String(localized: "Machine Setup Profile", table: "Notchcast"),
+                        report(steps), "square.and.arrow.down", String(localized: "Apply"))
                 },
                 apply: { await execute(profile, version: version, dryRun: false) },
                 present: { outcome in
-                    core.showMessage(outcome.succeeded ? report(outcome.steps) :
+                    host.showMessage(outcome.succeeded ? report(outcome.steps) :
                         String(localized: "Import Failed") + "\n" + report(outcome.steps),
-                        tone: outcome.succeeded ? .success : .danger)
+                        outcome.succeeded ? .success : .danger)
                 })
         } catch {
-            core.showMessage(String(localized: "Import Failed"), tone: .danger)
+            host.showMessage(String(localized: "Import Failed"), .danger)
         }
     }
 

@@ -6,12 +6,7 @@ enum NotchcastFeature: Sendable {
     var title: String { "fixture" }
 }
 
-@MainActor
-final class AppCore {
-    static let shared = AppCore()
-    func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { true }
-    func showMessage(_ message: String) { fatalError(message) }
-}
+enum DialogTone { case success }
 
 @MainActor
 final class TweaksModule {
