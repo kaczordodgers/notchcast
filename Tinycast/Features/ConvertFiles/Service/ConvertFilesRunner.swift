@@ -25,12 +25,16 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         }
         let sources = options.sources.map { URL(fileURLWithPath: $0) }
         let plan = try ConvertFilesPlan.make(sources: sources, target: options.target, pages: options.pages)
+        let executables = try Dictionary(uniqueKeysWithValues: plan.tools.map { tool in
+            guard let path = context.tools.find(tool) else { throw DownloadToolMissing(tool: tool) }
+            return (tool, path)
+        })
         var outputs: [URL] = []
         var failures: [String] = []
         for item in plan.items {
             try Task.checkCancellation()
             do {
-                let published = try await execute(item, context: context)
+                let published = try await execute(item, executables: executables, context: context)
                 outputs.append(published)
                 await post(published.lastPathComponent)
             } catch is CancellationError {
@@ -46,8 +50,10 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         return outputs.first
     }
 
-    private func execute(_ item: ConvertFilesPlan.Item, context: DownloadRunContext) async throws -> URL {
-        if item.tool == "archives" { return try await Self.archive(item.arguments[0], item.sources) }
+    private func execute(
+        _ item: ConvertFilesPlan.Item, executables: [DownloadTool: URL], context: DownloadRunContext
+    ) async throws -> URL {
+        if item.tool == .archives { return try await Self.archive(item.arguments[0], item.sources) }
         let manager = FileManager.default
         let folder = item.sources[0].deletingLastPathComponent()
         let scratch = folder.appending(path: ".convert-" + UUID().uuidString)
@@ -55,22 +61,18 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         defer { try? manager.removeItem(at: scratch) }
         let staged = scratch.appending(path: item.stem + item.suffix)
         let arguments = item.arguments.map { $0 == ConvertFilesPlan.outputPlaceholder ? staged.path : $0 }
-        if item.tool == "ffmpeg", !["srt", "ass", "ssa", "vtt"].contains(item.sources[0].pathExtension.lowercased()) {
-            let probe = DownloadTool(name: "ffprobe", installCommand: "brew install ffmpeg")
-            guard let path = context.tools.find(probe) else {
-                throw ConvertFilesPlan.Failure(message: probe.missingDetail)
-            }
+        if item.needsProbe {
+            let probe = DownloadTool.ffprobe
+            let path = executables[probe]!
             try await process(path, ["-v", "error", "-protocol_whitelist", "file,pipe,crypto,data",
                                      "-show_streams", "-show_format", "-of", "json", item.sources[0].path], context)
         }
-        if item.tool == "native" {
+        if item.tool == .native {
             try await ConvertFilesNative.run(operation: arguments[0], format: arguments[1],
                                              inputs: item.sources, output: staged)
         } else {
-            let tool = DownloadTool(name: item.tool, installCommand: "Install \(item.tool)")
-            guard let executable = context.tools.find(tool) else {
-                throw ConvertFilesPlan.Failure(message: tool.missingDetail)
-            }
+            let tool = item.tool.executable!
+            let executable = executables[tool]!
             try await process(executable, arguments, context)
         }
         try Task.checkCancellation()
