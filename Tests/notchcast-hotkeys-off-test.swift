@@ -7,7 +7,7 @@
 // notchcast-sources: Tinycast/Features/HotKeys/Service/KeyShortcut.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Service/HotKeyManager.swift
 // notchcast-sources: Tinycast/Platform/ASCIIKeyboardLayout.swift
-// notchcast-sources: Tests/hotkey-dispatch-fixtures.swift
+// notchcast-sources: Tests/[Hh]ot[Kk]ey*[Dd]ispatch*[Ff]ixtures.swift
 // notchcast-kit: core command
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/HotKeyManager+NotchcastCommands.swift
