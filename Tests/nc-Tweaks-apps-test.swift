@@ -64,4 +64,6 @@ struct TweaksAppsTests {
         print("\(checks) passed, 0 failed")
     }
 }
+// notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift
+// notchcast-sources: Tinycast/Features/Tweaks/Service/*.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift

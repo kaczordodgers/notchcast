@@ -59,4 +59,6 @@ struct GPUPowerTests {
         print("ALL PASSED")
     }
 }
+// notchcast-sources: Tinycast/Features/SystemMonitor/Model/*.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Service/*.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
