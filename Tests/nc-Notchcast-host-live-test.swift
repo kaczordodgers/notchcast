@@ -70,6 +70,7 @@ enum NotchcastCore { static func remoteResult(_ text: String) {} }
         core!.selection = 1
         let selected = await host.choose("Title", "Message", "network", ["A", "B"], "Cancel")
         precondition(selected == 1)
+        core!.selection = 0
         core = nil
         let cancelled = await host.choose("Title", nil, "network", ["A"], "Cancel")
         precondition(cancelled == 1, "A released owner must cancel")
