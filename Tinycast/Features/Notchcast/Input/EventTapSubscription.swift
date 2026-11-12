@@ -19,8 +19,7 @@ final class EventTapSubscription {
                handler: @escaping @Sendable (CGEventType, CGEvent) -> EventTapHub.Verdict) {
         guard id == nil else { return }
         id = hub.registerSynchronous(mask: mask) { type, event in
-            guard !skipsSynthetic || event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag
-            else { return .pass }
+            guard !skipsSynthetic || !event.isSynthetic else { return .pass }
             return handler(type, event)
         }
     }
@@ -58,6 +57,8 @@ final class EventTapSubscription {
 }
 
 extension CGEvent {
+    var isSynthetic: Bool { getIntegerValueField(.eventSourceUserData) == Paster.tinycastEventTag }
+
     /// Tags an event a feature posts, so a `skipsSynthetic` tap never catches the feature's own key.
     func markSynthetic() { setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag) }
 }

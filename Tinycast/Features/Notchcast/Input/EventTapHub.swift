@@ -24,7 +24,7 @@ final class EventTapHub {
             keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             button = event.getIntegerValueField(.mouseEventButtonNumber)
             isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
-            isSynthetic = event.getIntegerValueField(.eventSourceUserData) == Paster.tinycastEventTag
+            isSynthetic = event.isSynthetic
             timestamp = event.timestamp
         }
     }

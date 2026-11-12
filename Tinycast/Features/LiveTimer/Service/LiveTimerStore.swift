@@ -17,7 +17,7 @@ final class LiveTimerStore {
     var ringing: [LiveTimerEntry] { timers.filter { $0.status == .ringing } }
     var isRinging: Bool { !ringing.isEmpty }
     var nextTimer: LiveTimerEntry? { timers.first { $0.status == .running } }
-    static let defaultDurations: [TimeInterval] = [300, 600, 900, 1500, 1800, 3600]
+    nonisolated static let defaultDurations: [TimeInterval] = [300, 600, 900, 1500, 1800, 3600]
     var defaultDuration: TimeInterval {
         didSet { defaults.set(defaultDuration, forKey: Self.durationKey) }
     }

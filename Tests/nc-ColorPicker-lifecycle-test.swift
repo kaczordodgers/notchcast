@@ -2,6 +2,7 @@
 // notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule.swift
+// notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerBackupKeys.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Registration.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Model/*.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Service/*.swift
@@ -16,6 +17,9 @@ import AppKit
 struct ColorPickerLifecycleTest {
     @MainActor
     static func main() async {
+        let formatRule = NotchcastFeature.BackupKeys.colorPicker.allowed[ColorPickerService.formatKey]!
+        precondition(ColorPickerFormat.allCases.allSatisfy { formatRule.accepts($0.rawValue) })
+        precondition(!formatRule.accepts("unknown") && !formatRule.accepts(1))
         let suite = "color-picker-lifecycle-test-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }

@@ -19,6 +19,14 @@ enum Paster {
 @main @MainActor
 struct FinderToolsServicesTest {
     static func main() {
+        let source = CGEventSource(stateID: .privateState)!
+        let event = CGEvent(source: source)!
+        precondition(!event.isSynthetic)
+        event.markSynthetic()
+        precondition(event.getIntegerValueField(.eventSourceUserData) == Paster.tinycastEventTag)
+        precondition(event.isSynthetic && EventTapHub.Event(type: .keyDown, event: event).isSynthetic)
+        event.setIntegerValueField(.eventSourceUserData, value: 1)
+        precondition(!event.isSynthetic && !EventTapHub.Event(type: .keyDown, event: event).isSynthetic)
         let hub = EventTapHub()
         let coordinator = FinderToolsCoordinator(hub: hub)
         coordinator.cut()
