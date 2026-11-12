@@ -9,6 +9,9 @@ helpers use a temporary directory under `NOTCHCAST_GALLERY_SCRATCH_ROOT` (defaul
 `NOTCHCAST_GALLERY_APP` reuses a previously built gallery app.
 `NOTCHCAST_GALLERY_DERIVED_DATA` reuses an existing scratch build directory for
 the next incremental build, avoiding a second full build on a small disk.
+`NOTCHCAST_GALLERY_QUOTAS=<file>` renders the AI usage pages from a saved
+`/v1/magpie/quotas` answer at the current time instead of the fixture; strip the
+`user` field from the saved answer first.
 
 One output folder contains PNGs at 2x, matching `*-layout.json`, `manifest.txt`,
 `coverage.json`, `inventory.json`, `inventory.md`, `run.log` and `layout-check.log`.
