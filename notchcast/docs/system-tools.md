@@ -10,11 +10,7 @@ asks through AppCore's confirmation dialog and rechecks the item before executin
 commands. System entries remain read-only. Runtime state comes from launchctl reads, rather
 than guessing from plist contents.
 
-SystemToolsProcessRunner accepts fixed absolute executables, passes arguments without a shell,
-and bounds child execution with a timeout and cancellation. Blocking process work runs outside
-the main actor. Tweaks runs its commands through its own `TweaksProcessRunner` allowlist.
-Helper operations use RootHelperClient and remain unavailable until their verbs
-exist in RootContract.
+SystemToolsProcessRunner accepts only `/bin/launchctl`, passes arguments without a shell, and bounds child execution with a timeout and cancellation. Blocking process work runs outside the main actor. Tweaks runs its commands through its own `TweaksProcessRunner` allowlist. Helper operations use RootHelperClient and remain unavailable until their verbs exist in RootContract.
 
 The notification observer attaches to Notification Center only while cleanup is enabled and
 Accessibility is granted. It rechecks both before each sweep and selects individual disk-ejection
