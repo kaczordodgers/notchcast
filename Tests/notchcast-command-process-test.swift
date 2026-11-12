@@ -39,9 +39,13 @@ import Foundation
             .hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true, "env finds Homebrew tools before /usr/bin")
         let output = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "pwd; printf 'error output' >&2; exit 7"], workingDirectory: root.path))
-        precondition(output.exitStatus == 7 && String(decoding: output.standardOutput, as: UTF8.self)
-            .trimmingCharacters(in: .whitespacesAndNewlines) == root.resolvingSymlinksInPath().path)
-        precondition(output.standardError == Data("error output".utf8))
+        precondition(output.exitStatus == 7, "Expected exit 7, got \(output.exitStatus)")
+        let directory = String(decoding: output.standardOutput, as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        precondition(directory == root.resolvingSymlinksInPath().path,
+            "Working directory \(directory.debugDescription), expected \(root.resolvingSymlinksInPath().path.debugDescription)")
+        precondition(output.standardError == Data("error output".utf8),
+            "Expected stderr, got \(String(decoding: output.standardError, as: UTF8.self).debugDescription)")
         let longOutput = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "printf '%s' '" + String(repeating: "x", count: 70_000) + "'"], workingDirectory: nil))
         precondition(longOutput.standardOutput == Data(String(repeating: "x", count: 65_536).utf8))
