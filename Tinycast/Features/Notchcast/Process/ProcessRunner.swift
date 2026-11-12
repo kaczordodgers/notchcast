@@ -94,7 +94,10 @@ nonisolated enum ProcessRunner {
         func cancel() { job.stop(.cancelled) }
         func terminate() { job.terminate() }
         func output() async throws -> Output {
-            try await withTaskCancellationHandler { try await completion.value } onCancel: { cancel() }
+            let output = try await withTaskCancellationHandler { try await completion.value } onCancel: { cancel() }
+            // The detached completion never sees the caller's cancellation, so a late cancel is checked here.
+            try Task.checkCancellation()
+            return output
         }
     }
 

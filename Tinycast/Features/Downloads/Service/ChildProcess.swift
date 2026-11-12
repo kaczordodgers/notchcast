@@ -60,6 +60,7 @@ final class ChildProcess: Sendable {
             }
             defer { state.withLock { $0.running = nil } }
             let output = try await running.output()
+            if state.withLock({ $0.cancelled }) { throw CancellationError() }
             return Result(status: output.signaled ? 128 + output.status : output.status,
                 output: String(bytes: output.stdout, encoding: .utf8) ?? "",
                 errors: String(bytes: output.stderr, encoding: .utf8) ?? "")
