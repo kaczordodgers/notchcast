@@ -34,6 +34,8 @@ struct ProcessRunnerTest {
     }
 
     @MainActor static func main() async throws {
+        let signaled = try await ProcessRunner.run(request("/bin/sh", ["-c", "kill -TERM $$"]))
+        check(signaled.signaled && signaled.status == SIGTERM && signaled.exitCode == 128 + SIGTERM)
         let release = Mutex(false)
         var backpressure = request("/usr/bin/perl", ["-e", #"$|=1; print "x" x 2000000;"#])
         backpressure.onData = { _ in
