@@ -1,21 +1,14 @@
 import SwiftUI
 
-/// One AI account as the usage page shows it: Magpie's alias or name, the plan, and each window it limits.
 struct AIUsageAccount: Identifiable, Equatable {
     let id: String
     let name: String
     let plan: String?
-    /// When Magpie read the numbers; `isCached` marks an answer it gave from cache (`asOf`).
-    let readAt: Date
-    var isCached = false
+    let readAt: Date?
+    let isStale: Bool
     let windows: [AIUsageSnapshot.Window]
-
-    func isStale(at now: Date) -> Bool {
-        isCached || now.timeIntervalSince(readAt) > NotchcastTheme.Usage.staleAfter
-    }
 }
 
-/// The island's AI usage page: how much of each account is left, one row an account, in the order Magpie returns.
 struct AIUsagePageView: View {
     enum Content: Equatable {
         case accounts([AIUsageAccount])
@@ -71,7 +64,7 @@ struct AIUsagePageView: View {
                     .foregroundStyle(NotchcastTheme.Colors.tertiary)
             }
             Button(action: onRetry) {
-                Text("Retry", tableName: "Notchcast")
+                Text("Retry")
             }
             .buttonStyle(.modalAction(.standard, fillsWidth: false))
         }
@@ -89,7 +82,7 @@ private struct AIUsageAccountRow: View {
     @Environment(\.metrics) private var metrics
 
     var body: some View {
-        let stale = account.isStale(at: now)
+        let stale = account.isStale
         HStack(alignment: .top, spacing: NotchcastTheme.Usage.columnGap) {
             VStack(alignment: .leading, spacing: NotchcastTheme.Usage.lineGap) {
                 Text(verbatim: account.name)
@@ -97,10 +90,10 @@ private struct AIUsageAccountRow: View {
                     .lineLimit(1)
                 HStack(spacing: metrics.spacing.xs) {
                     if let plan = account.plan { Text(verbatim: plan) }
-                    if stale {
+                    if stale, let readAt = account.readAt {
                         Image(systemName: "clock")
                             .accessibilityHidden(true)
-                        Text("as of \(account.readAt, format: .dateTime.hour().minute())", tableName: "Notchcast")
+                        Text("as of \(readAt, format: .dateTime.hour().minute())", tableName: "Notchcast")
                     }
                 }
                 .font(NotchcastTheme.Typography.detail)
@@ -125,7 +118,7 @@ private struct AIUsageAccountRow: View {
 
 private struct AIUsageWindowCell: View {
     let window: AIUsageSnapshot.Window
-    let readAt: Date
+    let readAt: Date?
     let now: Date
     let isLive: Bool
     @Environment(\.metrics) private var metrics
@@ -163,7 +156,7 @@ private struct AIUsageWindowCell: View {
                         Image(systemName: tone.symbol)
                             .accessibilityHidden(true)
                     }
-                    Text("\(left)% left", tableName: "Notchcast")
+                    Text("\(left)% left")
                         .monospacedDigit()
                 }
                 .font(NotchcastTheme.Typography.value)

@@ -2,8 +2,6 @@
 import SwiftUI
 
 extension GalleryPages {
-    /// The AI usage page with sample accounts above its gateway-down state. Dark is the island as drawn, on its
-    /// black; light shows the view keeps to the ramp outside the island.
     static func aiUsage(_ core: AppCore) -> [GalleryPage] {
         [true, false].map { dark in
             GalleryPage(name: "island-usage-\(dark ? "dark" : "light")", types: ["AIUsagePageView"], makeWindow: {

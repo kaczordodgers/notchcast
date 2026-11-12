@@ -97,7 +97,7 @@ final class IslandController: NotchcastModule {
     }
 
     func open(page: IslandPage, on screen: NSScreen? = nil, takeKey: Bool = true) {
-        guard observationID != nil, NotchcastPreferences.shared.isOn(.island), page.isAvailable else { return }
+        guard observationID != nil, NotchcastPreferences.shared.isOn(.island) else { return }
         restoreAfterLauncher()
         let frames = panels.map(\.displayFrame)
         let point = screen.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY) } ?? NSEvent.mouseLocation
@@ -107,8 +107,9 @@ final class IslandController: NotchcastModule {
         if openPanel !== panels[index] { openPanel?.setOpen(false, animated: true) }
         openPanel = panels[index]
         openedAt = ProcessInfo.processInfo.systemUptime
-        let target = wasOpen ? page : page.landingPage(
-            hasLiveActivities: hasLiveActivities && NotchcastPreferences.shared.isOn(.islandLiveActivities))
+        let target = page.landingPage(
+            hasLiveActivities: wasOpen || (hasLiveActivities && NotchcastPreferences.shared.isOn(.islandLiveActivities)),
+            isAvailable: page.isAvailable)
         let changedPage = self.page != target
         self.page = target
         input.open()

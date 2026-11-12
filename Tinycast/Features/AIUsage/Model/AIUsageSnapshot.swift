@@ -17,8 +17,8 @@ nonisolated struct AIUsageSnapshot: Sendable, Equatable {
             return Int((100 - min(100, max(0, used / limit * 100))).rounded())
         }
 
-        func percentLeft(at now: Date, readAt: Date) -> Int {
-            if let resetsAt, readAt < resetsAt, resetsAt <= now { return 100 }
+        func percentLeft(at now: Date, readAt: Date?) -> Int {
+            if let readAt, let resetsAt, readAt < resetsAt, resetsAt <= now { return 100 }
             return percentLeft
         }
 

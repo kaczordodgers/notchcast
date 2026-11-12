@@ -26,8 +26,9 @@ enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
         Int(key).flatMap(Self.init(rawValue:))
     }
 
-    func landingPage(hasLiveActivities: Bool) -> Self {
-        self == .home && !hasLiveActivities ? .day : self
+    func landingPage(hasLiveActivities: Bool, isAvailable: Bool = true) -> Self {
+        guard isAvailable else { return .day }
+        return self == .home && !hasLiveActivities ? .day : self
     }
 
     @MainActor func refresh(home: () async -> Void, day: () async -> Void, usage: () async -> Void) async {

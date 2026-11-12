@@ -84,6 +84,7 @@ final class AIUsageModule: NotchcastModule {
             guard isRunning, generation == operation, refreshID == request,
                   preferences.aiUsageGateway == gateway else { return }
             gatewayDown = true
+            refreshedAt = nil
             snapshots = []
             source.snapshots = []
         }

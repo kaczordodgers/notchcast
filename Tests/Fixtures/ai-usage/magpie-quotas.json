@@ -67,7 +67,7 @@
       "provider": "codex", "name": "Account H", "alias": "", "plan": "plus",
       "windows": [
         {"name": "7 days", "used": 50, "remaining": 50, "resetsAt": "2026-11-18T13:00:00+01:00"},
-        {"name": "Image generation", "used": 20, "remaining": 80, "resetsAt": null}
+        {"name": "Image generation", "used": 0, "remaining": 100, "display": "Unknown", "text": true}
       ],
       "readAt": "2026-11-11T23:30:00+01:00", "asOf": null
     }

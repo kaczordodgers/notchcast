@@ -65,6 +65,12 @@ struct IslandPagesTests {
                "live activities keep Home as the landing page")
         expect(IslandPage.day.landingPage(hasLiveActivities: true) == .day,
                "an explicit Day opening keeps Day")
+        for hasActivities in [false, true] {
+            expect(IslandPage.usage.landingPage(hasLiveActivities: hasActivities, isAvailable: false) == .day,
+                   "opening the last page after disabling AI usage falls back to Day")
+            expect(IslandPage.usage.landingPage(hasLiveActivities: hasActivities, isAvailable: true) == .usage,
+                   "enabling AI usage keeps an explicit usage opening")
+        }
     }
 
     static func dismissal() {

@@ -29,8 +29,7 @@ def check():
     upstream = json.loads(subprocess.check_output([
         'git', '-C', str(ROOT), 'show', upstream_ref + ':' + tools['LOCAL']]))['strings']
     errors = ['fork key in Localizable: ' + key for key in local.keys() - upstream.keys()]
-    fork_only = {key: entry for key, entry in fork.items() if key not in upstream}
-    errors += ['key in both catalogs: ' + key for key in local.keys() & fork_only.keys()]
+    errors += ['key in both catalogs: ' + key for key in local.keys() & fork.keys()]
     for key, entry in fork.items():
         if entry.get('shouldTranslate') is not False:
             missing = tools['LOCALES'] - entry.get('localizations', {}).keys()
@@ -42,7 +41,7 @@ def check():
             if re.match(r'\s*,\s*table(?:Name)?:\s*"Notchcast"', source[end:]):
                 if not any(tools['REFERENCED'](key, literal) for key in fork):
                     errors.append(f'{path.relative_to(ROOT)}: missing key for {literal}')
-        _, pending = tools['rewrite'](source, fork_only)
+        _, pending = tools['rewrite'](source, fork)
         if pending:
             errors.append(f'{path.relative_to(ROOT)}: {pending} fork literals use the default table')
     return errors

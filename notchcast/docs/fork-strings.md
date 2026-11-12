@@ -1,6 +1,6 @@
 # Fork localization
 
-Fork-only keys live in `Tinycast/Resources/Notchcast.xcstrings`. Use explicit `table: "Notchcast"` on `String(localized:)` and `LocalizedStringResource`, and `tableName: "Notchcast"` on `Text`. Implicit resource literals must become explicit resources. Shared upstream keys keep their original table at upstream call sites. A fork surface may also localize an upstream-owned key in Notchcast when it explicitly selects that table; this never moves or changes the upstream entry. All eight translations and entry metadata move together; entries marked `shouldTranslate: false` remain nontranslatable.
+Fork-only keys live in `Tinycast/Resources/Notchcast.xcstrings`. Use explicit `table: "Notchcast"` on `String(localized:)` and `LocalizedStringResource`, and `tableName: "Notchcast"` on `Text`. Implicit resource literals must become explicit resources. Shared upstream keys keep their original table. All eight translations and entry metadata move together; entries marked `shouldTranslate: false` remain nontranslatable.
 
 Run `python3 notchcast/move-fork-strings.py --fetch` against the intended upstream baseline. It validates everything before writing, restores the upstream catalog byte for byte, and refuses changed shared translations, conflicting entries and unknown literal contexts. `--check` writes nothing and fails if any changes are pending. Drop the separate migration-result commit and rerun the tooling after the feature train lands. Fetching uses the upstream URL and never changes remote configuration.
 

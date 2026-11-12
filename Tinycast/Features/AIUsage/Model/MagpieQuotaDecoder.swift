@@ -3,7 +3,7 @@ import Foundation
 nonisolated enum MagpieQuotaDecoder {
     private struct Response: Decodable {
         let object: String
-        let data: [Account]
+        let data: [Entry<Account>]
     }
 
     private struct Account: Decodable {
@@ -11,8 +11,8 @@ nonisolated enum MagpieQuotaDecoder {
         let name: String
         let alias: String?
         let plan: String?
-        let windows: [WindowEntry]
-        let readAt: Date
+        let windows: [Entry<Window>]?
+        let readAt: Date?
         let asOf: Date?
     }
 
@@ -20,13 +20,14 @@ nonisolated enum MagpieQuotaDecoder {
         let name: String
         let used: Double
         let resetsAt: Date?
+        let text: Bool?
     }
 
-    private struct WindowEntry: Decodable {
-        let value: Window?
+    private struct Entry<Value: Decodable>: Decodable {
+        let value: Value?
 
         init(from decoder: any Decoder) {
-            value = try? Window(from: decoder)
+            value = try? Value(from: decoder)
         }
     }
 
@@ -44,16 +45,18 @@ nonisolated enum MagpieQuotaDecoder {
         }
         let response = try decoder.decode(Response.self, from: data)
         guard response.object == "list" else { throw CocoaError(.coderReadCorrupt) }
-        return response.data.enumerated().map { index, account in
-            let windows = account.windows.enumerated().compactMap { windowIndex, entry -> AIUsageSnapshot.Window? in
-                guard let window = entry.value, window.used.isFinite else { return nil }
+        return response.data.enumerated().compactMap { index, entry in
+            guard let account = entry.value else { return nil }
+            let windows = (account.windows ?? []).enumerated().compactMap { windowIndex, entry -> AIUsageSnapshot.Window? in
+                guard let window = entry.value, window.text != true, window.used.isFinite else { return nil }
                 return AIUsageSnapshot.Window(
                     id: String(windowIndex), label: window.name, used: window.used, limit: 100,
                     resetsAt: window.resetsAt)
             }
             return AIUsageSnapshot(
                 providerID: account.provider, plan: account.plan, checkedAt: account.readAt,
-                status: account.asOf != nil || now.timeIntervalSince(account.readAt) > 15 * 60 ? .stale : .available,
+                status: account.asOf != nil || (account.readAt.map { now.timeIntervalSince($0) > 15 * 60 } ?? true)
+                    ? .stale : .available,
                 windows: windows, accountID: "\(account.provider)-\(index)",
                 accountName: account.alias.flatMap { $0.isEmpty ? nil : $0 } ?? account.name, asOf: account.asOf)
         }

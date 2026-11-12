@@ -24,8 +24,8 @@ extension AIUsageAccount {
         id = snapshot.accountID
         name = snapshot.accountName
         plan = snapshot.plan
-        readAt = snapshot.checkedAt ?? .distantPast
-        isCached = snapshot.status == .stale || snapshot.asOf != nil
+        readAt = snapshot.checkedAt
+        isStale = snapshot.status == .stale
         windows = snapshot.windows
     }
 }

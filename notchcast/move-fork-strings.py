@@ -180,10 +180,9 @@ def plan(upstream):
         if not fork_path.exists() or fork_path.read_bytes() != content:
             changes[fork_path] = content
     counts = {}
-    fork_only = fork['strings'].keys() - upstream_catalog['strings'].keys()
     for path in sorted((ROOT / 'Tinycast').rglob('*.swift')):
         source = path.read_text()
-        updated, count = rewrite(source, fork_only)
+        updated, count = rewrite(source, fork['strings'])
         if updated != source:
             changes[path] = updated.encode()
             counts[str(path.relative_to(ROOT))] = count

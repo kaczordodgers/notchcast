@@ -138,7 +138,19 @@ struct AIUsageWiringTest {
         http.status = 503
         try await module.refresh()
         precondition(module.gatewayDown && module.snapshots.isEmpty && !module.isLoading)
+        precondition(module.refreshedAt == nil && module.needsRefresh,
+                     "A failure invalidates recent success so reopening retries immediately")
         http.status = 200
+        http.holdsResponses = true
+        let retryCount = http.requests
+        let retry = Task { try await module.refresh() }
+        try await http.waitForRequest(after: retryCount)
+        precondition(module.isLoading && module.refreshedAt == nil,
+                     "Retry shows loading even after an earlier successful fetch")
+        http.release()
+        try await retry.value
+        precondition(!module.gatewayDown && !module.isLoading && !module.needsRefresh)
+        precondition(module.snapshots.first?.accountName == "Account A")
         http.body = Data(#"{"object":"list","data":[]}"#.utf8)
         preferences.aiUsageGateway = http.address.replacingOccurrences(of: "http://", with: "")
         try await module.refresh()
