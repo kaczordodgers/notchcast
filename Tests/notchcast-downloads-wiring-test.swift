@@ -1,4 +1,4 @@
-// notchcast-kit: core command
+// notchcast-kit: core command host
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/*Module.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/*Module+Core.swift
@@ -47,6 +47,7 @@ struct NotchcastDownloadsWiringTest {
     }
 
     static func main() async throws {
+        NotchcastHost.current.showMessage = { message, _ in preconditionFailure(message) }
         let root = FileManager.default.temporaryDirectory.appending(path: "notchcast-wiring-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -457,8 +458,6 @@ final class AppCore {
     struct AppIndex { func refreshNotchcastCommands() {} }
     static let shared = AppCore()
     let appIndex = AppIndex()
-    enum Tone { case danger }
-    func showMessage(_ message: String, tone: Tone) { preconditionFailure(message) }
     struct Settings {
         var dictationIdleRelease = DictationIdleRelease.never
         var dictationModel = DictationModel.allCases[0]
@@ -466,6 +465,8 @@ final class AppCore {
     var settings = Settings()
     let dictationModels = DictationModelStore(idleRelease: .never)
 }
+
+enum DialogTone { case danger }
 
 enum DictationIdleRelease { case never }
 
