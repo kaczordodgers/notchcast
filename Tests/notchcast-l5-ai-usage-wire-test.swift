@@ -32,12 +32,13 @@ struct AIUsageWiringTest {
         let channel = MachLinkChannel()
         let module = AIUsageModule(provider: provider, preferences: preferences, channel: channel)
         let link = AIUsageLinkModule(defaults: defaults)
-        preferences.aiUsageCachePath = directory.path
-        let defaultCacheModule = AIUsageModule(preferences: preferences)
-        defaultCacheModule.start()
-        try await defaultCacheModule.refresh()
-        precondition(defaultCacheModule.snapshots.first?.windows.first?.used == 42)
-        defaultCacheModule.stop()
+        precondition(preferences.aiUsageGateway == "http://127.0.0.1:3425")
+        preferences.aiUsageGateway = "invalid-gateway"
+        let gatewayModule = AIUsageModule(preferences: preferences)
+        gatewayModule.start()
+        try await gatewayModule.refresh()
+        precondition(gatewayModule.gatewayDown && gatewayModule.snapshots.isEmpty)
+        gatewayModule.stop()
         let controller = NotchcastModuleController([
             .init(requires: [.aiUsage], module: module),
             .init(requires: [.machLink], module: link),

@@ -10,6 +10,24 @@ nonisolated struct AIUsageProvider: Sendable {
     }
 
     @concurrent
+    static func fetch(gateway: String, now: Date) async throws -> [AIUsageSnapshot] {
+        guard let base = URL(string: gateway), ["http", "https"].contains(base.scheme),
+              base.host != nil, base.user == nil, base.password == nil,
+              base.query == nil, base.fragment == nil else { throw URLError(.badURL) }
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.urlCache = nil
+        configuration.timeoutIntervalForRequest = 15
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+        let (data, response) = try await session.data(from: base.appending(path: "v1/magpie/quotas"))
+        guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        try Task.checkCancellation()
+        return try MagpieQuotaDecoder.decode(data, now: now)
+    }
+
+    @concurrent
     func refresh() async -> [AIUsageSnapshot] {
         let files: [URL]
         do {

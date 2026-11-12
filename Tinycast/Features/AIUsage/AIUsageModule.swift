@@ -1,16 +1,23 @@
 import Foundation
 import Observation
 
-@MainActor
+@MainActor @Observable
 final class AIUsageModule: NotchcastModule {
     private(set) var isRunning = false
     private(set) var snapshots: [AIUsageSnapshot] = []
+    private(set) var gatewayDown = false
+    private(set) var refreshedAt: Date?
     let otherMac: OtherMacUsageService
-    private let provider: AIUsageProvider?
-    private let source: AIUsageSnapshotAdapter
-    private let preferences: NotchcastPreferences
-    private var generation = 0
-    private var refreshing = false
+    @ObservationIgnored private let provider: AIUsageProvider?
+    @ObservationIgnored private let source: AIUsageSnapshotAdapter
+    @ObservationIgnored private let preferences: NotchcastPreferences
+    @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var refreshID: UUID?
+    @ObservationIgnored private var lastGateway: String?
+
+    var needsRefresh: Bool {
+        lastGateway != preferences.aiUsageGateway || (refreshedAt.map { Date.now.timeIntervalSince($0) > 60 } ?? true)
+    }
 
     var peerStatus: String {
         otherMac.peerStatus == .available ? String(localized: "Connected", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast")
@@ -40,24 +47,43 @@ final class AIUsageModule: NotchcastModule {
         isRunning = false
         generation += 1
         snapshots = []
+        refreshedAt = nil
+        gatewayDown = false
         source.snapshots = []
         otherMac.configure(peerEnabled: false, providers: [])
     }
 
     func refresh() async throws {
-        guard isRunning, !refreshing else { return }
-        let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
-            path: preferences.aiUsageCachePath, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
-        refreshing = true
-        defer { refreshing = false }
+        guard isRunning else { return }
+        let request = UUID()
+        refreshID = request
         let operation = generation
-        let values = await provider.refresh()
-        try Task.checkCancellation()
-        guard isRunning, generation == operation else { return }
-        snapshots = values
-        source.snapshots = values
-        configurePeer()
-        try await otherMac.refresh()
+        let gateway = preferences.aiUsageGateway
+        do {
+            let values: [AIUsageSnapshot]
+            if let provider {
+                values = await provider.refresh()
+            } else {
+                values = try await AIUsageProvider.fetch(gateway: gateway, now: .now)
+            }
+            try Task.checkCancellation()
+            guard isRunning, generation == operation, refreshID == request,
+                  preferences.aiUsageGateway == gateway else { return }
+            snapshots = values
+            source.snapshots = values
+            gatewayDown = false
+            refreshedAt = .now
+            lastGateway = gateway
+            configurePeer()
+            try await otherMac.refresh()
+        } catch {
+            try Task.checkCancellation()
+            guard isRunning, generation == operation, refreshID == request,
+                  preferences.aiUsageGateway == gateway else { return }
+            gatewayDown = true
+            snapshots = []
+            source.snapshots = []
+        }
     }
 
     private func trackPeerPolicy(generation operation: Int) {

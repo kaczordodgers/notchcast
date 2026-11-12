@@ -2645,56 +2645,16 @@
         }
       }
     },
-    "AI usage cache directory" : {
+    "Magpie gateway" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cacheverzeichnis der KI-Nutzung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Directorio de caché de uso de IA"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier du cache d’utilisation de l’IA"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI使用状況キャッシュのディレクトリ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 사용량 캐시 디렉터리"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diretório de cache de uso de IA"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Каталог кэша использования ИИ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 用量缓存目录"
-          }
-        }
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Magpie-Gateway" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Puerta de enlace de Magpie" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Passerelle Magpie" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Magpieゲートウェイ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Magpie 게이트웨이" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Gateway do Magpie" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Шлюз Magpie" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Magpie 网关" } }
       }
     },
     "AI usage cache directory is not configured." : {
@@ -38757,6 +38717,18 @@
             "value" : "显示设备"
           }
         }
+      }
+    },
+    "Show Island AI Usage" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI-Nutzung im Island anzeigen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar uso de IA en la isla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Afficher l’utilisation de l’IA dans l’îlot" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アイランドのAI使用状況を表示" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드 AI 사용량 표시" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar uso de IA na ilha" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать использование ИИ в островке" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示灵动岛 AI 用量" } }
       }
     },
     "Show Island Day" : {

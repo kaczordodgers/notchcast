@@ -14,6 +14,7 @@ final class NotchcastPreferences {
     var remoteUpdatePath: String { didSet { defaults.set(remoteUpdatePath, forKey: Self.remoteUpdatePathKey) } }
     var backupStatusPath: String { didSet { defaults.set(backupStatusPath, forKey: Self.backupStatusPathKey) } }
     var aiUsageCachePath: String { didSet { defaults.set(aiUsageCachePath, forKey: Self.aiUsageCachePathKey) } }
+    var aiUsageGateway: String { didSet { defaults.set(aiUsageGateway, forKey: Self.aiUsageGatewayKey) } }
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: Self.greenMaximizeExcludedAppsKey) } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: Self.islandHoverDelayKey) } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }
@@ -47,6 +48,7 @@ final class NotchcastPreferences {
         remoteUpdatePath = defaults.string(forKey: Self.remoteUpdatePathKey) ?? ""
         backupStatusPath = defaults.string(forKey: Self.backupStatusPathKey) ?? ""
         aiUsageCachePath = defaults.string(forKey: Self.aiUsageCachePathKey) ?? ""
+        aiUsageGateway = defaults.string(forKey: Self.aiUsageGatewayKey) ?? "http://127.0.0.1:3425"
         buildStatsPath = defaults.string(forKey: Self.buildStatsPathKey) ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: Self.greenMaximizeExcludedAppsKey) ?? ""
         monitorCPU = Self.threshold(defaults, Self.monitorCPUKey, 90, 10...100)
@@ -90,6 +92,7 @@ extension NotchcastPreferences {
     nonisolated static let remoteUpdatePathKey = "remoteUpdatePath"
     nonisolated static let backupStatusPathKey = "backupStatusPath"
     nonisolated static let aiUsageCachePathKey = "aiUsageCachePath"
+    nonisolated static let aiUsageGatewayKey = "aiUsageGateway"
     nonisolated static let greenMaximizeExcludedAppsKey = "greenMaximizeExcludedApps"
     nonisolated static let islandHoverDelayKey = "islandHoverDelay"
     nonisolated static let fanModeKey = "fanMode"

@@ -4,8 +4,8 @@
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
-enum NotchcastFeature: Hashable { case island, dayCalendar, dayWeather, dayMarkets }
-enum IslandPage { case home, day
+enum NotchcastFeature: Hashable { case island, dayCalendar, dayWeather, dayMarkets, aiUsage }
+enum IslandPage { case home, day, usage
     var symbol: String { "calendar" }
 }
 @MainActor final class IslandController {
@@ -35,6 +35,12 @@ enum IslandPage { case home, day
         }
         preferences.only = [.dayCalendar]
         check(!IslandPage.day.launcherCommand.isEnabled(), "Island Day requires island switch")
+        preferences.only = [.island]
+        check(!IslandPage.usage.launcherCommand.isEnabled(), "AI Usage requires its feature switch")
+        preferences.only = [.island, .aiUsage]
+        check(IslandPage.usage.launcherCommand.isEnabled(), "AI Usage enabled with its feature switch")
+        preferences.only = [.aiUsage]
+        check(!IslandPage.usage.launcherCommand.isEnabled(), "AI Usage requires Island")
         preferences.only = [.island, .dayCalendar]
         IslandController.shared.commandsAvailable = false
         check(!DayCommands.calendar.isEnabled(), "Open Day requires commandsAvailable")

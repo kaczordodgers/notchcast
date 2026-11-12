@@ -1,0 +1,74 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Claude Ultra", "plan": "ultra", "user": "fixture-one",
+      "windows": [
+        {"name": "5 hours", "used": 0, "remaining": 100, "resetsAt": null},
+        {"name": "7 days", "used": 54, "remaining": 46, "resetsAt": "2026-11-16T03:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 13, "remaining": 87, "resetsAt": "2026-11-16T03:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T23:27:08.603088+01:00", "asOf": null
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Claude Team #1", "plan": "team", "user": "fixture-two",
+      "windows": [
+        {"name": "5 hours", "used": 0, "remaining": 100, "resetsAt": "2026-11-12T04:00:00+01:00"},
+        {"name": "7 days", "used": 68, "remaining": 32, "resetsAt": "2026-11-18T02:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 100, "remaining": 0, "resetsAt": "2026-11-18T02:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T23:27:05.537809+01:00", "asOf": null
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Claude Team #2", "plan": "team", "user": "fixture-three",
+      "windows": [
+        {"name": "5 hours", "used": 100, "remaining": 0, "resetsAt": "2026-11-12T00:40:00+01:00"},
+        {"name": "7 days", "used": 34, "remaining": 66, "resetsAt": "2026-11-18T18:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 46, "remaining": 54, "resetsAt": "2026-11-18T18:00:00+01:00"}
+      ],
+      "readAt": "2026-11-11T22:51:30.664256+01:00", "asOf": "2026-11-11T23:08:47.72001+01:00"
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Claude Team #3", "plan": "team", "user": "fixture-four",
+      "windows": [
+        {"name": "5 hours", "used": 12, "remaining": 88, "resetsAt": "2026-11-12T03:30:00+01:00"},
+        {"name": "7 days", "used": 88, "remaining": 12, "resetsAt": "2026-11-17T05:00:00+01:00"},
+        {"name": "7 days · Fable", "used": 100, "remaining": 0, "resetsAt": "2026-11-17T04:59:00+01:00"}
+      ],
+      "readAt": "2026-11-11T23:26:48.466084+01:00", "asOf": null
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Claude Team #4", "plan": "team", "user": "fixture-five",
+      "windows": [
+        {"name": "5 hours", "used": 17, "remaining": 83, "resetsAt": "2026-11-12T02:09:00+01:00"},
+        {"name": "7 days", "used": 83, "remaining": 17, "resetsAt": "2026-11-17T13:59:00+01:00"},
+        {"name": "7 days · Fable", "used": 100, "remaining": 0, "resetsAt": "2026-11-17T13:59:00+01:00"}
+      ],
+      "readAt": "2026-11-11T22:51:33.874524+01:00", "asOf": "2026-11-11T23:08:47.723876+01:00"
+    },
+    {
+      "provider": "claude", "name": "Claude Code", "alias": "Claude Team #5", "plan": "team", "user": "fixture-six",
+      "windows": [
+        {"name": "5 hours", "used": 60, "remaining": 40, "resetsAt": "2026-11-11T23:59:00+01:00"},
+        {"name": "7 days", "used": 99, "remaining": 1, "resetsAt": "2026-11-16T10:59:00+01:00"},
+        {"name": "7 days · Fable", "used": 100, "remaining": 0, "resetsAt": "2026-11-16T10:59:00+01:00"}
+      ],
+      "readAt": "2026-11-11T22:51:36.064175+01:00", "asOf": "2026-11-11T23:08:47.701856+01:00"
+    },
+    {
+      "provider": "grok", "name": "Grok", "alias": null, "plan": null, "user": "fixture-seven",
+      "windows": [
+        {"name": "7 days", "used": 93, "remaining": 7, "resetsAt": "2026-11-13T12:49:06.377Z"}
+      ],
+      "readAt": "2026-11-11T23:26:15.54985+01:00", "asOf": null
+    },
+    {
+      "provider": "codex", "name": "Codex", "alias": null, "plan": "prolite", "user": "fixture-eight",
+      "windows": [
+        {"name": "7 days", "used": 2, "remaining": 98, "resetsAt": "2026-11-18T13:26:17+01:00"},
+        {"name": "Image generation", "used": 0, "remaining": 100, "resetsAt": null}
+      ],
+      "readAt": "2026-11-11T23:27:09.439212+01:00", "asOf": null
+    }
+  ]
+}

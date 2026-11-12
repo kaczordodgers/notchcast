@@ -21,10 +21,13 @@ struct IslandPagesTests {
     @MainActor static func refresh() async {
         var homeReloads = 0
         var dayReloads = 0
-        await IslandPage.home.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 })
+        await IslandPage.home.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 }, usage: {})
         expect(homeReloads == 1 && dayReloads == 0, "Home refreshes its activity content")
-        await IslandPage.day.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 })
+        await IslandPage.day.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 }, usage: {})
         expect(homeReloads == 1 && dayReloads == 1, "Day refreshes its calendar data")
+        var usageReloads = 0
+        await IslandPage.usage.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 }, usage: { usageReloads += 1 })
+        expect(usageReloads == 1 && homeReloads == 1 && dayReloads == 1, "AI usage refreshes its quotas")
         let refresh = IslandPageRefresh()
         var first: CheckedContinuation<Void, Never>?
         var second: CheckedContinuation<Void, Never>?
@@ -47,13 +50,13 @@ struct IslandPagesTests {
     }
 
     static func pages() {
-        expect(IslandPage.allCases == [.home, .day], "page order follows the registry")
-        expect(IslandPage.allCases.map(\.key) == ["1", "2"], "page shortcuts follow order")
+        expect(IslandPage.allCases == [.home, .day, .usage], "page order follows the registry")
+        expect(IslandPage.allCases.map(\.key) == ["1", "2", "3"], "page shortcuts follow order")
         for page in IslandPage.allCases {
             expect(IslandPage.page(forKey: page.key) == page, "page key round-trips")
             expect(!page.symbol.isEmpty, "each registered page has a glyph")
         }
-        for key in ["0", "3", "p", "", "-1"] {
+        for key in ["0", "4", "p", "", "-1"] {
             expect(IslandPage.page(forKey: key) == nil, "unregistered page key is ignored")
         }
         expect(IslandPage.home.landingPage(hasLiveActivities: false) == .day,

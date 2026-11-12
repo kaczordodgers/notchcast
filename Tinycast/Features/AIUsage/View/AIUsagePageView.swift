@@ -16,7 +16,6 @@ struct AIUsageAccount: Identifiable, Equatable {
 }
 
 /// The island's AI usage page: how much of each account is left, one row an account, in the order Magpie returns.
-/// A static mockup until the page is wired; `notchcast/docs/design-system.md` §0 and §13 apply.
 struct AIUsagePageView: View {
     enum Content: Equatable {
         case accounts([AIUsageAccount])
@@ -116,10 +115,7 @@ private struct AIUsageWindowCell: View {
     let now: Date
     @Environment(\.metrics) private var metrics
 
-    private var left: Int {
-        guard window.limit > 0 else { return 0 }
-        return Int((100 - min(100, max(0, window.used / window.limit * 100))).rounded())
-    }
+    private var left: Int { window.percentLeft }
 
     /// Low and empty windows take a hue and a mark, so the warning never rests on colour alone.
     private var tone: (color: Color, symbol: String)? {

@@ -7,9 +7,12 @@ extension GalleryPages {
     static func aiUsage(_ core: AppCore) -> [GalleryPage] {
         [true, false].map { dark in
             GalleryPage(name: "island-usage-\(dark ? "dark" : "light")", types: ["AIUsagePageView"], makeWindow: {
-                let now = Date.now
+                let now = (try? Date("2026-11-11T22:30:00Z", strategy: .iso8601)) ?? .now
+                let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+                    .appending(path: "../../../../Tests/Fixtures/ai-usage/magpie-quotas.json").standardizedFileURL
+                let snapshots = (try? MagpieQuotaDecoder.decode(Data(contentsOf: fixture), now: now)) ?? []
                 let view = VStack(spacing: 0) {
-                    AIUsagePageView(content: .accounts(AIUsageAccount.samples(now: now)), now: now)
+                    AIUsagePageView(content: .accounts(snapshots.map(AIUsageAccount.init)), now: now)
                     Rectangle()
                         .fill(Theme.Colors.separator)
                         .frame(height: 1)

@@ -2,7 +2,6 @@
   "todoIsland": "engine-only task snapshot feed; island page awaits an approved design",
   "githubSearch": "launcher command plus a results screen calling NotchcastCore.github.search",
   "launcherAnswers": "query parser (\"100 usd\"), conversion, and a launcher answer row in search results",
-  "aiUsage": "a surface (island page or launcher command) that calls refresh() and shows snapshots",
   "aiUsageOtherMac": "same aiUsage surface",
   "inUseMarks": "closed-island camera/mic mark view reading InUseMarks",
   "treadmillHistory": "totals/goals/lubrication view and reminder posting",

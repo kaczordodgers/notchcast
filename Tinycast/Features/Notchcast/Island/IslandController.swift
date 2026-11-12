@@ -97,7 +97,7 @@ final class IslandController: NotchcastModule {
     }
 
     func open(page: IslandPage, on screen: NSScreen? = nil, takeKey: Bool = true) {
-        guard observationID != nil, NotchcastPreferences.shared.isOn(.island) else { return }
+        guard observationID != nil, NotchcastPreferences.shared.isOn(.island), page.isAvailable else { return }
         restoreAfterLauncher()
         let frames = panels.map(\.displayFrame)
         let point = screen.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY) } ?? NSEvent.mouseLocation
@@ -137,7 +137,7 @@ final class IslandController: NotchcastModule {
     }
 
     func selectPage(_ page: IslandPage) {
-        guard isOpen, self.page != page else { return }
+        guard isOpen, self.page != page, page.isAvailable else { return }
         self.page = page
         pages?.didOpen(page: page)
     }

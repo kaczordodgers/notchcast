@@ -1,6 +1,7 @@
 {
   "displayBrightness": "Settings-only switch and dim slider; automatic brightness keys through SystemLevelKeysModule and BrightnessController",
   "quitProtection": "Settings-only Quit Protection and Protect Cmd W switches; QuitProtectionModule intercepts configured quit/close shortcuts",
+  "aiUsage": "AI usage island page and Show Island AI Usage command, gated by aiUsage; IslandPagesCoordinator refreshes AIUsageModule from Magpie and IslandUsageView renders its snapshots",
   "agentIsland": "launcher command Show Agent Status → AgentIslandModule.refresh; pure per-source presentation, no island page",
   "fleetPanel": "Show Fleet → FleetPanelModule.refresh; local Agent Threads and paired Mac Link snapshot; no page",
   "waitingAlerts": "Show Waiting Agents → Tinycast/Features/WaitingAlerts/Service/WaitingAlertsModule.swift; local file events read pending requests in SQLite and post message HUD notices",
