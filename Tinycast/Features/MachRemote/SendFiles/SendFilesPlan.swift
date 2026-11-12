@@ -9,11 +9,6 @@ enum SendFilesPlan {
         "mkdir -p Downloads && mkdir -- " + quote(staging)
     }
 
-    static func arguments(source: URL, alias: String, staging: String) -> [String] {
-        ["-a", "--safe-links", "--progress", "--timeout=30", "-e", "ssh -o BatchMode=yes",
-         "--", source.path, alias + ":" + quote(staging + "/")]
-    }
-
     static func commit(staging: String, name: String) -> String {
         // A hidden lock serializes our claims; mv -n also protects names created by other apps.
         """

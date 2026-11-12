@@ -9,16 +9,21 @@ final class FakeRemoteShell: RemoteShellRunning {
     var copyStatuses: [Int32] = []
     var cancelCopy = false
 
-    func run(_ executable: String, arguments: [String], output: @escaping @MainActor (String) -> Void)
-        async throws -> SendFilesProcessResult {
-        calls.append((executable, arguments))
-        if executable == "/usr/bin/rsync" {
-            output("  1,024 4")
-            output("2% 1MB/s 0:00:01\r 2,048 100% 1MB/s 0:00:00\n")
-            if cancelCopy { throw CancellationError() }
-            return .init(status: copyStatuses.isEmpty ? 0 : copyStatuses.removeFirst(), output: "")
-        }
+    func ssh(command: String, options: [String], output: @escaping @MainActor (String) -> Void)
+        async throws -> MachSSH.Result {
+        precondition(options.isEmpty)
+        calls.append(("ssh", [command]))
         return .init(status: 0, output: "")
+    }
+
+    func rsync(source: URL, destination: String, output: @escaping @MainActor (String) -> Void)
+        async throws -> MachSSH.Result {
+        precondition(destination.hasPrefix("Downloads/.notchcast-upload-") && destination.hasSuffix("/"))
+        calls.append(("rsync", [source.path, destination]))
+        output("  1,024 4")
+        output("2% 1MB/s 0:00:01\r 2,048 100% 1MB/s 0:00:00\n")
+        if cancelCopy { throw CancellationError() }
+        return .init(status: copyStatuses.isEmpty ? 0 : copyStatuses.removeFirst(), output: "")
     }
 }
 
@@ -58,10 +63,6 @@ struct SendFilesTests {
                 precondition(notices == [String(localized: "Set the remote Mac address in Settings")])
             }
         }
-        precondition(SendFilesPlan.arguments(source: source, alias: "test", staging: "Downloads/.upload") == [
-            "-a", "--safe-links", "--progress", "--timeout=30", "-e", "ssh -o BatchMode=yes", "--",
-            "/tmp/a file's name", "test:'Downloads/.upload/'",
-        ])
         precondition(SendFilesPlan.quote("a'b") == "'a'\\''b'")
         precondition(SendFilesPlan.percent(in: " 1,024 42% 1MB/s") == 42)
         precondition(SendFilesPlan.percent(in: "a file 42%") == nil)

@@ -43,9 +43,8 @@ final class SendFilesCoordinator {
 
     func waitForCompletion() async { await task?.value }
 
-    private func ssh(_ command: String) async throws -> SendFilesProcessResult {
-        try await shell.run("/usr/bin/ssh", arguments: ["-o", "BatchMode=yes", "--", shell.sshAlias, command],
-                            output: { _ in })
+    private func ssh(_ command: String) async throws -> MachSSH.Result {
+        try await shell.ssh(command: command, options: [], output: { _ in })
     }
 
     private func transfer(_ urls: [URL]) async {
@@ -72,9 +71,7 @@ final class SendFilesCoordinator {
                 let preparedItem = try await ssh("mkdir -- " + SendFilesPlan.quote(itemStaging))
                 guard preparedItem.status == 0 else { throw TransferFailure(status: preparedItem.status) }
                 var pending = ""
-                let copied = try await shell.run("/usr/bin/rsync", arguments: SendFilesPlan.arguments(
-                    source: url, alias: shell.sshAlias, staging: itemStaging
-                )) { [weak self] chunk in
+                let copied = try await shell.rsync(source: url, destination: itemStaging + "/") { [weak self] chunk in
                     pending += chunk
                     while let boundary = pending.firstIndex(where: { $0 == "\r" || $0 == "\n" }) {
                         let record = String(pending[..<boundary])

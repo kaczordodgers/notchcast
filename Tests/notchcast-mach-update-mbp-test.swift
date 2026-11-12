@@ -1,33 +1,40 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachRemote/UpdateRemote/*.swift
+// notchcast-sources: Tinycast/Features/MachRemote/SendFiles/RemoteShellRunning.swift
 import Foundation
 
 @MainActor
-private final class FakeRunner: UpdateRemoteShellRunning {
+private final class FakeRunner: RemoteShellRunning {
     var sshAlias = "fixture-mac"
     var status: Int32 = 0
     var lines = [String]()
     var calls = [[String]]()
     var waits = false
 
-    func run(_ executable: String, arguments: [String], output: @escaping @MainActor (String) -> Void)
-        async throws -> UpdateRemoteProcessResult {
-        precondition(executable == "/usr/bin/ssh")
-        calls.append(arguments)
-        for line in lines { output(line) }
+    func ssh(command: String, options: [String], output: @escaping @MainActor (String) -> Void)
+        async throws -> MachSSH.Result {
+        calls.append(options + [command])
+        output(lines.joined(separator: "\n"))
         if waits { try await Task.sleep(for: .seconds(60)) }
-        return UpdateRemoteProcessResult(status: status, output: lines.joined(separator: "\n"))
+        return MachSSH.Result(status: status, output: lines.joined(separator: "\n"))
+    }
+
+    func rsync(source: URL, destination: String, output: @escaping @MainActor (String) -> Void)
+        async throws -> MachSSH.Result {
+        preconditionFailure("Updates must use SSH")
     }
 }
 
 @main
 struct UpdateRemoteTest {
     @MainActor static func main() async {
-        let expected = ["-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "--", "fixture-mac",
-                        "exec '/tools/update.sh'"]
-        precondition(UpdateRemoteCoordinator.arguments(alias: "fixture-mac", scriptPath: "/tools/update.sh") == expected)
+        let expected = ["-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "exec '/tools/update.sh'"]
         for alias in ["", "-oProxyCommand=x", "host;touch x", "host\nfoo", "$(id)"] {
-            precondition(UpdateRemoteCoordinator.arguments(alias: alias) == nil)
+            let runner = FakeRunner()
+            runner.sshAlias = alias
+            let coordinator = UpdateRemoteCoordinator(runner: runner, scriptPath: "/tools/update.sh", post: { _ in })
+            coordinator.start()
+            precondition(runner.calls.isEmpty && coordinator.result == .unreachable)
         }
         var progress = UpdateRemoteProgress()
         let unconfiguredRunner = FakeRunner()
@@ -41,7 +48,12 @@ struct UpdateRemoteTest {
         unconfigured.start()
         precondition(unconfiguredRunner.calls.isEmpty)
         precondition(configurationNotices.last == String(localized: "Set the remote Mac address in Settings"))
-        precondition(UpdateRemoteCoordinator.arguments(alias: "user@2001:db8::1", scriptPath: "/tools/update.sh") != nil)
+        let ipv6Runner = FakeRunner()
+        ipv6Runner.sshAlias = "user@2001:db8::1"
+        let ipv6 = UpdateRemoteCoordinator(runner: ipv6Runner, scriptPath: "/tools/update.sh", post: { _ in })
+        ipv6.start()
+        while ipv6.isRunning { await Task.yield() }
+        precondition(ipv6Runner.calls == [expected])
         progress.consume("── brew update")
         precondition(progress.step == "brew update")
         progress.consume("── npm globals (latest)")

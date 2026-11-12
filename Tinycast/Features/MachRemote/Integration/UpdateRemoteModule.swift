@@ -31,7 +31,7 @@ final class UpdateRemoteModule: NotchcastModule {
         guard isRunning, preferences.isEnabled(.updateRemote) else { return }
         guard coordinator?.isRunning != true else { return }
         let shell = MachRemoteShell(ssh: MachSSH(address: preferences.remoteMacAddress, runner: runner))
-        coordinator = UpdateRemoteCoordinator(runner: MachUpdateRunner(shell: shell),
+        coordinator = UpdateRemoteCoordinator(runner: shell,
             scriptPath: preferences.remoteUpdatePath, post: post)
         coordinator?.start()
     }
