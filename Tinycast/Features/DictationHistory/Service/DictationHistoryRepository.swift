@@ -55,13 +55,18 @@ struct DictationHistoryRepository: Sendable {
 
     private func recover() throws {
         let loaded = try loadEntries()
+        let cutoff = now().addingTimeInterval(-90 * 86_400)
+        if let saved = try? FileManager.default.attributesOfItem(atPath: quarantine.path)[.modificationDate] as? Date,
+           saved < cutoff {
+            try FileManager.default.removeItem(at: quarantine)
+        }
         if !loaded.undecodable.isEmpty {
             var data = FileManager.default.fileExists(atPath: quarantine.path)
                 ? try Data(contentsOf: quarantine) : Data()
             data.append(loaded.undecodable)
             try write(data, to: quarantine)
+            try FileManager.default.setAttributes([.modificationDate: now()], ofItemAtPath: quarantine.path)
         }
-        let cutoff = now().addingTimeInterval(-90 * 86_400)
         try write(loaded.entries.filter { $0.date >= cutoff }, to: history)
         if FileManager.default.fileExists(atPath: pending.path) {
             try FileManager.default.removeItem(at: pending)
