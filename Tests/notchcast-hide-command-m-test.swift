@@ -1,7 +1,6 @@
 // notchcast-sources: Tinycast/Features/HideCommandM/Model/*.swift
 // notchcast-sources: Tinycast/Features/HideCommandM/Service/*.swift
 // notchcast-kit: platform input
-// notchcast-sources: Tinycast/Platform/KeyboardInputSourceObserver.swift
 // notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 

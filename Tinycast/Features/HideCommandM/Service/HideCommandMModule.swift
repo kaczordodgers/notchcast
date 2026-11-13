@@ -19,16 +19,24 @@ final class HideCommandMModule: NotchcastModule {
 
     func start() {
         guard !tap.isActive else { return }
-        refresh()
+        frontmost.pid.withLock { $0 = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0 }
         keyCode = Self.layoutKeyCode()
         startTap()
         let center = NSWorkspace.shared.notificationCenter
         activation = NotificationToken(center.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
+        ) { [frontmost] _ in
+            MainActor.assumeIsolated {
+                frontmost.pid.withLock { $0 = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0 }
+            }
         }, center: center)
-        inputSourceChange = KeyboardInputSourceObserver.observe { [weak self] in self?.relayout() }
+        let inputCenter = DistributedNotificationCenter.default()
+        inputSourceChange = NotificationToken(inputCenter.addObserver(
+            forName: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.relayout() }
+        }, center: inputCenter)
     }
 
     /// The key whose Command character is "m" in the current layout: on AZERTY 46 is ⌘, (Settings).
@@ -65,11 +73,6 @@ final class HideCommandMModule: NotchcastModule {
         activation = nil
         inputSourceChange = nil
         frontmost.pid.withLock { $0 = 0 }
-    }
-
-    private func refresh() {
-        let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
-        frontmost.pid.withLock { $0 = pid }
     }
 
     private func hide(pid: Int32, generation: UUID) {

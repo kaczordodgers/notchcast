@@ -93,7 +93,13 @@ final class QuitProtectionModule: NotchcastModule {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }, center: center)
-        inputSourceChange = KeyboardInputSourceObserver.observe { [weak self] in self?.refreshLayout() }
+        let inputCenter = DistributedNotificationCenter.default()
+        inputSourceChange = NotificationToken(inputCenter.addObserver(
+            forName: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshLayout() }
+        }, center: inputCenter)
         if let id = tap.id { observeConfiguration(id) }
     }
 
