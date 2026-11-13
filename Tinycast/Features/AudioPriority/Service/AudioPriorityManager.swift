@@ -1,5 +1,6 @@
 // Adapted from Vorssaint (GPL-3.0-or-later)
 import Foundation
+import Observation
 
 @MainActor
 final class AudioPriorityManager {
@@ -9,10 +10,10 @@ final class AudioPriorityManager {
     private var lifetime: UUID?
     private var pending: Task<Void, Never>?
     private var connected: [AudioPriorityDevice.Direction: Set<String>] = [:]
+    private var listening = false
+    var clearFailure: () -> Void = {}
     var inventoryChanged: ([AudioPriorityDevice]) -> Void = { _ in }
     var succeeded: () -> Void = {}
-    var clearFailure: () -> Void = {}
-    func refresh() { refresh(apply: true) }
 
     init(transport: any AudioPriorityTransport, store: any AudioPriorityStore,
          report: @escaping (any Error) -> Void) {
@@ -27,20 +28,28 @@ final class AudioPriorityManager {
         guard lifetime == nil else { return }
         let identity = UUID()
         lifetime = identity
+        clearFailure()
+        refresh(apply: false)
+        trackRankings(identity)
+    }
+
+    private func listen(_ identity: UUID) {
+        guard !listening else { return }
         do {
             try transport.start { [weak self] in
                 Task { @MainActor [weak self] in self?.schedule(identity) }
             }
-            refresh(apply: false)
+            listening = true
         } catch {
             report(error)
-            stop()
         }
     }
 
     func stop() {
+        clearFailure()
         guard lifetime != nil else { return }
         lifetime = nil
+        listening = false
         pending?.cancel()
         pending = nil
         connected.removeAll()
@@ -58,7 +67,24 @@ final class AudioPriorityManager {
         }
     }
 
-    private func refresh(apply: Bool) {
+    func refresh() { refresh(apply: true, force: true) }
+
+    private func trackRankings(_ identity: UUID) {
+        withObservationTracking {
+            for direction in AudioPriorityDevice.Direction.allCases { _ = store.ranking(for: direction) }
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.lifetime == identity else { return }
+                self.refresh()
+                self.trackRankings(identity)
+            }
+        }
+    }
+
+    private func refresh(apply: Bool, force: Bool = false) {
+        guard let identity = lifetime else { return }
+        clearFailure()
+        listen(identity)
         do {
             let devices = try transport.devices()
             inventoryChanged(devices)
@@ -71,7 +97,7 @@ final class AudioPriorityManager {
                 let before = ranking
                 ranking.appendUnknown(uids)
                 if ranking != before { store.save(ranking, for: direction) }
-                guard apply, let previous, previous != available else { continue }
+                guard apply, force || (previous != nil && previous != available) else { continue }
                 do {
                     let current = try transport.defaultUID(for: direction)
                     if let target = AudioPriorityPolicy.target(

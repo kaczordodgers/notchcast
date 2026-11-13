@@ -66,18 +66,14 @@ final class CoreAudioPriorityTransport: AudioPriorityTransport {
     }
 
     func start(onChange: @escaping @Sendable () -> Void) throws {
-        guard listeners.isEmpty else { return }
+        guard listeners.count != 3 else { return }
         for selector in [kAudioHardwarePropertyDevices, kAudioHardwarePropertyDefaultOutputDevice,
                          kAudioHardwarePropertyDefaultInputDevice] {
+            guard !listeners.contains(where: { $0.0.mSelector == selector }) else { continue }
             var address = address(selector)
             let block: AudioObjectPropertyListenerBlock = { _, _ in onChange() }
-            do {
-                try check(AudioObjectAddPropertyListenerBlock(system, &address, .global(), block))
-                listeners.append((address, block))
-            } catch {
-                try stop()
-                throw error
-            }
+            try check(AudioObjectAddPropertyListenerBlock(system, &address, .global(), block))
+            listeners.append((address, block))
         }
     }
 
