@@ -39,6 +39,8 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(rewrite(source, keys), (source, 0))
         self.assertEqual(rewrite('case "Finder": break', {'Finder'}),
                          ('case "Finder": break', 0))
+        foreign = '// notchcast-foreign-strings: macOS labels\nlet names = ["Fork"]'
+        self.assertEqual(rewrite(foreign, {'Fork'}), (foreign, 0))
         result, count = rewrite('String(\n localized: "Fork")', {'Fork'})
         self.assertEqual(count, 1)
         self.assertIn('table: "Notchcast"', result)

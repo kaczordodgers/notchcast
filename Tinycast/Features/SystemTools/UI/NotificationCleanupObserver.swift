@@ -1,3 +1,4 @@
+// notchcast-foreign-strings: these match Notification Center's own labels, not Notchcast text.
 import AppKit
 import ApplicationServices
 
