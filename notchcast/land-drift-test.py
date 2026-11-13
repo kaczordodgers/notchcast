@@ -247,6 +247,18 @@ class Landing(unittest.TestCase):
         self.assertNotIn('main is already red', result.stderr)
         print('PASS: a fork descriptor in Launcher/ refuses with REFUSED: drift')
 
+    def test_new_threshold_breach_refuses(self):
+        fixtures.git(self.root, 'update-ref', 'refs/remotes/upstream/main', self.fixture.upstream)
+        base = self.commit('Base tooling')
+        fixtures.write(self.root, 'Tinycast/Features/Todo/Near.swift', '\n' * 360)
+        self.commit('Landing adds an over-limit file')
+        gates = '\n'.join(function(name) for name in ('prepare_drift_tools', 'check_drift', 'run_drift_gates'))
+        result = self.shell(gates + '\nscratch="$1"\ntop="$PWD"\nrun_drift_gates "$2"', self.fixture.work.name, base)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('threshold breach new or grown: file-lines:Tinycast/Features/Todo/Near.swift 360 > 349', result.stdout)
+        self.assertIn('REFUSED: drift\n', result.stdout)
+        print('PASS: a landing that adds an over-limit file refuses with REFUSED: drift')
+
     def test_red_base_is_reported_without_allowing_candidate(self):
         fixtures.write(self.root, 'notchcast/check-drift.py', 'raise SystemExit(9)\n')
         result = self.shell(function('check_drift') + '\nscratch="$1"\ncheck_drift HEAD "$drift_tools"',
