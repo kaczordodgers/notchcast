@@ -54,16 +54,15 @@ struct NotchcastBatteryStatusSettingRow: View {
                 Text("Needs the Notchcast helper update", tableName: "Notchcast").foregroundStyle(.secondary)
             }
             // Mac-wide helper state shows once, under the charge limit.
-            if feature == .batteryChargeLimit, BatteryModule.shared.helperInstalled,
-                !BatteryModule.shared.needsHelperUpdate, BatteryModule.shared.nativeLimitAvailable,
-                let failure = BatteryModule.shared.failure {
+            if feature == .batteryChargeLimit, let failure = BatteryModule.shared.failure {
                 if failure as? RootHelperClient.Failure == .reinstallRequired {
                     Text("Needs the Notchcast helper update", tableName: "Notchcast").foregroundStyle(.secondary)
                 } else {
                     Text(failure.localizedDescription).foregroundStyle(.secondary)
                 }
             }
-            if feature == .batteryChargeLimit, !BatteryModule.shared.helperInstalled {
+            if feature == .batteryChargeLimit, !BatteryModule.shared.helperInstalled,
+                BatteryModule.shared.failure == nil {
                 Text("The privileged helper is not installed.", tableName: "Notchcast").foregroundStyle(.secondary)
             }
         }
