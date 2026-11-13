@@ -35,6 +35,9 @@ import Foundation
         try await module.deleteAll()
         let deleted = try await module.recent()
         precondition(deleted.isEmpty && failures == 0)
+        let revisionBeforeMaintain = module.revision
+        await module.maintain()
+        precondition(module.revision > revisionBeforeMaintain)
         try FileManager.default.removeItem(at: directory)
         try Data().write(to: directory)
         module.start()

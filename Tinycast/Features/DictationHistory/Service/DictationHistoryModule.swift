@@ -52,10 +52,8 @@ final class DictationHistoryModule: NotchcastModule {
     }
 
     func maintain() async {
-        do {
-            try await perform { try $0.maintain() }
-            revision += 1
-        } catch { onFailure?() }
+        defer { revision += 1 }
+        do { try await perform { try $0.maintain() } } catch { onFailure?() }
     }
 
     func record(raw: String, cleaned: String) async {
