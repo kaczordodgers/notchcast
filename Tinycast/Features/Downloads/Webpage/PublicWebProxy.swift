@@ -3,6 +3,7 @@ import Network
 
 @MainActor
 final class PublicWebProxy {
+    private(set) var refusal: PublicWebAddress.Refusal?
     private let listener: NWListener
     private let username = UUID().uuidString
     private let password = UUID().uuidString + UUID().uuidString
@@ -10,7 +11,6 @@ final class PublicWebProxy {
     private var remainingBytes = 200 * 1_024 * 1_024
     private var startContinuation: CheckedContinuation<ProxyConfiguration, any Error>?
     private var stopped = false
-    private(set) var refusal: PublicWebAddress.Refusal?
 
     init() throws {
         let parameters = NWParameters.tcp
@@ -70,7 +70,8 @@ final class PublicWebProxy {
             guard let self, !self.stopped, count <= self.remainingBytes else { return false }
             self.remainingBytes -= count
             return true
-        }, refused: { [weak self] in self?.refusal = $0 }, finished: { [weak self] in self?.tunnels[id] = nil })
+        }, refused: { [weak self] in self?.refusal = $0 },
+                            finished: { [weak self] in self?.tunnels[id] = nil })
         tunnels[id] = tunnel
         tunnel.start()
     }

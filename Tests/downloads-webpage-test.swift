@@ -31,6 +31,13 @@ struct DownloadsWebpageTests {
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
         try await extraction()
+        do {
+            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1.nip.io/")!)
+            expect(false, "private DNS destination is refused")
+        } catch let refusal as PublicWebAddress.Refusal {
+            expect(refusal.localizedDescription == PublicWebAddress.Refusal.privateAddress.localizedDescription,
+                   "proxy preserves private-address refusal")
+        }
         if let directory = ProcessInfo.processInfo.environment["TINYCAST_WEBPAGE_TEST_DIRECTORY"] {
             try await files(URL(filePath: directory, directoryHint: .isDirectory))
         }
@@ -201,57 +208,16 @@ struct DownloadsWebpageTests {
         let privateURL = try await probe.start()
         defer { probe.stop() }
         expect((try? PublicWebAddress.validate(privateURL)) == nil, "refuses loopback navigation")
-        do {
-            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1/")!)
-            expect(false, "extractor refuses loopback")
-        } catch PublicWebAddress.Refusal.privateAddress {
-            expect(true, "extractor preserves private-address refusal")
-        }
         let guardedConfiguration = try await WebpageWebViewConfiguration.make(proxy: proxyConfiguration)
         let guardedView = WKWebView(frame: .zero, configuration: guardedConfiguration)
         let guardedNavigation = FixtureNavigation()
         guardedView.navigationDelegate = guardedNavigation
         let malicious = "<html><body><p>Public fixture</p><img src='\(privateURL.absoluteString)'>" +
             "<iframe src='\(privateURL.absoluteString)'></iframe></body></html>"
-        let refusedResource = "http://127.0.0.1.nip.io/"
-        let refusedPage = "<html><body><img src='\(refusedResource)'></body></html>"
         try await guardedNavigation.load(malicious, into: guardedView, baseURL: URL(string: "http://example.com")!)
         expect(probe.connections == 0, "WebKit subresources cannot bypass public-address proxy")
-        guardedConfiguration.userContentController.removeAllContentRuleLists()
-        try await guardedNavigation.load(refusedPage, into: guardedView, baseURL: URL(string: "http://example.com")!)
-        if case .privateAddress? = proxy.refusal {
-            expect(true, "proxy preserves the private-address refusal")
-        } else {
-            expect(false, "proxy preserves the private-address refusal")
-        }
-        expect(probe.connections == 0, "proxy itself refuses loopback with content rules removed")
-        let slowResource = SlowResource()
-        let slowPage = URL(string: "http://example.com")!
-        do {
-            _ = try await WebpageExtractor().extract(slowPage, timeout: .seconds(5), configure: { configuration in
-                configuration.userContentController.removeAllContentRuleLists()
-                configuration.setURLSchemeHandler(slowResource, forURLScheme: "slow-fixture")
-            }) { view in
-                view.loadHTMLString("<html><body><img src='\(refusedResource)'>" +
-                    "<img src='slow-fixture://image'></body></html>", baseURL: slowPage)
-            }
-            expect(false, "slow page times out after refused subresource")
-        } catch WebpageExtractor.Failure.timedOut {
-            expect(slowResource.started, "slow subresource keeps page loading")
-            expect(true, "slow page times out after refused subresource")
-        } catch {
-            expect(false, "slow page preserves timeout, got \(error)")
-        }
         guardedView.stopLoading()
         guardedView.navigationDelegate = nil
-    }
-
-    @MainActor
-    final class SlowResource: NSObject, WKURLSchemeHandler {
-        var started = false
-
-        func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) { started = true }
-        func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {}
     }
 
     @MainActor

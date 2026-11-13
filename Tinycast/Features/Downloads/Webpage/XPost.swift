@@ -22,10 +22,11 @@ enum XPost {
     static func apiURL(_ source: URL) -> URL? {
         guard WebRules.isWebScheme(source.scheme), WebRules.isXHost(source.host(percentEncoded: false)) else { return nil }
         var parts = source.pathComponents.filter { $0 != "/" }
-        if parts.count >= 2, parts[0].lowercased() == "i", parts[1] == "web" { parts.remove(at: 1) }
-        if parts.count >= 2, parts[1] == "statuses" { parts[1] = "status" }
+        if parts.count >= 4, parts[0] == "i", parts[1] == "web", parts[2] == "status" {
+            parts.remove(at: 1)
+        }
         // x.com/i/article/<id> carries an article id, not the status id fxtwitter needs.
-        guard parts.count >= 3, ["status", "article"].contains(parts[1]),
+        guard parts.count >= 3, ["status", "statuses", "article"].contains(parts[1]),
               parts[0].lowercased() != "i" || parts[1] == "status",
               parts[0].wholeMatch(of: /[A-Za-z0-9_]{1,15}/) != nil, parts[2].wholeMatch(of: /[0-9]{1,20}/) != nil
         else { return nil }

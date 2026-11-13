@@ -14,30 +14,20 @@ enum DialogTone { case success }
 struct LinkQuickFixTests {
     @MainActor
     static func main() async {
-        let empty = LinkQuickFixEngine.Configuration()
         let module = LinkQuickFixModule()
-        assert(module.actions(for: .dnsFailure, configuration: empty).isEmpty)
+        assert(module.actions(for: .dnsFailure).isEmpty)
         module.start()
-        assert(module.actions(for: .dnsFailure, configuration: empty) == [
+        assert(module.actions(for: .dnsFailure) == [
             .copyCommand("sudo tailscale set --accept-dns=false\nsudo tailscale set --accept-dns=true", cause: .dnsFailure)
         ])
-        assert(module.actions(for: .tailscaleStopped, configuration: empty) == [
+        assert(module.actions(for: .tailscaleStopped) == [
             .copyCommand("tailscale status\nsudo tailscale up", cause: .tailscaleStopped)
         ])
-        assert(module.actions(for: .mirrorStale, configuration: empty).isEmpty)
-        let log = URL(fileURLWithPath: "/tmp/link-fix-fixture/sync.log")
-        let configured = LinkQuickFixEngine.Configuration(mirrorSyncCommand: "manual-sync", mirrorLog: log)
-        assert(module.actions(for: .mirrorStale, configuration: configured) == [
-            .copyCommand("manual-sync"), .openMirrorLog(log)
-        ])
-        let invalid = LinkQuickFixEngine.Configuration(
-            mirrorSyncCommand: " \n", mirrorLog: URL(string: "https://example.com/log"))
-        assert(module.actions(for: .mirrorStale, configuration: invalid).isEmpty)
-        assert(module.actions(for: .cableDown, configuration: empty) == [.openNetworkSettings])
-        assert(module.actions(for: .linkExpiring, configuration: empty) == [.relinkInConnections])
+        assert(module.actions(for: .cableDown) == [.openNetworkSettings])
+        assert(module.actions(for: .linkExpiring) == [.relinkInConnections])
         module.stop()
         for cause in LinkQuickFixEngine.Cause.allCases {
-            assert(module.actions(for: cause, configuration: configured).isEmpty)
+            assert(module.actions(for: cause).isEmpty)
         }
         module.start()
         var paired = true
@@ -95,12 +85,11 @@ struct LinkQuickFixTests {
         var settings = 0
         let executor = LinkQuickFixExecutor(copy: { copied.append($0) }, open: { opened.append($0) },
             settings: { settings += 1 }, message: { messages.append($0) })
-        executor.run(.copyCommand("fixture"))
+        executor.run(.copyCommand("fixture", cause: .dnsFailure))
         executor.run(.openNetworkSettings)
         executor.run(.relinkInConnections)
-        executor.run(.openMirrorLog(log))
         assert(copied == ["fixture"] && messages.last == "Command copied.")
-        assert(opened == [URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!, log])
+        assert(opened == [URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!])
         assert(settings == 1)
         let entries = LinkQuickFixModule.register()
         assert(entries.count == 1 && entries[0].module === LinkQuickFixModule.shared)
@@ -131,11 +120,9 @@ struct LinkQuickFixTests {
         let relink = LinkQuickFixModule().configure()
         relink.execute(.relinkInConnections)
         assert(settingsOpened)
-        _ = await live.choose([.copyCommand("sync")], nil)
-        assert(options.first == "Copy Sync Command")
         print("Review cases: cause labels, registration entry, unknown/unpaired/up, settings hook, dialog state changes passed")
         print("Link quick fixes: down offers 3, unpaired relinks, up reports connected, Cancel runs nothing")
         print("Link quick fixes: all executor effects and host choice cancellation passed")
-        print("Link quick fixes: all cause mappings, configuration validation and lifecycle gates passed")
+        print("Link quick fixes: all cause mappings and lifecycle gates passed")
     }
 }

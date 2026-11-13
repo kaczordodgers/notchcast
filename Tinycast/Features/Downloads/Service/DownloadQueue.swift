@@ -18,7 +18,6 @@ final class DownloadQueue {
     @ObservationIgnored private var operations: [String: UUID] = [:]
     @ObservationIgnored private var persistence: Task<Void, Error>?
     @ObservationIgnored private var stopped = false
-    @ObservationIgnored var reportPersistenceFailure: (String) -> Void = { _ in }
 
     init(
         file: URL? = NotchcastIdentity.supportRoot.appending(path: "Notchcast/downloads.json"),
@@ -106,18 +105,6 @@ final class DownloadQueue {
         jobs.append(job)
         save()
         pump()
-    }
-
-    func remove(_ id: String) {
-        tasks[id]?.cancel()
-        jobs.removeAll { $0.id == id }
-        save()
-        pump()
-    }
-
-    func clearFinished() {
-        jobs.removeAll { $0.state.isFinished }
-        save()
     }
 
     func stop() async {
@@ -212,13 +199,6 @@ final class DownloadQueue {
         }
     }
 
-    /// Drops finished rows older than 7 days; the app calls it when the list is shown or refreshed.
-    func expireFinished() {
-        let count = jobs.count
-        expire(now: clock())
-        if jobs.count != count { save() }
-    }
-
     private func expire(now: Date) { Self.expire(&jobs, now: now) }
 
     /// Shared with `load`, so a row expires the same way whether the app just ran or was relaunched.
@@ -247,9 +227,7 @@ final class DownloadQueue {
                 try await Self.write(snapshot, file: file)
                 self?.persistenceError = nil
             } catch {
-                if self?.persistenceError == nil {
-                    self?.reportPersistenceFailure(error.localizedDescription)
-                }
+                Self.logger.error("Could not save downloads: \(error.localizedDescription)")
                 self?.persistenceError = error.localizedDescription
                 throw error
             }

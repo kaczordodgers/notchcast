@@ -23,9 +23,7 @@ extension LinkQuickFixModule {
                 case .openNetworkSettings: title = String(localized: "Open Network Settings", table: "Notchcast")
                 case .relinkInConnections: title = String(localized: "Open Mac Link Settings", table: "Notchcast")
                 case .copyCommand(_, .dnsFailure): title = String(localized: "Copy DNS Reset Command", table: "Notchcast")
-                case .copyCommand(_, .tailscaleStopped): title = String(localized: "Copy Tailscale Command", table: "Notchcast")
-                case .copyCommand: title = String(localized: "Copy Sync Command", table: "Notchcast")
-                case .openMirrorLog: title = String(localized: "Open Log", table: "Notchcast")
+                case .copyCommand: title = String(localized: "Copy Tailscale Command", table: "Notchcast")
                 }
                 return title
             }

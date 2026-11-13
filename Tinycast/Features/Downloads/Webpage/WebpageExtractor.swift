@@ -24,11 +24,8 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
     private var continuation: CheckedContinuation<Void, any Error>?
     private var operationID: UUID?
     private var loaded = false
-    private var provisional = false
 
-    func extract(_ source: URL, timeout duration: Duration = .seconds(60),
-                 configure: ((WKWebViewConfiguration) -> Void)? = nil,
-                 load: ((WKWebView) -> Void)? = nil) async throws -> WebpageArticle {
+    func extract(_ source: URL) async throws -> WebpageArticle {
         guard operationID == nil else { throw Failure.inUse }
         try PublicWebAddress.validate(source)
         try Task.checkCancellation()
@@ -43,18 +40,16 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
             proxy.stop()
             operationID = nil
             loaded = false
-            provisional = false
         }
         return try await withTaskCancellationHandler {
             let proxyConfiguration = try await proxy.start()
             let configuration = try await WebpageWebViewConfiguration.make(proxy: proxyConfiguration)
-            configure?(configuration)
             try Task.checkCancellation()
             let view = WKWebView(frame: CGRect(x: 0, y: 0, width: 1280, height: 2200), configuration: configuration)
             view.navigationDelegate = self
             webView = view
             let timeout = Task { [weak self] in
-                do { try await Task.sleep(for: duration) } catch { return }
+                do { try await Task.sleep(for: .seconds(60)) } catch { return }
                 self?.finish(.failure(Failure.timedOut))
                 view.stopLoading()
             }
@@ -62,14 +57,11 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
             do {
                 try await withCheckedThrowingContinuation { (pending: CheckedContinuation<Void, any Error>) in
                     continuation = pending
-                    if let load { load(view) } else {
-                        view.load(URLRequest(url: source, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 60))
-                    }
+                    view.load(URLRequest(url: source, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 60))
                 }
             } catch {
                 try Task.checkCancellation()
-                if provisional, let refusal = proxy.refusal { throw refusal }
-                throw error
+                throw proxy.refusal ?? error
             }
             try Task.checkCancellation()
             try await Task.sleep(for: .milliseconds(750))
@@ -136,7 +128,6 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation?, withError error: any Error) {
         guard webView === self.webView else { return }
-        provisional = true
         finish(.failure(Failure.renderFailed))
     }
 

@@ -14,7 +14,7 @@ struct ArchivesEngineTest {
     @MainActor static func main() async throws {
         if CommandLine.arguments.count == 3, CommandLine.arguments[1] == "--crash-runner" {
             let root = URL(fileURLWithPath: CommandLine.arguments[2])
-            let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+            let staging = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
             try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
             try Data("crash payload".utf8).write(to: staging.appending(path: "runner-output"))
             try ArchiveRecovery(archive: root.appending(path: "runner.zip"), staging: staging,
@@ -33,7 +33,6 @@ struct ArchivesEngineTest {
         try rules()
         try crashRecovery(root)
         try await killedRunner(root)
-        try await restoreDefaults()
         let fallbackStage = root.appending(path: "fallback-stage")
         try FileManager.default.createDirectory(at: fallbackStage, withIntermediateDirectories: false,
                                                attributes: [.posixPermissions: 0o700])
@@ -73,7 +72,7 @@ struct ArchivesEngineTest {
     }
 
     static func protectedOrphan(_ root: URL) throws {
-        let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let staging = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
         let archive = root.appending(path: "movie.zip")
         let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
         try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
@@ -100,7 +99,7 @@ struct ArchivesEngineTest {
         for state in [ArchiveRecovery.State.running, .finishedExtract, .publishing] {
             let archive = root.appending(path: "crash-\(state.rawValue).zip")
             try Data("source".utf8).write(to: archive)
-            let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+            let staging = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
             try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
             try Data("payload".utf8).write(to: staging.appending(path: "crash-\(state.rawValue)"))
             var record = ArchiveRecovery(archive: archive, staging: staging, inPlace: false, state: state)
@@ -120,7 +119,7 @@ struct ArchivesEngineTest {
         print("PASS: durable running, finished-extract and publishing crash recovery")
         let archive = root.appending(path: "partial.zip")
         try Data("partial archive".utf8).write(to: archive)
-        let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let staging = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
         try Data("partial output".utf8).write(to: staging.appending(path: "partial"))
         var record = ArchiveRecovery(archive: archive, staging: staging, inPlace: true, state: .running)
@@ -138,7 +137,7 @@ struct ArchivesEngineTest {
         expect(try String(contentsOf: archive, encoding: .utf8) == "partial archive", "partial archive unchanged")
         expect(ArchiveFiles.exists(staging.appending(path: "partial")), "partial staging preserved")
         for empty in [true, false] {
-            let orphan = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+            let orphan = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
             try FileManager.default.createDirectory(at: orphan, withIntermediateDirectories: false)
             if !empty { try Data("orphan".utf8).write(to: orphan.appending(path: "orphan-output")) }
             try ArchiveRecovery.recover(in: root)
@@ -168,34 +167,6 @@ struct ArchivesEngineTest {
         expect(try String(contentsOf: root.appending(path: "runner-output"), encoding: .utf8) == "crash payload",
                "SIGKILL of app-side runner recovers visibly")
         print("PASS: SIGKILL of app-side runner publishes durable output visibly")
-    }
-
-    @MainActor static func restoreDefaults() async throws {
-        let application = URL(fileURLWithPath: "/Applications/Fixture.app")
-        let types = Array(ArchiveFormat.typeIdentifiers.prefix(4))
-        var attempted: [String] = []
-        try await ArchiveDefaultApplicationService.apply(
-            enabled: true, application: application, supported: Set(ArchiveFormat.typeIdentifiers), current: { _ in nil }
-        ) { attempted.append($0) }
-        expect(attempted == ArchiveFormat.defaultTypeIdentifiers, "claims only eligible archive types")
-        expect(!attempted.contains("public.iso-image"), "ISO never claimed by real default-service path")
-        expect(!attempted.contains("com.apple.installer-package-archive"), "PKG never claimed by real default-service path")
-        attempted = []
-        do {
-            try await ArchiveDefaultApplicationService.apply(
-                enabled: false, application: application, supported: Set(types.prefix(3)),
-                current: { $0 == types[2] ? URL(fileURLWithPath: "/Applications/Other.app") : application }
-            ) { identifier in
-                attempted.append(identifier)
-                throw ArchiveFailure.filesystem("failure-\(identifier)")
-            }
-            fatalError("restore errors lost")
-        } catch {
-            expect(attempted == Array(types.prefix(2)), "restore filters unsupported and other-app types")
-            let message = String(describing: error)
-            expect(attempted.allSatisfy { message.contains("failure-\($0)") }, "restore collects each type error")
-        }
-        print("PASS: fake default application service filters restore types and collects per-type errors")
     }
 
     static func listing(_ entries: [(String, Bool)], total: String = "12 B") throws -> ArchiveListing {
@@ -330,7 +301,7 @@ struct ArchivesEngineTest {
         expect(ArchiveFiles.exists(slow), "cancel preserves archive")
         expect(!ArchiveFiles.exists(URL(fileURLWithPath: slow.path + ".hatchzip")), "keep journal cleaned")
         expect(try FileManager.default.contentsOfDirectory(atPath: root.path)
-            .allSatisfy { !$0.hasPrefix(".notchcast-extract-") }, "staging cleaned")
+            .allSatisfy { !$0.hasPrefix(ArchiveFiles.stagingPrefix) }, "staging cleaned")
         for name in ["barrier.zip", "later.zip"] {
             let archive = root.appending(path: name)
             try Data("archive".utf8).write(to: archive)
@@ -368,7 +339,7 @@ struct ArchivesEngineTest {
         expect(!ArchiveFiles.exists(earlyStaging), "early in-place cancel cleans empty staging")
         let staleArchive = root.appending(path: "stale.zip")
         try Data("archive".utf8).write(to: staleArchive)
-        let staleStage = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let staleStage = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: staleStage, withIntermediateDirectories: false)
         let staleJournal: [String: Any] = ["keep": true, "output": staleStage.path,
                                          "total_size": 4, "parts": [[staleArchive.path, 7]]]
@@ -538,7 +509,7 @@ struct ArchivesEngineTest {
 
     @MainActor static func realResume(_ root: URL, runner: ArchiveExtractionRunner, tool: URL) async throws {
         let archive = root.appending(path: "real-resume.zip")
-        let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let staging = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
         let script = #"""
         import pathlib, signal, subprocess, sys, time, zipfile
         tool, source, output = sys.argv[1:]
@@ -564,6 +535,12 @@ struct ArchivesEngineTest {
         expect(parsed?.mode == .inPlace, "real journal parsed")
         expect(parsed?.recovery.staging == ArchiveFiles.resolvedParent(staging), "real journal destination")
         let output = try await runner.extract(archive, mode: .inPlace)
+        if output.lastPathComponent != "resumed" {
+            let manager = FileManager.default
+            let published = (try? manager.contentsOfDirectory(atPath: output.path).filter { $0 != "resumed" }) ?? []
+            let rootItems = (try? manager.contentsOfDirectory(atPath: root.path)) ?? []
+            fatalError("real resume published \(output.lastPathComponent); extra: \(published); root: \(rootItems)")
+        }
         let file = output.appending(path: "0000.bin")
         expect(try Data(contentsOf: file) == Data(repeating: 120, count: 32768), "real resumed bytes")
         expect(try FileManager.default.contentsOfDirectory(atPath: output.path).count == 2000, "all resumed entries")

@@ -144,7 +144,6 @@
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastMusic": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastOptions": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastPaste": 1,
-    "Tinycast/Features/SystemMonitor/Model/MonitorFormat.swift:MonitorFormat": 1,
     "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 0,
     "Tinycast/Features/Todo/Model/TodoReminder.swift:Snooze": 0,
     "Tinycast/Features/Todo/Model/TodoTaskDetail.swift:TodoTaskDetail": 0,

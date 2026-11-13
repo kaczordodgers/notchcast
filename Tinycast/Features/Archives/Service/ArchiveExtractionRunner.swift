@@ -48,11 +48,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             let extraction = try await ArchiveProcess.run(
                 tool: tool, arguments: ["extract"] + flags + ["-o", plan.outputPath, archive.path]
             ) {
-                if let written = try? ArchiveFiles.bytes(staging) {
-                    var current = initial
-                    current.bytesWritten = written
-                    await progress(current)
-                }
+                await Self.reportBytes(initial, progress: progress)
             }
             try ArchiveProcess.validate(extraction.status)
             durable.state = .finishedExtract
@@ -65,16 +61,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             try Task.checkCancellation()
             return try finish(plan.recovery, archive: archive)
         } catch {
-            if plan.mode == .keepArchive {
-                try Self.cleanupKeepProgress(archive, staging: staging)
-                try ArchiveFiles.removeStaging(staging)
-                try durable.remove()
-            } else if !ArchiveFiles.exists(URL(fileURLWithPath: archive.path + ".hatchzip")),
-                      ArchiveFiles.exists(archive),
-                      (try? FileManager.default.contentsOfDirectory(atPath: staging.path).isEmpty) == true {
-                try ArchiveFiles.removeStaging(staging)
-                try durable.remove()
-            }
+            try Self.cleanupFailure(durable, route: .hatchzip)
             throw error
         }
     }
@@ -160,6 +147,30 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         try ArchiveFiles.removeStaging(recovery.staging)
         try durable.remove()
         return output
+    }
+
+    static func reportBytes(
+        _ initial: Progress, limit: Int64 = .max, progress: @MainActor @Sendable (Progress) -> Void
+    ) async {
+        if let written = try? ArchiveFiles.bytes(initial.recovery.staging) {
+            var current = initial
+            current.bytesWritten = min(written, limit)
+            await progress(current)
+        }
+    }
+
+    static func cleanupFailure(_ record: ArchiveRecovery, route: ArchiveEngineRoute) throws {
+        if route == .hatchzip {
+            if !record.inPlace {
+                try cleanupKeepProgress(record.archive, staging: record.staging)
+            } else {
+                guard !ArchiveFiles.exists(URL(fileURLWithPath: record.archive.path + ".hatchzip")),
+                      ArchiveFiles.exists(record.archive),
+                      (try? FileManager.default.contentsOfDirectory(atPath: record.staging.path).isEmpty) == true else { return }
+            }
+        }
+        try ArchiveFiles.removeStaging(record.staging)
+        try record.remove()
     }
 
     static func cleanupKeepProgress(_ archive: URL, staging: URL) throws {

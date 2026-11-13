@@ -16,6 +16,7 @@ final class DownloadsQueueController {
     @ObservationIgnored private var transition: Task<Void, Never>?
     @ObservationIgnored private let releaseSpeech: @MainActor @Sendable () async -> Void
     @ObservationIgnored private var speechPending = false
+    @ObservationIgnored private var reportedPersistenceError: String?
 
     /// `speechKinds` are the job kinds that hold the speech worker until none of them is due.
     init(file: URL, destination: URL, maxConcurrent: Int = 3, speechKinds: Set<String>,
@@ -52,9 +53,8 @@ final class DownloadsQueueController {
                     throw error
                 }
                 queue = loaded
-                loaded.reportPersistenceFailure = report
                 trackSpeech(id, queue: loaded)
-                if let problem = loaded.persistenceError { report(problem) }
+                trackPersistence(id, queue: loaded)
             } catch {
                 guard operation == id, !Task.isCancelled else { return }
                 failure = error.localizedDescription
@@ -94,6 +94,18 @@ final class DownloadsQueueController {
                 await releaseSpeech()
             }
         }
+    }
+
+    private func trackPersistence(_ id: UUID, queue: DownloadQueue) {
+        guard operation == id else { return }
+        let problem = withObservationTracking { queue.persistenceError } onChange: { [weak self, weak queue] in
+            Task { @MainActor [weak self, weak queue] in
+                guard let queue else { return }
+                self?.trackPersistence(id, queue: queue)
+            }
+        }
+        if let problem, problem != reportedPersistenceError { report(problem) }
+        reportedPersistenceError = problem
     }
 
     private func speechIsDue(_ queue: DownloadQueue) -> Bool {

@@ -27,7 +27,7 @@ final class AgentActionIndex {
         guard action.danger == .harmless else { return nil }
         return {}
     }
-    @ObservationIgnored var didComplete: @MainActor (AgentRequest, AgentReply) async -> Void = { _, _ in }
+    @ObservationIgnored var didComplete: @MainActor (AgentRequest, AgentReply, TimeInterval) async -> Void = { _, _, _ in }
     @ObservationIgnored var readAudit: (@MainActor () async throws -> AgentJSON)?
     @ObservationIgnored var receiveMCP: (@MainActor (AgentRequest) async throws -> AgentJSON)?
 
@@ -60,6 +60,7 @@ final class AgentActionIndex {
     }
 
     func handle(_ request: AgentRequest) async -> AgentReply {
+        let start = ContinuousClock.now
         let reply: AgentReply
         do {
             try Task.checkCancellation()
@@ -74,7 +75,9 @@ final class AgentActionIndex {
         } catch {
             reply = .init(code: .failed)
         }
-        await didComplete(request, reply)
+        let elapsed = start.duration(to: .now).components
+        let duration = Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+        await didComplete(request, reply, duration)
         return reply
     }
 
