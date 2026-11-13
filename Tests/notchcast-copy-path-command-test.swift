@@ -5,7 +5,7 @@
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
-enum DialogTone { case neutral, danger }
+enum DialogTone { case neutral, success, danger }
 enum NotchcastFeature { case copyPath }
 @main struct CopyTests {
     @MainActor static func main() async {
@@ -21,10 +21,14 @@ enum NotchcastFeature { case copyPath }
                                 home: "/test", copy: { copied = $0; return true }, report: { reported = $0; tone = $1 })
         await module.commandTask?.value
         precondition(copied == "~/file" && reported == "Copied path")
+        precondition(tone == .success)
         module.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
                                 home: "/test", copy: { _ in false }, report: { reported = $0; tone = $1 })
         await module.commandTask?.value
         precondition(reported == "Could not copy to clipboard." && tone == .danger)
+        module.copyFromLauncher(target: nil, home: "/test", report: { reported = $0; tone = $1 })
+        await module.commandTask?.value
+        precondition(reported == "Unavailable" && tone == .neutral)
         module.stop()
         struct Unknown: Error {}
         let causes: [(any Error, String)] = [
@@ -52,8 +56,7 @@ enum NotchcastFeature { case copyPath }
         pending.start()
         var lateCopied = false
         pending.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
-                                 home: "/test", copy: { _ in lateCopied = true; return true },
-                                 report: { _, _ in lateCopied = true })
+                                 home: "/test", copy: { _ in lateCopied = true; return true }, report: { _, _ in lateCopied = true })
         let task = pending.commandTask
         pending.stop()
         release.yield()
@@ -63,6 +66,6 @@ enum NotchcastFeature { case copyPath }
         precondition(entries.count == 1 && entries[0].requires == [.copyPath] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === CopyPathModule.shared)
         print("Verified launcher action resolves with fake reader, copies result and reports success; a stopped module copies nothing")
-        print("Verified each read failure reports its own message")
+        print("Verified read and clipboard failures use danger, success uses success, unavailable uses neutral")
     }
 }

@@ -78,6 +78,9 @@ struct ShelfReceivedSection: View {
             NSPasteboard.general.setString(String(data: entry.item.data, encoding: .utf8) ?? "", forType: .string)
         case .open:
             Task {
+                guard !busy else { return }
+                busy = true
+                defer { busy = false }
                 do {
                     try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
                                                      openWithBundleID: nil, inNewWindow: false)

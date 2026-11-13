@@ -1,13 +1,16 @@
 #!/bin/bash
 # Every minute on a runner Mac, and at each job start. Usage: gate.sh <host> <owner/repo>
 #   Publishes how many of this Mac's runners are idle as the repository variable NOTCHCAST_IDLE_<HOST>, which
-#   notchcast/runner/route.py reads. While the admit command (install.sh --gate) refuses, it publishes -1 and,
-#   from the second refusal on, stops the runners that have no job; it starts those again once admitted.
+#   notchcast/runner/route.py reads. While the admit command (install.sh --gate) refuses, it publishes -1, from the
+#   second refusal on removes each runner's job label, and once a drained runner has no job, stops it; once admitted
+#   it starts those again and gives the label back.
 set -uo pipefail
 HOST=$1 REPO=$2
 ROOT="${NOTCHCAST_RUNNER_ROOT:-$HOME/agents/gh-runner}"
 DOMAIN="gui/$(id -u)"
+LABEL=notchcast-mac
 say() { echo "$(date -u +%FT%TZ) $*"; }
+age() { echo $(($(date +%s) - $(stat -f %m "$1"))); }
 
 admitted=1
 if [ -x "$ROOT/admit" ] && ! "$ROOT/admit" >/dev/null 2>&1; then admitted=0; fi
@@ -19,15 +22,28 @@ for dir in "$ROOT/$HOST"-*/; do
     busy=0 loaded=0
     if pgrep -f "${dir}bin/Runner.Worker" >/dev/null; then busy=1; fi
     if launchctl print "$DOMAIN/$label" >/dev/null 2>&1; then loaded=1; fi
-    # shortcut: a job assigned between the pgrep and the bootout dies; drain through the runner if that ever happens.
-    if [ "$admitted" = 0 ] && [ "$loaded" = 1 ] && [ "$busy" = 0 ] && [ -e "$ROOT/refused" ]; then
+    runner=$(plutil -extract agentId raw -o - "$dir.runner" 2>/dev/null)
+    # An unlabelled runner gets no new job, so after a job already offered has had 30 s to start, idle stays idle.
+    if [ "$admitted" = 0 ] && [ "$loaded" = 1 ] && [ -e "$ROOT/refused" ] && [ ! -e "$dir.drained" ]; then
+        # Unreadable id or labels: drained anyway, so the stop still comes, as before the drain existed.
+        if [ -z "$runner" ] || gh api -X DELETE "repos/$REPO/actions/runners/$runner/labels/$LABEL" >/dev/null \
+            || ! labels=$(gh api "repos/$REPO/actions/runners/$runner/labels" --jq '.labels[].name' 2>/dev/null) \
+            || ! grep -qx "$LABEL" <<< "$labels"; then
+            touch "$dir.drained"; say "refused: drained $name"
+        fi
+    elif [ "$admitted" = 0 ] && [ "$loaded" = 1 ] && [ "$busy" = 0 ] && [ -e "$dir.drained" ] \
+        && [ "$(age "$dir.drained")" -ge 30 ]; then
         if launchctl bootout "$DOMAIN/$label"; then loaded=0; touch "$dir.stopped"; say "refused: stopped $name"; fi
     # Only a runner this gate stopped: one booted out by hand, to remove it, stays out.
     elif [ "$admitted" = 1 ] && [ "$loaded" = 0 ] && [ -e "$dir.stopped" ]; then
         if launchctl bootstrap "$DOMAIN" "$HOME/Library/LaunchAgents/$label.plist"; then loaded=1; say "admitted: started $name"; fi
     fi
+    if [ "$admitted" = 1 ] && [ -e "$dir.drained" ] \
+        && { [ -z "$runner" ] || gh api -X POST "repos/$REPO/actions/runners/$runner/labels" -f "labels[]=$LABEL" >/dev/null; }; then
+        rm -f "$dir.drained"; say "admitted: labelled $name"
+    fi
     [ "$loaded" = 0 ] || rm -f "$dir.stopped"
-    if [ "$loaded" = 1 ] && [ "$busy" = 0 ]; then idle=$((idle + 1)); fi
+    if [ "$loaded" = 1 ] && [ "$busy" = 0 ] && [ ! -e "$dir.drained" ]; then idle=$((idle + 1)); fi
 done
 if [ "$admitted" = 0 ]; then
     [ -e "$ROOT/refused" ] || say "refused: taking no new job"

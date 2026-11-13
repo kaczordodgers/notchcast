@@ -51,13 +51,10 @@ source_directory=$(cd "$(/usr/bin/dirname "$0")" && pwd)
 # Root compiles these sources: refuse uncommitted edits and show the commit they come from.
 helper_sources=(
     RootCaller.swift NativeChargeLimit.swift main.swift FanSMC.swift BatterySMC.swift Spotlight.swift
-    SudoTouchID.swift Power.swift CleanSystem.swift
+    SudoTouchID.swift Power.swift
     ../../Tinycast/Features/Notchcast/Root/RootContract.swift
     ../../Tinycast/Features/SystemMonitor/Model/SMCValue.swift
     ../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
-    ../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift
-    ../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift
-    ../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift
 )
 if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- . "${helper_sources[@]}")" ]; then
     printf 'Helper sources have uncommitted changes; commit or discard them first.\n' >&2

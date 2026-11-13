@@ -3,12 +3,17 @@
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator.swift
 // notchcast-sources: Tinycast/Features/FinderTools/FinderToolsModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Input/*.swift
-// notchcast-kit: core platform command
+// notchcast-kit: core platform command host
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
 // notchcast-sources: Tinycast/Features/FinderTools/FinderToolsCoordinator+Registration.swift
 import Foundation
 import CoreGraphics
-import ApplicationServices
+
+enum DialogTone { case danger }
+
+@MainActor enum Permissions {
+    static func ensureAccessibility() -> Bool { true }
+}
 
 enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
@@ -29,14 +34,9 @@ struct FinderToolsServicesTest {
         precondition(!otherEvent.isSynthetic && !EventTapHub.Event(type: .keyDown, event: otherEvent).isSynthetic)
         let hub = EventTapHub()
         let coordinator = FinderToolsCoordinator(hub: hub)
-        var reports: [String] = []
-        coordinator.reportFailure = { reports.append($0) }
         coordinator.cut()
         coordinator.paste()
         coordinator.rename()
-        if !AXIsProcessTrusted() {
-            precondition(reports.count == 3 && reports.allSatisfy { $0.contains("Accessibility") })
-        }
         precondition(hub.consumerCount == 0)
         precondition(FinderCommandService.originalKey(for: .cut)?.0 == 7)
         precondition(FinderCommandService.originalKey(for: .paste)?.0 == 9)

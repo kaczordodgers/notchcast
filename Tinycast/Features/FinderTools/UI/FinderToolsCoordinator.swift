@@ -11,7 +11,6 @@ final class FinderToolsCoordinator {
     private var cutEnabled = false
     private var renameEnabled = false
     private var permissionGranted = false
-    @ObservationIgnored var reportFailure: (String) -> Void = { _ in }
 
     init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
 
@@ -39,9 +38,8 @@ final class FinderToolsCoordinator {
     }
 
     private func perform(keyCode: Int64, modifiers: FinderShortcutPolicy.Modifiers) {
-        guard AXIsProcessTrusted() else {
-            let message = String(localized: "Allow Accessibility access to use Finder commands.", table: "Notchcast")
-            reportFailure(message)
+        guard Permissions.ensureAccessibility() else {
+            NotchcastHost.current.showMessage(String(localized: "Accessibility permission required"), .danger)
             return
         }
         refreshContext()

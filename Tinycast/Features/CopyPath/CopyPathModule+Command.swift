@@ -27,9 +27,7 @@ extension CopyPathModule {
                 switch result {
                 case .path(let text), .link(let text):
                     let copied = copy(text)
-                    let message = copied ? String(localized: "Copied path")
-                        : String(localized: "Could not copy to clipboard.", table: "Notchcast")
-                    report(message, copied ? .neutral : .danger)
+                    report(copied ? String(localized: "Copied path") : String(localized: "Could not copy to clipboard.", table: "Notchcast"), copied ? .success : .danger)
                 case .nothing:
                     report(String(localized: "Unavailable"), .neutral)
                 }
