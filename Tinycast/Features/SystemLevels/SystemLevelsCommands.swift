@@ -17,9 +17,12 @@ enum SystemLevelsCommands {
                     guard service.isRunning, NotchcastPreferences.shared.showsVolumeInIsland else { return }
                     let result = await service.apply(.setVolume(Double(percent) / 100))
                     guard !Task.isCancelled, service.isRunning else { return }
-                    if case .fallbackToNativeKeys = result {
+                    switch result {
+                    case .applied(let notice): SystemLevelsModule.shared.announce(notice)
+                    case .fallbackToNativeKeys:
                         let message = String(localized: "The current audio output does not support software volume.")
                         NotchcastHost.current.showMessage(message, .success)
+                    case .cancelled: break
                     }
                 }
             })
