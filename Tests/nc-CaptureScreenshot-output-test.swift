@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/Date+CaptureFileName.swift
 import AppKit
+import ImageIO
+import UniformTypeIdentifiers
 
 @MainActor final class ScreenshotModule {
     static let shared = ScreenshotModule()
@@ -30,6 +32,22 @@ struct ScreenshotOutputTest {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
+        let pngFolder = folder.appending(path: "png")
+        try FileManager.default.createDirectory(at: pngFolder, withIntermediateDirectories: false)
+        let pngURL = try await ScreenshotService.capture(.display(42), destination: .file(folder: pngFolder),
+            pasteboard: board, captureImage: { request in
+                guard case .display(42) = request else { preconditionFailure("Capture request changed") }
+                let context = CGContext(data: nil, width: 3, height: 2, bitsPerComponent: 8,
+                    bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+                context.setFillColor(CGColor(gray: 0.5, alpha: 1))
+                context.fill(CGRect(x: 0, y: 0, width: 3, height: 2))
+                return context.makeImage()!
+            }, isEnabled: { true })!
+        let source = CGImageSourceCreateWithURL(pngURL as CFURL, nil)!
+        precondition(CGImageSourceGetType(source) == UTType.png.identifier as CFString)
+        let decoded = CGImageSourceCreateImageAtIndex(source, 0, nil)!
+        precondition(decoded.width == 3 && decoded.height == 2)
         let original = Data([1, 2, 3])
         let first = try await ScreenshotService.save(original, folder: folder, date: date, timeZone: zone)
         let second = try await ScreenshotService.save(Data([4]), folder: folder, date: date, timeZone: zone)
@@ -46,13 +64,13 @@ struct ScreenshotOutputTest {
             preconditionFailure("Cancelled output must not write")
         } catch is CancellationError {}
         let files = try FileManager.default.contentsOfDirectory(atPath: folder.path)
-        precondition(files.count == 2)
+        precondition(files.count == 3)
         var reported: URL?
         let saved = try await ScreenshotService.output(original, destination: .both(folder: folder), writeClipboard: { _ in
             guard let written = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else {
                 preconditionFailure("Missing screenshot folder")
             }
-            precondition(written.count == 3, "File must exist before clipboard write")
+            precondition(written.count == 4, "File must exist before clipboard write")
             return false
         }, clipboardFailure: { reported = $0 })
         precondition(saved != nil && saved == reported)
