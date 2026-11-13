@@ -37,7 +37,7 @@ struct CleanPurgeService: Sendable {
                         do { state = try await activity(project, child) }
                         catch is CancellationError { throw CancellationError() }
                         catch { state = .unknown }
-                        let recent = policy.now.timeIntervalSince(try lastActivity(project))
+                        let recent = policy.now.timeIntervalSince(try newestActivity(project))
                             <= max(0, policy.recentActivityThreshold)
                         found.append(CleanPurgeItem(project: project, path: child, rule: rule,
                             allocatedSize: measured.size, activity: state, recentlyActive: recent,
@@ -70,7 +70,7 @@ struct CleanPurgeService: Sendable {
                 guard CleanService.physical(item.path),
                       repositoryBoundary(item.project, manager: manager),
                       confirmed(item.rule, project: item.project, manager: manager),
-                      policy.now.timeIntervalSince(try lastActivity(item.project))
+                      policy.now.timeIntervalSince(try newestActivity(item.project))
                         > max(0, policy.recentActivityThreshold),
                       try await activity(item.project, item.path) == .idle,
                       let current = try measure(item.path, manager: manager),
@@ -88,6 +88,28 @@ struct CleanPurgeService: Sendable {
             }
         }
         return outcomes
+    }
+
+    private func newestActivity(_ root: URL) throws -> Date {
+        var pending = [(root, 0)]
+        var count = 0
+        var newest = Date.distantPast
+        let manager = FileManager()
+        while let (path, depth) = pending.popLast() {
+            try Task.checkCancellation()
+            count += 1
+            guard count <= policy.maximumEntries, depth <= policy.maximumDepth,
+                  policy.permits(path), CleanService.physical(path) else {
+                throw CocoaError(.fileReadTooLarge)
+            }
+            newest = max(newest, try lastActivity(path))
+            let attributes = try manager.attributesOfItem(atPath: path.path)
+            if attributes[.type] as? FileAttributeType == .typeDirectory {
+                pending += try manager.contentsOfDirectory(at: path, includingPropertiesForKeys: nil)
+                    .map { ($0, depth + 1) }
+            }
+        }
+        return newest
     }
 
     private func confirmed(_ rule: CleanPurgeRule, project: URL, manager: FileManager) -> Bool {

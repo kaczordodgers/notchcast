@@ -66,9 +66,6 @@ struct CleanAIDataService: Sendable {
                 guard try await current(item) else {
                     results.append(.init(path: item.path, status: .changed)); continue
                 }
-                guard try await current(item) else {
-                    results.append(.init(path: item.path, status: .changed)); continue
-                }
                 try Task.checkCancellation()
                 let metadata = item.kind == .worktree ? try worktreeMetadata(item.path) : nil
                 try transport.trash(item.path)

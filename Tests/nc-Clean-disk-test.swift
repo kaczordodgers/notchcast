@@ -52,9 +52,9 @@ struct CleanDiskTest {
         precondition(!scan.nodes.contains { $0.path.lastPathComponent == "sentinel" })
         precondition(scan.nodes.contains { $0.path.path == denied.path && $0.unreadable })
         precondition(scan.nodes[0].unreadable)
-        precondition(scan.nodes.first { $0.path == readable }?.unreadable == false,
+        precondition(scan.nodes.first { $0.path.path == readable.path }?.unreadable == false,
                      "A readable folder containing a symlink must remain selectable")
-        precondition(scan.nodes.first { $0.path == nestedLink }?.unreadable == true)
+        precondition(scan.nodes.first { $0.path.path == nestedLink.path }?.unreadable == true)
         precondition(scan.nodes.first { $0.path.lastPathComponent == "escape" }?.unreadable == true)
         var info = stat()
         precondition(lstat(file.path, &info) == 0)

@@ -51,6 +51,17 @@ struct CleanPurgeTest {
                 Date(timeIntervalSince1970: ["active", "recent"].contains(project.lastPathComponent) ? 999 : 0)
             })
         let items = try await service.scan()
+        let nestedActivity = root.appendingPathComponent("idle/src/deep/recent.swift")
+        try manager.createDirectory(at: nestedActivity.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data().write(to: nestedActivity)
+        let recentService = CleanPurgeService(policy: policy,
+            transport: PurgeFakeTrash(root: root, receipts: receipts), activity: { _, _ in .idle },
+            lastActivity: { $0.path == nestedActivity.path ? policy.now : .distantPast })
+        let recentItems = try await recentService.scan()
+        let recentItem = recentItems.first { $0.project.lastPathComponent == "idle" }!
+        precondition(recentItem.recentlyActive, "Nested source activity must protect project artifacts")
+        let recentResults = try await recentService.clean([recentItem])
+        precondition(recentResults.first?.status == .changedOrMissing)
         let timeoutService = CleanPurgeService(policy: policy,
             transport: PurgeFakeTrash(root: root, receipts: receipts),
             activity: { _, _ in throw POSIXError(.ETIMEDOUT) }, lastActivity: { _ in .distantPast })
