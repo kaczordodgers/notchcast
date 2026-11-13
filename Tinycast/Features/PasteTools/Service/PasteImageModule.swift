@@ -15,14 +15,19 @@ final class PasteImageModule: NotchcastModule {
 
     private let pasteboard: NSPasteboard.Name
     private let finderIsFrontmost: @MainActor () -> Bool
+    private let acceptsPaste: @MainActor () -> Bool
+    private let save: @Sendable (Data) -> Bool
 
     init(hub: EventTapHub, pasteboard: NSPasteboard.Name = .general,
          finderIsFrontmost: @escaping @MainActor () -> Bool = {
              NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder"
-         }) {
+         }, acceptsPaste: @escaping @MainActor () -> Bool = { PasteImageModule.finderAcceptsPaste() },
+         save: @escaping @Sendable (Data) -> Bool = { FinderImageService.save($0) }) {
         tap = EventTapSubscription(hub: hub)
         self.pasteboard = pasteboard
         self.finderIsFrontmost = finderIsFrontmost
+        self.acceptsPaste = acceptsPaste
+        self.save = save
     }
 
     func start() {
@@ -64,32 +69,19 @@ final class PasteImageModule: NotchcastModule {
         guard work == nil else { Paster.postCommandV(); return }
         saveFailed = false
         let board = NSPasteboard(name: pasteboard)
-        guard let app = NSWorkspace.shared.frontmostApplication,
-            app.bundleIdentifier == "com.apple.finder",
+        guard acceptsPaste(),
             PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
         else { Paster.postCommandV(); return }
-        let finder = AXUIElementCreateApplication(app.processIdentifier)
-        var focused: CFTypeRef?
-        AXUIElementCopyAttributeValue(finder, kAXFocusedUIElementAttribute as CFString, &focused)
-        if let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() {
-            var role: CFTypeRef?
-            let element = unsafeDowncast(focused, to: AXUIElement.self)
-            AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
-            if role as? String == kAXTextFieldRole || role as? String == kAXTextAreaRole {
-                Paster.postCommandV()
-                return
-            }
-        }
         guard let type = board.availableType(from: [.png, .tiff, .init("public.jpeg"), .init("public.heic")]),
             let data = board.data(forType: type)
         else { Paster.postCommandV(); return }
         let isPNG = type == .png
-        work = Task { [weak self] in
+        work = Task { [weak self, save] in
             let worker = Task.detached(priority: .userInitiated) {
                 guard !Task.isCancelled else { return false }
                 guard let png = isPNG ? data : NSBitmapImageRep(data: data)?.representation(using: .png, properties: [:])
                 else { return false }
-                return FinderImageService.save(png)
+                return save(png)
             }
             let saved = await withTaskCancellationHandler { await worker.value } onCancel: { worker.cancel() }
             guard !Task.isCancelled, let self else { return }
@@ -97,5 +89,18 @@ final class PasteImageModule: NotchcastModule {
             self.saveFailed = !saved
             if !saved { self.onFailure?() }
         }
+    }
+
+    private static func finderAcceptsPaste() -> Bool {
+        guard let app = NSWorkspace.shared.frontmostApplication,
+            app.bundleIdentifier == "com.apple.finder" else { return false }
+        let finder = AXUIElementCreateApplication(app.processIdentifier)
+        var focused: CFTypeRef?
+        AXUIElementCopyAttributeValue(finder, kAXFocusedUIElementAttribute as CFString, &focused)
+        guard let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return true }
+        var role: CFTypeRef?
+        let element = unsafeDowncast(focused, to: AXUIElement.self)
+        AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
+        return role as? String != kAXTextFieldRole && role as? String != kAXTextAreaRole
     }
 }

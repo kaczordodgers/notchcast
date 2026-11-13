@@ -23,7 +23,16 @@ enum DialogTone { case danger }
     func stop() { stops += 1 }
 }
 enum ScreenTextService {
-    enum Failure: Error { case clipboardWriteFailed, noContent, displayUnavailable }
+    enum Failure: CaptureFailureConvertible {
+        case clipboardWriteFailed, noContent, displayUnavailable
+        var captureFailure: CaptureFailure? {
+            switch self {
+            case .clipboardWriteFailed: .clipboardFailed
+            case .displayUnavailable: .areaUnavailable
+            case .noContent: nil
+            }
+        }
+    }
     static func recognize(selection: CaptureAreaSelection, removeLineBreaks: Bool) async throws -> ScreenTextResult {
         fatalError("Real recognition must not run")
     }
@@ -66,6 +75,15 @@ enum ScreenTextService {
         precondition(area.stops > stops && !command.isEnabled())
         command.run()
         precondition(area.starts == 2)
+        let writeFailure = ScreenTextModule(defaults: defaults, area: CaptureAreaService(), recognize: { _, _ in
+            ScreenTextResult(content: "Cannot copy", kind: .text)
+        }, write: { _ in false })
+        writeFailure.start()
+        var writeMessages: [String] = []
+        writeFailure.capture { writeMessages.append($0) }
+        for _ in 0..<100 { await Task.yield() }
+        precondition(writeMessages == [CaptureFailure.clipboardFailed.message])
+        writeFailure.stop()
         print("PASS: OCR switch lifecycle, command recognition/output, permission HUD")
     }
 }

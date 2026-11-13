@@ -80,6 +80,55 @@ enum ScreenTextTest {
         let raster = textImage.cgImage(forProposedRect: nil, context: nil, hints: nil)!
         let text = try await ScreenTextService.recognize(image: raster)
         precondition(text.kind == .text && text.content.contains("Hello world"))
+        do {
+            _ = try await ScreenTextService.recognize(selection: selection, content: { ([], []) })
+            preconditionFailure("A removed display must fail")
+        } catch ScreenTextService.Failure.displayUnavailable {}
+        let blank = NSImage(size: CGSize(width: 1000, height: 500))
+        blank.lockFocus()
+        NSColor.white.setFill()
+        CGRect(x: 0, y: 0, width: 1000, height: 500).fill()
+        blank.unlockFocus()
+        do {
+            _ = try await ScreenTextService.recognize(
+                image: blank.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
+            preconditionFailure("Blank selection must fail")
+        } catch ScreenTextService.Failure.noContent {}
+        for gap: CGFloat in [5, 90] {
+            let fixture = NSImage(size: CGSize(width: 1000, height: 500))
+            fixture.lockFocus()
+            NSColor.white.setFill()
+            CGRect(x: 0, y: 0, width: 1000, height: 500).fill()
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 48), .foregroundColor: NSColor.black]
+            ("First sentence" as NSString).draw(at: CGPoint(x: 40, y: 350), withAttributes: attributes)
+            ("Second sentence" as NSString).draw(at: CGPoint(x: 40, y: 290 - gap), withAttributes: attributes)
+            fixture.unlockFocus()
+            let raster = fixture.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+            let result = try await ScreenTextService.recognize(image: raster)
+            precondition(result.content == "First sentence" + (gap == 5 ? "\n" : "\n\n") + "Second sentence")
+        }
+        for name in ["CIQRCodeGenerator", "CICode128BarcodeGenerator"] {
+            let generator = CIFilter(name: name)!
+            generator.setValue(Data("fixture123".utf8), forKey: "inputMessage")
+            let code = generator.outputImage!
+            let context = CIContext()
+            let raster = context.createCGImage(code, from: code.extent)!
+            let fixture = NSImage(size: CGSize(width: 1200, height: 700))
+            fixture.lockFocus()
+            NSColor.white.setFill()
+            CGRect(x: 0, y: 0, width: 1200, height: 700).fill()
+            NSGraphicsContext.current!.imageInterpolation = .none
+            NSImage(cgImage: raster, size: code.extent.size).draw(
+                in: CGRect(x: 100, y: 200, width: 900, height: 350))
+            ("Caption below code" as NSString).draw(at: CGPoint(x: 100, y: 50), withAttributes: [
+                .font: NSFont.systemFont(ofSize: 48), .foregroundColor: NSColor.black])
+            fixture.unlockFocus()
+            let result = try await ScreenTextService.recognize(
+                image: fixture.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
+            precondition(result == ScreenTextResult(content: "fixture123",
+                kind: name == "CIQRCodeGenerator" ? .qrCode : .barcode))
+        }
         print("ScreenText: geometry and text processing passed")
     }
 }
