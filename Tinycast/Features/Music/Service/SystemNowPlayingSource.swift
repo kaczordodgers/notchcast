@@ -139,9 +139,7 @@ final class SystemNowPlayingSource: NowPlayingSource {
                     do {
                         var lines = NowPlayingAdapterReply.Lines()
                         var previous: NowPlaying?
-                        while !Task.isCancelled {
-                            let chunk = connection.output.availableData
-                            guard !chunk.isEmpty else { break }
+                        for await chunk in connection.output.chunks() {
                             for line in try lines.append(chunk) {
                                 try Task.checkCancellation()
                                 let reply = try NowPlayingAdapterReply.parse(line, previous: previous, now: Date())
@@ -157,7 +155,7 @@ final class SystemNowPlayingSource: NowPlayingSource {
                         failure = error
                     } catch {}
                     connection.stop()
-                    connection.wait()
+                    await connection.wait()
                 } onCancel: {
                     connection.stop()
                 }
@@ -267,9 +265,14 @@ final class SystemNowPlayingSource: NowPlayingSource {
             }
         }
 
-        func wait() {
-            exit.wait()
-            try? output.close()
+        func wait() async {
+            await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+                DispatchQueue.global(qos: .utility).async { [exit, output] in
+                    exit.wait()
+                    try? output.close()
+                    done.resume()
+                }
+            }
         }
     }
 }
