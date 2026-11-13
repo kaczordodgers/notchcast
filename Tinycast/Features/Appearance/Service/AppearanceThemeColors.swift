@@ -4,7 +4,7 @@ import Synchronization
 
 @Observable final class AppearanceThemeColors: Sendable {
     static let shared = AppearanceThemeColors()
-    enum Role: Sendable, Hashable {
+    enum Role: Sendable {
         case text, selection, background, backgroundSecondary
     }
 
