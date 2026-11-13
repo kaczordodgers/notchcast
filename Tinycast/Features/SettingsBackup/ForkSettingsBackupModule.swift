@@ -3,9 +3,19 @@ import Observation
 
 @MainActor @Observable
 final class ForkSettingsBackupModule: NotchcastModule {
-    private(set) var failed = false
+    private(set) var failed = false {
+        didSet { if failed && !oldValue { report() } }
+    }
+    private let report: () -> Void
     private var partialDay: Int?
     private var task: Task<Void, Never>?
+
+    init(report: @escaping () -> Void = {
+        NotchcastHost.current.showMessage(
+            String(localized: "Backup needs attention.", table: "Notchcast"), .danger)
+    }) {
+        self.report = report
+    }
 
     func start() {
         guard task == nil else { return }

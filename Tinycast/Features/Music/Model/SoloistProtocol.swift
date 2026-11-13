@@ -10,11 +10,10 @@ enum SoloistProtocol {
     enum Message: Equatable, Sendable {
         case state(NowPlaying?, cover: URL?)
         case auth(AuthState)
-        case changed(queue: Bool)
+        case changed
         case failure(String)
         case other
         case options(shuffle: Bool?, repeatMode: RepeatMode?)
-        case queue([MusicQueueItem]?)
     }
 
     struct Command: Encodable, Sendable {
@@ -23,11 +22,9 @@ enum SoloistProtocol {
         var position_ms: Double?
         var volume: Int?
         var shuffle: Bool?
-        var uri: String?
     }
 
     private struct Entity: Decodable {
-        var uri: String?
         var decorations: Decorations?
         final class Related: Decodable { var entity: Entity }
         struct Decorations: Decodable {
@@ -50,8 +47,6 @@ enum SoloistProtocol {
         var item: Entity?
         var position: Position?
         var isActive: Bool?
-        var upcoming: [QueueEntry]?
-        struct QueueEntry: Decodable { var item: Entity }
         struct Position: Decodable {
             var positionMs: Double?
             var timestampMs: Double?
@@ -72,14 +67,6 @@ enum SoloistProtocol {
             return .options(shuffle: shuffle, repeatMode: repeatMode)
         }
         let frame = try decoder.decode(Frame.self, from: data)
-        if frame.type == "queue_changed", let upcoming = frame.upcoming {
-            return .queue(upcoming.map {
-                MusicQueueItem(title: $0.item.decorations?.identity?.name,
-                               artist: $0.item.decorations?.creators?.compactMap {
-                                   $0.entity.decorations?.identity?.name
-                               }.joined(separator: ", "), uri: $0.item.uri)
-            })
-        }
         switch frame.type {
         case "error": return .failure(frame.message ?? "")
         case "auth_state": return .auth(try decoder.decode(AuthState.self, from: data))
@@ -100,9 +87,9 @@ enum SoloistProtocol {
                 artwork: nil, origin: .soloist, shuffle: shuffle, repeatMode: repeatMode
             )
             return .state(track, cover: cover)
-        case "track_changed", "playback_changed", "position_sync", "queue_changed",
+        case "track_changed", "playback_changed", "position_sync",
              "device_changed", "context_changed", "options_changed", "volume_changed":
-            return .changed(queue: ["queue_changed", "track_changed", "options_changed"].contains(frame.type))
+            return .changed
         default: return .other
         }
     }
@@ -127,9 +114,4 @@ enum SoloistProtocol {
 
     static let getState = #"{"type":"command","command":"get_state"}"#
     static let getAuthState = #"{"type":"command","command":"get_auth_state"}"#
-    static let getQueue = #"{"type":"command","command":"get_queue"}"#
-
-    static func addToQueue(uri: String) throws -> String {
-        String(data: try JSONEncoder().encode(Command(command: "add_to_queue", uri: uri)), encoding: .utf8)!
-    }
 }

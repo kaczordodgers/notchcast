@@ -8,7 +8,7 @@
 import Foundation
 import Darwin
 
-enum DialogTone { case success, danger }
+enum DialogTone { case neutral, success, danger }
 
 @main
 struct VoiceAskTransportTest {

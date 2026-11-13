@@ -2,7 +2,11 @@ import Foundation
 
 struct AITrash: CleanTrashTransport {
     let receipts: URL
+    let sizes: [URL: Int64]
+    var fails = false
     func trash(_ url: URL) throws {
+        guard sizes[url] != nil else { throw CocoaError(.fileReadUnknown) }
+        if fails { throw CocoaError(.fileWriteNoPermission) }
         try Data(url.path.utf8).write(to: receipts.appendingPathComponent(UUID().uuidString))
         if url.deletingLastPathComponent().lastPathComponent == "wt" {
             try FileManager().moveItem(at: url, to: receipts.appendingPathComponent("trashed-worktree"))
@@ -81,10 +85,9 @@ struct CleanAIDataTest {
         try bytes.write(to: index)
         let pruneReceipt = base.appendingPathComponent("pruned")
         let policy = CleanAIDataPolicy(home: home, age: CleanAIDataPolicy.defaultAge)
-        let service = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
-            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: { _, destination in
-                try Data("corrupted".utf8).write(to: destination)
-            })
+        let sizes: [URL: Int64] = [chat: 4, home.appendingPathComponent("agents/wt/clean"): 0]
+        let service = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts, sizes: sizes),
+            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true })
         let items = try await service.scan()
         let recorded = try manager.contentsOfDirectory(atPath: receipts.path)
         precondition(recorded.isEmpty)
@@ -107,7 +110,9 @@ struct CleanAIDataTest {
         let empty = try await service.clean([])
         precondition(empty.isEmpty)
         let failed = try await service.clean(items.filter { $0.kind == .claude })
-        precondition(failed.first?.status == .recoveryFailed, String(describing: failed))
+        precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path),
+                     "Clean must not leave private recovery copies")
+        precondition(failed.first?.status == .trashed, String(describing: failed))
         let outcomes = try await service.clean(items.filter { $0.kind == .worktree })
         precondition(outcomes.filter { $0.status == .trashed }.count == 1, String(describing: outcomes))
         precondition(outcomes.filter { $0.status == .refused }.count == 4)
@@ -155,21 +160,52 @@ struct CleanAIDataTest {
                 print("PASS: reported metadata change before removal: \(name)")
             }
         }
-        let recovering = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
-            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: {
-                try FileManager().copyItem(at: $0, to: $1)
-            })
-        let recovered = try await recovering.clean(items.filter { $0.kind == .claude })
+        let recovered = try await service.clean(items.filter { $0.kind == .claude })
         precondition(recovered.first?.status == .trashed)
-        let backup = try Data(contentsOf: recovered[0].recovery!)
-        precondition(backup == bytes)
+        precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path))
+        let failing = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts, sizes: sizes, fails: true),
+            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true })
+        let failures = try await failing.clean(items.filter { $0.kind == .claude })
+        guard case .failed = failures.first?.status else { preconditionFailure("Expected trash failure") }
+        try bytes.write(to: chat)
+        let changed = try await service.clean(items.filter { $0.kind == .claude })
+        precondition(changed.first?.status == .changed)
+        precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path))
+        let suite = "CleanAIDataTest-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let legacy = home.appendingPathComponent(".clean-ai-recovery")
+        try manager.createSymbolicLink(at: legacy, withDestinationURL: sentinel)
+        service.cleanupLegacyRecovery(defaults: defaults) { _ in preconditionFailure("Trashed a symbolic link") }
+        precondition(!defaults.bool(forKey: "cleanAIRecoveryRemoved"))
+        let afterRefusal = try await service.scan()
+        precondition(!afterRefusal.isEmpty)
+        try manager.removeItem(at: legacy)
+        try manager.createDirectory(at: legacy, withIntermediateDirectories: false)
+        try bytes.write(to: legacy.appendingPathComponent("old-chat"))
+        service.cleanupLegacyRecovery(defaults: defaults) { _ in throw CocoaError(.fileWriteNoPermission) }
+        precondition(!defaults.bool(forKey: "cleanAIRecoveryRemoved"))
+        precondition(manager.fileExists(atPath: legacy.path))
+        let afterFailure = try await service.scan()
+        precondition(!afterFailure.isEmpty)
+        print("PASS: refused symlink and failed legacy cleanup do not block AI scans")
+        service.cleanupLegacyRecovery(defaults: defaults) {
+            try manager.moveItem(at: $0, to: receipts.appendingPathComponent("legacy-recovery"))
+        }
+        precondition(!manager.fileExists(atPath: legacy.path))
+        let saved = try Data(contentsOf: receipts.appendingPathComponent("legacy-recovery/old-chat"))
+        precondition(saved == bytes)
+        service.cleanupLegacyRecovery(defaults: defaults) { _ in preconditionFailure("Cleanup ran twice") }
+        precondition(defaults.bool(forKey: "cleanAIRecoveryRemoved"))
+        print("PASS: legacy recovery moved intact to Trash once; no new recovery copies")
         let sidecar = chat.deletingPathExtension()
+        try manager.setAttributes([.modificationDate: old], ofItemAtPath: chat.path)
         try manager.createDirectory(at: sidecar, withIntermediateDirectories: false)
-        let sidecarScan = try await recovering.scan()
+        let sidecarScan = try await service.scan()
         precondition(sidecarScan.contains {
             $0.path.lastPathComponent == chat.lastPathComponent && !$0.selectable && $0.refusal == .sessionSidecars
         }, String(describing: sidecarScan))
         print("PASS: only trashed metadata removed; missing sibling preserved; relative gitdir accepted")
-        print("PASS: indexed stores and sidecars refused; recovery verified; unsafe paths refused")
+        print("PASS: indexed stores and sidecars refused; unsafe paths refused")
     }
 }

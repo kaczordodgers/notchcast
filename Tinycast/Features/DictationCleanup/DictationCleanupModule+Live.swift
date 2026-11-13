@@ -5,9 +5,11 @@ extension DictationCleanupModule {
 
     static func live() -> DictationCleanupModule {
         let identifier = NotchcastIdentity.current.bundleID
-        return DictationCleanupModule(
+        let module = DictationCleanupModule(
             store: .live(bundleIdentifier: identifier)!,
             install: { DictationFamily.shared.setCleanup(true) },
             uninstall: { DictationFamily.shared.setCleanup(false) })
+        DictationFamily.shared.cleanupFallback = { [weak module] in module?.fellBack() }
+        return module
     }
 }

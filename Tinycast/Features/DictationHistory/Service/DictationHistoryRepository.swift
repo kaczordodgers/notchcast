@@ -16,8 +16,14 @@ struct DictationHistoryRepository: Sendable {
 
     func recent(limit: Int = 100) throws -> [DictationHistoryEntry] {
         try prepare()
+        let cutoff = now().addingTimeInterval(-90 * 86_400)
+        return Array(try loadEntries().filter { $0.date >= cutoff }
+            .sorted { $0.date > $1.date }.prefix(max(0, limit)))
+    }
+
+    func maintain() throws {
+        try prepare()
         try recover()
-        return Array(try load(history).sorted { $0.date > $1.date }.prefix(max(0, limit)))
     }
 
     func deleteAll() throws {
@@ -47,15 +53,20 @@ struct DictationHistoryRepository: Sendable {
     }
 
     private func recover() throws {
-        var entries = try load(history)
-        for entry in try load(pending) where !entries.contains(where: { $0.id == entry.id }) {
-            entries.append(entry)
-        }
+        let entries = try loadEntries()
         let cutoff = now().addingTimeInterval(-90 * 86_400)
         try write(entries.filter { $0.date >= cutoff }, to: history)
         if FileManager.default.fileExists(atPath: pending.path) {
             try FileManager.default.removeItem(at: pending)
         }
+    }
+
+    private func loadEntries() throws -> [DictationHistoryEntry] {
+        var entries = try load(history)
+        for entry in try load(pending) where !entries.contains(where: { $0.id == entry.id }) {
+            entries.append(entry)
+        }
+        return entries
     }
 
     private func load(_ url: URL) throws -> [DictationHistoryEntry] {
@@ -65,8 +76,8 @@ struct DictationHistoryRepository: Sendable {
             throw CocoaError(.fileReadInvalidFileName)
         }
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
-        return try Data(contentsOf: url).split(separator: 10).map {
-            try JSONDecoder().decode(DictationHistoryEntry.self, from: Data($0))
+        return try Data(contentsOf: url).split(separator: 10).compactMap {
+            try? JSONDecoder().decode(DictationHistoryEntry.self, from: Data($0))
         }
     }
 

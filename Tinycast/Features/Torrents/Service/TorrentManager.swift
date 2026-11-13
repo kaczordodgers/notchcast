@@ -11,7 +11,7 @@ import Observation
     private(set) var jobs: [TorrentJob] = []
     @ObservationIgnored private let session: any TorrentSession
     @ObservationIgnored private let destination: URL
-    @ObservationIgnored private let extraArguments: () -> [String]
+    @ObservationIgnored private let extraArguments: () -> (arguments: [String], interfaces: [String])
     @ObservationIgnored private let interfacesPresent: ([String]) -> Bool
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let revealFiles: ([URL]) -> Void
@@ -19,14 +19,13 @@ import Observation
     @ObservationIgnored private var requests: [UUID: Request] = [:]
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private var sessionStarted = false
-    @ObservationIgnored private var sessionUsesIPhone = false
-    @ObservationIgnored private var sessionArguments: [String] = []
+    @ObservationIgnored private var sessionInterfaces: [String] = []
     @ObservationIgnored private var stopping = false
 
     init(
         session: any TorrentSession,
         destination: URL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads"),
-        extraArguments: @escaping () -> [String] = { [] },
+        extraArguments: @escaping () -> (arguments: [String], interfaces: [String]) = { ([], []) },
         interfacesPresent: @escaping ([String]) -> Bool = { _ in true },
         now: (() -> Date)? = nil,
         pollInterval: Duration = .seconds(1),
@@ -196,15 +195,14 @@ import Observation
         jobs[index].infoHash = submission.infoHash
         jobs[index].name = submission.name
         if !sessionStarted {
-            let arguments = extraArguments()
-            try await session.start(extraArguments: arguments)
+            let network = extraArguments()
+            try await session.start(extraArguments: network.arguments)
             try Task.checkCancellation()
-            sessionUsesIPhone = arguments.contains { $0.hasPrefix("--multiple-interface=") }
-            sessionArguments = arguments
+            sessionInterfaces = network.interfaces
             sessionStarted = true
         }
         guard let index = self.index(id), jobs[index].state.isRunning else { return }
-        jobs[index].usesIPhone = sessionUsesIPhone && interfacesPresent(sessionArguments)
+        jobs[index].usesIPhone = !sessionInterfaces.isEmpty && interfacesPresent(sessionInterfaces)
         let gid: String
         do {
             gid = try await session.add(submission, destination: destination, keepSharing: jobs[index].keepSharing)

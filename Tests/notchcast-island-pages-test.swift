@@ -106,6 +106,11 @@ struct IslandPagesTests {
     }
 
     static func hover() {
+        var blocked = IslandInputState()
+        blocked.pointer(inside: true, now: 0, hoverEnabled: true, delay: 0.3)
+        expect(blocked.advance(now: 1, hoverEnabled: false) == nil && !blocked.isOpen,
+               "a launcher appearing during the delay blocks the scheduled opening")
+        expect(blocked.advance(now: 2) == nil, "a blocked opening is consumed")
         var clock: TimeInterval = 100
         for delay in [0.1, 0.3, 0.5, 1.0] {
             var state = IslandInputState()

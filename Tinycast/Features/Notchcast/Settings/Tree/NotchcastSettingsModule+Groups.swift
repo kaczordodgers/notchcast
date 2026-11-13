@@ -59,8 +59,8 @@ extension NotchcastSettingsModule {
                 .feature(.audioPriority, settings: [.musicAndSoundAudioPriority]),
             ]),
             .init(title: "Microphone", items: [
-                .feature(.microphoneMute, settings: []),
-                .feature(.inUseMarks, settings: [.musicAndSoundInUseFailures]),
+                .feature(.microphoneMute, settings: [.musicAndSoundInUseFailures]),
+                .feature(.inUseMarks, settings: []),
             ]),
         ]
         case .dayAndTasks: [
@@ -298,7 +298,7 @@ extension NotchcastSettingsModule {
                 .feature(.aiFeaturesOff, settings: []),
             ]),
             .init(title: LocalizedStringResource("Apple apps", table: "Notchcast"), items: [
-                .feature(.appleAppsTweaks, settings: [.privacyAndStartupAppleApps]),
+                .feature(.appleAppsTweaks, settings: []),
             ]),
             .init(title: LocalizedStringResource("iPhone backup", table: "Notchcast"), items: [
                 .feature(.iPhoneBackupTweaks, settings: [.privacyAndStartupIPhoneBackup]),

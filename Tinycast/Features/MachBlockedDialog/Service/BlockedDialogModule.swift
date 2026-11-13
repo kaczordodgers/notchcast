@@ -54,7 +54,7 @@ final class BlockedDialogModule: NotchcastModule {
                 let windows = try response.value(as: [BlockedDialogWindow].self)
                 failed = false
                 let window = engine.evaluate(windows, now: now())
-                detectedOwner = window?.owner
+                detectedOwner = windows.first(where: \.isCandidate)?.owner
                 if let window { present(window.owner) }
             } catch {
                 guard !Task.isCancelled, generation == token, isRunning, enabled() else { return }
