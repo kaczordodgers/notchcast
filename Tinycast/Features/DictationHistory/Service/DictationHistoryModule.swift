@@ -64,10 +64,6 @@ final class DictationHistoryModule: NotchcastModule {
         } catch { onFailure?() }
     }
 
-    func recent(limit: Int = 100) async throws -> [DictationHistoryEntry] {
-        try await perform { try $0.recent(limit: limit) }
-    }
-
     func snapshot(limit: Int = 100) async throws -> (entries: [DictationHistoryEntry], hasQuarantine: Bool) {
         try await perform { (try $0.recent(limit: limit), $0.hasQuarantine()) }
     }

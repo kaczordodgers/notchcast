@@ -22,7 +22,7 @@ import Foundation
         module.enqueue(raw: "second", cleaned: "clean second")
         await module.stopForTermination(.afterRootDrain)
         precondition(module.isRunning && stages == [true])
-        let entries = try await module.recent()
+        let entries = try await module.snapshot().entries
         precondition(Set(entries.map(\.raw)) == ["first", "second"])
         precondition(entries.contains { $0.raw == "first" && $0.cleaned == "clean first" })
         module.stop()
@@ -30,10 +30,10 @@ import Foundation
         await module.record(raw: "disabled", cleaned: "disabled")
         await module.waitUntilIdle()
         precondition(!module.isRunning && stages == [true, false])
-        let stopped = try await module.recent()
+        let stopped = try await module.snapshot().entries
         precondition(stopped.count == 2)
         try await module.deleteAll()
-        let deleted = try await module.recent()
+        let deleted = try await module.snapshot().entries
         precondition(deleted.isEmpty && failures == 0)
         try FileManager.default.removeItem(at: directory)
         try Data().write(to: directory)
