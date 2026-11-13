@@ -224,13 +224,14 @@ struct DownloadsWebpageTests {
         }
         expect(probe.connections == 0, "proxy itself refuses loopback with content rules removed")
         let slowResource = SlowResource()
+        let slowPage = URL(string: "http://example.com")!
         do {
-            _ = try await WebpageExtractor().extract(base, timeout: .seconds(5), configure: { configuration in
+            _ = try await WebpageExtractor().extract(slowPage, timeout: .seconds(5), configure: { configuration in
                 configuration.userContentController.removeAllContentRuleLists()
                 configuration.setURLSchemeHandler(slowResource, forURLScheme: "slow-fixture")
             }) { view in
                 view.loadHTMLString("<html><body><img src='\(privateURL.absoluteString)'>" +
-                    "<img src='slow-fixture://image'></body></html>", baseURL: base)
+                    "<img src='slow-fixture://image'></body></html>", baseURL: slowPage)
             }
             expect(false, "slow page times out after refused subresource")
         } catch WebpageExtractor.Failure.timedOut {
