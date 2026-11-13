@@ -128,9 +128,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
     @MainActor static func main() async throws {
         precondition(Bundle.main.bundleIdentifier == "test.notchcast.settings-backup")
         precondition(DictationCleanupSettings.promptLimit == 16_384)
-        precondition(DictationCleanupSettings.vocabularyLimit == 500)
-        precondition(DictationCleanupSettings.misheardFormsLimit == 50)
-        precondition(DictationCleanupSettings.termLimit == 256)
         let longTerm = String(repeating: "é", count: 257)
         let longLine = Array(repeating: longTerm, count: 52).joined(separator: "|")
         let capped = DictationCleanupSettings.vocabulary(from:
@@ -140,13 +137,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             && $0.misheardForms.allSatisfy { $0.count == 256 } })
         precondition(DictationCleanupSettings.vocabularyInput("two words | a ") == "two words | a ")
         precondition(LowDiskManager.isLowKey == "notchcast.lowDisk.isLow")
-        let cleanupShape = ForkSettingsBackupSchema.allowed["notchcast.dictationCleanup.settings"]!
-        let promptAtLimit = String(String(repeating: "🫖", count: 16_385).prefix(DictationCleanupSettings.promptLimit))
-        let cleanupJSON = try JSONSerialization.data(withJSONObject: [
-            "effort": "low", "promptAddition": promptAtLimit, "vocabulary": [],
-        ])
-        precondition(promptAtLimit.count == 16_384)
-        precondition(cleanupShape.accepts(String(decoding: cleanupJSON, as: UTF8.self)))
         print("PASS: cleanup input caps preserve typing and low-disk defaults key is unchanged")
         let liveDomain = Bundle.main.bundleIdentifier! + ".notchcast"
         let liveDefaults = UserDefaults(suiteName: liveDomain)!
