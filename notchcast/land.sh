@@ -76,6 +76,7 @@ attempt() {
 # Takes PR $1 off the train; $2 says why unless the refusal above did. The last PR's reason is the run's refusal.
 drop() {
     local pr kept=()
+    [ -z "$covered" ] || refuse "train ${train_run:0:8}: #$1 ${2:-refused above}; nothing lands on that run: run notchcast/train.sh again"
     if [ ${#train[@]} -eq 1 ]; then
         [ -z "${2:-}" ] || refuse "$2"
         exit 1
@@ -99,9 +100,15 @@ admit() {
     local pr=$1 metadata head name verdict required branch generated proven sha
     metadata=$(gh pr view "$pr" -R "$FORK_REPO" --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository,title,body)
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
-    head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
+    # A draft gets no PR build of its own; a covering train run is that build.
+    head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and (not p["isDraft"] or sys.argv[1]); print(p["headRefOid"])' "$covered" <<< "$metadata") || refuse 'PR must be open and ready'
     git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
+    if [ -n "$covered" ]; then
+        [ "$head" = "$(< "$scratch/train-head-$pr")" ] || refuse "PR #$pr moved past the head train ${train_run:0:8} tested"
+        printf '%s\n' "$metadata" > "$scratch/pr-$pr.json"
+        return 0
+    fi
     for name in design leaks; do
         verdict=$(check_run "$head" "$name")
         [ "$verdict" = none ] || [ "$verdict" = success ] || refuse "$name is $verdict on ${head:0:8}; wait for success"
@@ -130,6 +137,39 @@ admit() {
         echo "build: ${head:0:8} differs from green ${proven:0:8} only in generated files"
     fi
     printf '%s\n' "$metadata" > "$scratch/pr-$pr.json"
+}
+uncovered() { echo "train: ${train_run:0:8} $1; each PR's own head checks decide" >&2; }
+# Sets covered when commit $train_run is current main with each train PR's current head merged onto it in order, as
+# train.sh builds it, and its checks are green: admit then skips each head's own checks. Else covered stays empty.
+covered=
+train_covers() {
+    local commit i=${#train[@]} pr head parents name verdict required
+    git fetch -q origin main '+refs/heads/train/*:refs/remotes/origin/train/*'
+    train_run=$(git rev-parse --verify -q "$train_run^{commit}") || { uncovered 'is not on origin'; return 0; }
+    commit=$train_run
+    while [ "$i" -gt 0 ]; do
+        i=$((i - 1))
+        pr=${train[$i]}
+        head=$(gh pr view "$pr" -R "$FORK_REPO" --json headRefOid --jq .headRefOid)
+        parents=($(git rev-list --no-walk --parents "$commit"))
+        [ ${#parents[@]} -eq 3 ] && [ "${parents[2]}" = "$head" ] \
+            || { uncovered "does not merge #$pr's head ${head:0:8} as PR $((i + 1))"; return 0; }
+        echo "$head" > "$scratch/train-head-$pr"
+        commit=${parents[1]}
+    done
+    [ "$commit" = "$(git rev-parse origin/main)" ] || { uncovered "is built on ${commit:0:8}, not current main"; return 0; }
+    for name in build design leaks; do
+        verdict=$(check_run "$train_run" "$name")
+        [ "$verdict" = success ] || { uncovered "has $name $verdict"; return 0; }
+    done
+    required=$(python3 notchcast/app-proof.py plan origin/main "$train_run")
+    if [ -n "$required" ]; then
+        verdict=$(check_run "$train_run" proof)
+        [ "$verdict" = success ] || { uncovered "has real-app proof ($required) $verdict"; return 0; }
+    fi
+    train_base=$commit
+    covered=1
+    echo "train: ${train_run:0:8} is green on main ${commit:0:8} plus the current head of #${train[*]}"
 }
 # Sets the globals merge_onto and squash_message read from what admit (or --check) saved for PR $1.
 load() {
@@ -162,7 +202,12 @@ cleanup() {
 trap cleanup EXIT
 mkdir "$scratch/tmp"
 check=0
-if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
+train_run=
+if [ "${1:-}" = --train-run ] && [ "$#" -ge 3 ]; then
+    train_run=$2
+    shift 2
+fi
+if [ "${1:-}" = --check ] && [ -z "$train_run" ] && [ "$#" -eq 3 ]; then
     check=1
     base=$(git rev-parse --verify "$2^{commit}")
     head=$(git rev-parse --verify "$3^{commit}")
@@ -180,13 +225,15 @@ elif [ "$#" -ge 1 ] && [[ "$*" =~ ^[0-9]+(\ [0-9]+)*$ ]]; then
         train=("$hold_pr")
     fi
     hold_owner=${hold_pr:-$1}
+    [ -z "$train_run" ] || train_covers
     for pr in "${train[@]}"; do
         attempt admit "$pr"
         [ "$status" -eq 0 ] || drop "$pr"
     done
     base=$(git rev-parse origin/main)
+    [ -z "$covered" ] || [ "$base" = "$train_base" ] || refuse "main moved past train ${train_run:0:8}'s base; run notchcast/train.sh again"
 else
-    refuse 'usage: land.sh <pr>... | --check <base-ref> <head-ref>'
+    refuse 'usage: land.sh [--train-run <sha>] <pr>... | --check <base-ref> <head-ref>'
 fi
 # Squash here, not on GitHub: GitHub ignores .gitattributes merge=union and calls union-only overlaps conflicts.
 # Merges PR $2 onto $1 and leaves its squash commit, whose only parent is $1, in $scratch/commit-$2.
@@ -273,6 +320,8 @@ rerun=1
 pushes=0
 while :; do
     build_chain
+    [ -z "$covered" ] || [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$train_run^{tree}")" ] \
+        || refuse "the merged tree is not the tree train ${train_run:0:8} tested"
     if [ "$rerun" -eq 1 ]; then
         harnesses
         if [ -n "$failed" ]; then
@@ -296,6 +345,7 @@ while :; do
     check_hold "$hold_owner"  # a hold set while the harnesses ran wins
     # The chain's first parent is $base, so this plain (never forced) push lands only while main is still $base.
     if git push origin "$tip:refs/heads/main"; then break; fi
+    [ -z "$covered" ] || refuse "main moved past train ${train_run:0:8}'s base; run notchcast/train.sh again"
     pushes=$((pushes + 1))
     [ "$pushes" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh ${train[*]} again"
     git fetch --quiet origin main '+refs/notchcast/synced/*:refs/notchcast/synced/*'
@@ -325,6 +375,11 @@ for pr in "${train[@]}"; do
     fi
     parent=$commit
 done
+if [ -n "$covered" ]; then
+    for name in $(git for-each-ref --points-at "$train_run" --format='%(refname:lstrip=3)' refs/remotes/origin/train/); do
+        delete_head "$name" "$train_run"
+    done
+fi
 prepare_drift_tools "$base"
 drift_report "$base" "$tip"
 [ -z "$unclosed" ] || refuse "landed on main as $tip, but closing$unclosed failed: close by hand, do not rerun land.sh"
