@@ -57,8 +57,8 @@ struct ConvertFilesTests {
             _ = try await fake.run(job, context: DownloadRunContext(destination: temporary,
                 tools: DownloadToolLookup(directories: [])))
             preconditionFailure("Missing tool accepted")
-        } catch let failure as DownloadToolMissing {
-            precondition(failure.tool.name == "textutil")
+        } catch let failure as ConvertFilesPlan.Failure {
+            precondition(failure.message.contains("textutil") && failure.message.contains(source.lastPathComponent))
         }
         let cancelled = ConvertFilesRunner(process: { _, _, _ in throw CancellationError() })
         do {
@@ -127,8 +127,10 @@ struct ConvertFilesTests {
         do {
             _ = try await native.run(mixed, context: nativeContext)
             preconditionFailure("Missing batch tools accepted")
-        } catch let failure as DownloadToolMissing { precondition(failure.tool == .ffprobe) }
-        precondition(!manager.fileExists(atPath: url("native.gif").path), "Preflight precedes the first conversion")
+        } catch let failure as ConvertFilesPlan.Failure {
+            precondition(failure.message.contains("ffprobe") && failure.message.contains("movie.mov"))
+        }
+        precondition(manager.fileExists(atPath: url("native.gif").path), "Native conversion survives missing media tools")
         for operation in ["pdf-merge", "pdf-split"] {
             let inputs = operation == "pdf-merge" ? [url("input.pdf").path, url("input.pdf").path] : [url("input.pdf").path]
             var nativeJob = job

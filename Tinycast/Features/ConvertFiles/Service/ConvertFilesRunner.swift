@@ -25,16 +25,12 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         }
         let sources = options.sources.map { URL(fileURLWithPath: $0) }
         let plan = try ConvertFilesPlan.make(sources: sources, target: options.target, pages: options.pages)
-        let executables = try Dictionary(uniqueKeysWithValues: plan.tools.map { tool in
-            guard let path = context.tools.find(tool) else { throw DownloadToolMissing(tool: tool) }
-            return (tool, path)
-        })
         var outputs: [URL] = []
         var failures: [String] = []
         for item in plan.items {
             try Task.checkCancellation()
             do {
-                let published = try await execute(item, executables: executables, context: context)
+                let published = try await execute(item, context: context)
                 outputs.append(published)
                 await post(published.lastPathComponent)
             } catch is CancellationError {
@@ -51,7 +47,7 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
     }
 
     private func execute(
-        _ item: ConvertFilesPlan.Item, executables: [DownloadTool: URL], context: DownloadRunContext
+        _ item: ConvertFilesPlan.Item, context: DownloadRunContext
     ) async throws -> URL {
         if item.tool == .archives { return try await Self.archive(item.arguments[0], item.sources) }
         let manager = FileManager.default
@@ -63,7 +59,7 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         let arguments = item.arguments.map { $0 == ConvertFilesPlan.outputPlaceholder ? staged.path : $0 }
         if item.needsProbe {
             let probe = DownloadTool.ffprobe
-            let path = executables[probe]!
+            guard let path = context.tools.find(probe) else { throw DownloadToolMissing(tool: probe) }
             try await process(path, ["-v", "error", "-protocol_whitelist", "file,pipe,crypto,data",
                                      "-show_streams", "-show_format", "-of", "json", item.sources[0].path], context)
         }
@@ -72,7 +68,7 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
                                              inputs: item.sources, output: staged)
         } else {
             let tool = item.tool.executable!
-            let executable = executables[tool]!
+            guard let executable = context.tools.find(tool) else { throw DownloadToolMissing(tool: tool) }
             try await process(executable, arguments, context)
         }
         try Task.checkCancellation()
