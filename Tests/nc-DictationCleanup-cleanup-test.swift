@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/MagpieGateway.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/*.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanup.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupClient.swift
@@ -23,7 +24,23 @@ struct CleanupTests {
         precondition(condition, message)
     }
 
+    @MainActor private final class Counter { var value = 0 }
+
+    @MainActor private static func reportsCleanupFallback() async {
+        let fallbacks = Counter()
+        let family = DictationFamily(process: { raw, _, _, onFallback in
+            await onFallback()
+            return raw
+        })
+        family.cleanupFallback = { fallbacks.value += 1 }
+        family.setCleanup(true)
+        expect(await DictationCoordinator.transcriptStage?("raw", nil) == "raw")
+        expect(fallbacks.value == 1, "Cleanup fallback was not reported")
+        family.setCleanup(false)
+    }
+
     static func main() async throws {
+        await reportsCleanupFallback()
         var settings = DictationCleanupSettings()
         settings.isEnabled = true
         settings.vocabulary = [.init(spelling: "Claude", misheardForms: ["klaud", "klod"]),
@@ -87,7 +104,23 @@ struct CleanupTests {
         for (raw, cleaned) in accepted {
             expect(DictationCleanupGuard.accepts(cleaned, raw: raw, vocabulary: settings.vocabulary), raw)
         }
+        for negation in ["no", "without", "neither", "nor", "nobody", "nothing", "nowhere", "none",
+                         "cannot", "don't", "doesn't", "didn't", "isn't", "aren't", "wasn't", "weren't",
+                         "haven't", "hasn't", "hadn't", "won't", "wouldn't", "shouldn't", "couldn't",
+                         "mustn't", "needn't", "shan't", "ain't", "can't", "can’t"] {
+            let raw = "Please keep \(negation) in this sentence today"
+            expect(DictationCleanupGuard.accepts(raw + ".", raw: raw, vocabulary: []), raw)
+            let removed = "Please keep in this sentence today."
+            expect(!DictationCleanupGuard.accepts(removed, raw: raw, vocabulary: []), raw)
+            expect(!DictationCleanupGuard.accepts(raw, raw: removed, vocabulary: []), raw)
+        }
         let rejected = [
+            ("I can't send the report today", "I can send the report today."),
+            ("send no reports today", "Send reports today."),
+            ("send reports without attachments", "Send reports with attachments."),
+            ("I cannot send the report today", "I can send the report today."),
+            ("I don't send the report today", "I do send the report today."),
+            ("I won’t send the report today", "I will send the report today."),
             ("napisz do klaudii", "Napisz do Claude"),
             ("jade jutro do klodzka", "Jadę jutro do Claude"),
             ("mam kłody w ogrodzie", "Mam Claude w ogrodzie"),

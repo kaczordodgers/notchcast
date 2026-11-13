@@ -5,8 +5,15 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: { liveSnapshot().values }, validate: validateLive, apply: { values in
             try validateLive(values)
-            for feature in NotchcastFeature.BackupKeys.all { try feature.apply(values) }
+            var failure: Error?
+            for feature in NotchcastFeature.BackupKeys.all {
+                do { try feature.apply(values) } catch {
+                    failure = error
+                    logger.error("Backup restore failed for: \(feature.allowed.keys.sorted(), privacy: .public)")
+                }
+            }
             try ForkSettingsBackupRestore.apply(values, to: .shared)
+            if let failure { throw failure }
         })
     }
 

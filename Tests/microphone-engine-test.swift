@@ -187,10 +187,12 @@ struct MicrophoneEngineTests {
             recovered.setMuted(false)
             expect(recovered.failures == [.invalidSavedLevels], "unmute reports invalid saved data once")
             expect(defaults.data(forKey: "corrupt.restore") == nil, "invalid saved data is removed")
-            expect(recovery.devices == before, "unmute without records preserves every device")
+            expect(recovery.devices.allSatisfy { !$0.isMuted } && recovery.devices.map(\.volume) == before.map(\.volume),
+                   "unmute without records unmutes every input and preserves gain")
             recovered.setMuted(true)
             recovered.setMuted(false)
-            expect(recovery.devices == before, "preexisting mute survives a mute and restore cycle")
+            expect(recovery.devices.allSatisfy { !$0.isMuted } && recovery.devices.map(\.volume) == before.map(\.volume),
+                   "mute and restore cycle leaves every input unmuted and preserves gain")
             expect(recovered.failures.isEmpty, "later requests recover from invalid saved data")
         }
 

@@ -6,6 +6,7 @@ import SwiftUI
 
 @main @MainActor
 struct AppearanceThemesTest {
+    static let cachedToken = token()
     nonisolated static func token() -> Color {
         AppearanceThemeColors.shared.ramp(dark: 0.4, light: 0.5)
     }
@@ -193,13 +194,18 @@ struct AppearanceThemesTest {
         let saved = defaults.data(forKey: AppearanceStore.darkKey)
         let before = store.revision
         let observed = Mutex(false)
+        var environment = EnvironmentValues()
+        environment.colorScheme = .dark
+        let cached = cachedToken
+        let originalInk = cached.resolve(in: environment)
         withObservationTracking {
-            _ = token()
+            _ = cached.resolve(in: environment)
         } onChange: {
             observed.withLock { $0 = true }
         }
         store.preview(.tinycast(.dark))
-        expect(observed.withLock { $0 }, "drawing a ramp token observes the revision")
+        expect(observed.withLock { $0 }, "resolving a cached static ramp token observes the revision")
+        expect(cached.resolve(in: environment) != originalInk, "cached ink changes when preview resets the theme")
         expect(store.revision > before && store.dark == dark, "preview bumps revision without selection")
         expect(store.colors.ink(.text, in: darkAppearance, dark: 0.4, light: 0.5) == nil,
                "Tinycast preview differs from no preview")

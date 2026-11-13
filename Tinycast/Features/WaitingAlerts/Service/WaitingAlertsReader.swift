@@ -19,7 +19,7 @@ struct WaitingAlertsReader: WaitingAlertsReading {
         var statement: OpaquePointer?
         defer { sqlite3_finalize(statement) }
         let query = """
-            SELECT t.thread_id, t.title,
+            SELECT t.thread_id, COALESCE(t.title, t.thread_id),
                    MAX(CASE WHEN r.kind = 'user_input' THEN 0 ELSE 1 END)
             FROM orchestration_v2_projection_runtime_requests r
             JOIN orchestration_v2_projection_threads t ON t.thread_id = r.thread_id
@@ -36,7 +36,7 @@ struct WaitingAlertsReader: WaitingAlertsReading {
             switch sqlite3_step(statement) {
             case SQLITE_ROW:
                 guard let id = sqlite3_column_text(statement, 0),
-                      let title = sqlite3_column_text(statement, 1) else { throw WaitingAlertsFailure.unavailable }
+                      let title = sqlite3_column_text(statement, 1) else { continue }
                 waiting.append(WaitingAlert(id: String(cString: id), title: String(cString: title),
                                             kind: sqlite3_column_int(statement, 2) > 0 ? .approval : .question))
             case SQLITE_DONE: return waiting

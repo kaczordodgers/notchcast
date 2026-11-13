@@ -5,7 +5,7 @@ import QuartzCore
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Debug only: the closed island's motion as PNG frames on a fixed stage, for comparing designs without a live
+/// Debug only: the closed island's motion as PNG frames on a scaled stage, for comparing designs without a live
 /// install. Every look is a real `IslandPanel` laid out offscreen (its mask path and its closed content); the motion
 /// between looks evaluates the curves the code uses: the island's CA springs (`IslandMotion`), CA's linear opacity
 /// fades, SwiftUI's ease-out content swap, Orion's sway and Damian Tools' analyser on a
@@ -30,7 +30,11 @@ enum IslandMotionStage {
     }
 
     static let fps = 25.0
-    static let stage = CGSize(width: 800, height: 520)
+    static var stage: CGSize {
+        CGSize(width: NotchcastTheme.Launcher.canvasWidth,
+               height: max(NotchcastTheme.maximumHeight, NotchcastTheme.Launcher.size.height)
+                   + NotchcastTheme.monitorHeader)
+    }
 
     private static func render(into directory: URL, launcher: URL) async throws {
         guard let source = CGImageSourceCreateWithURL(launcher as CFURL, nil),

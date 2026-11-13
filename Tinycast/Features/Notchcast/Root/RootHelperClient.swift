@@ -17,9 +17,14 @@ struct RootHelperClient: Sendable {
 
     @concurrent
     func clean(_ command: RootContract.Command, input: Data) async throws -> Data {
+        try Self.checkRequest(command, input: input)
+        return try await execute(command, input: input)
+    }
+
+    static func checkRequest(_ command: RootContract.Command, input: Data) throws {
         guard [.version, .cleanSystemList, .cleanSystemTrash].contains(command)
         else { throw Failure.invalidResponse }
-        return try await execute(command, input: input)
+        guard input.count <= 4096 else { throw Failure.invalidResponse }
     }
 
     @concurrent
@@ -27,8 +32,6 @@ struct RootHelperClient: Sendable {
         try Task.checkCancellation()
         try Self.refuseWhileAbandonedRuns()
         if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
-        guard input.count <= 4096
-        else { throw Failure.invalidResponse }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
         process.arguments = ["-n", RootContract.helperPath] + command.arguments
@@ -81,6 +84,10 @@ struct RootHelperClient: Sendable {
     @concurrent
     func run(_ command: RootContract.Command) async throws -> RootContract.Reply {
         let data = try await execute(command, input: Data())
+        return try Self.decodeReply(command, data: data)
+    }
+
+    static func decodeReply(_ command: RootContract.Command, data: Data) throws -> RootContract.Reply {
         guard data.count <= 4096, let text = String(bytes: data, encoding: .utf8),
               let reply = RootContract.Reply(command: command, output: text)
         else { throw Failure.invalidResponse }

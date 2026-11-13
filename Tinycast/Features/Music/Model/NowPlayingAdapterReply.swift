@@ -65,7 +65,8 @@ enum NowPlayingAdapterReply: Equatable, Sendable {
                 case 3: .all
                 default: nil
                 }
-            }
+            },
+            playbackRate: max(0, number(value(.playbackRate)) ?? 1)
         ), pid: pid)
     }
 

@@ -329,6 +329,17 @@ struct FanSMCTest {
 struct RootClientTest {
     static func main() async throws {
         validateCommands()
+        try validateBoundaries()
+        for command in RootContract.Command.allCases {
+            let allowed = [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash].contains(command)
+            do {
+                try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: allowed ? 4097 : 0))
+            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
+            preconditionFailure("Disallowed command or oversized request accepted")
+        }
+        for command in [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash] {
+            try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: 4096))
+        }
         let strict = ProcessInfo.processInfo.environment["LIBDISPATCH_COOPERATIVE_POOL_STRICT"]
         print("Cooperative pool strict: \(strict ?? "unset")")
         if ProcessInfo.processInfo.environment["NOTCHCAST_TEST_HELPER_EXECUTABLE"] == "1" {
@@ -343,6 +354,26 @@ struct RootClientTest {
         precondition(reply == payload)
         print("PASS: request/reply round-trip over pipes without transport files")
         print("PASS: root commands, replies, path ownership and permissions, timeouts and cancellation")
+    }
+
+    private static func validateBoundaries() throws {
+        for data in [Data(repeating: 0, count: 4097), Data([0xff]), Data("4\nextra".utf8)] {
+            do {
+                _ = try RootHelperClient.decodeReply(.version, data: data)
+            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
+            preconditionFailure("Invalid reply accepted")
+        }
+        let reply = try RootHelperClient.decodeReply(.version, data: Data("4\n".utf8))
+        precondition(reply == .version("4"))
+        try RootHelperClient.validateExitStatus(0)
+        for (status, failure) in [(Int32(1), RootHelperClient.Failure.authorizationRequired),
+                                  (RootContract.unauthorizedCallerExit, .reinstallRequired),
+                                  (Int32(7), .executionFailed(7))] {
+            do {
+                try RootHelperClient.validateExitStatus(status)
+                preconditionFailure("Failed exit accepted")
+            } catch { precondition(error as? RootHelperClient.Failure == failure) }
+        }
     }
 
     private static func validateCommands() {
@@ -373,12 +404,6 @@ struct RootClientTest {
         }
         precondition(RootContract.version == "4")
         precondition(RootContract.Reply(command: .version, output: "4\n") == .version("4"))
-        do {
-            try RootHelperClient.validateExitStatus(78)
-            preconditionFailure("Caller rejection must require reinstall")
-        } catch {
-            precondition(error as? RootHelperClient.Failure == .reinstallRequired)
-        }
         precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
         for invalid in [" 2 \n\n", "2", "02\n", "2\n\n", "+2\n"] {
             precondition(RootContract.Reply(command: .version, output: invalid) == nil)

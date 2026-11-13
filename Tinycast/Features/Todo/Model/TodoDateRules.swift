@@ -37,7 +37,7 @@ enum TodoDateRules {
 
     static let englishNormalisations: [Normalisation] = normalisations([
         (#"every other"#, "every second"),
-        (#"tod(?:ay)?"#, "today"), (#"tom(?:orrow)?"#, "tomorrow"),
+        (#"tod"# + abbreviationContext, "today"), (#"tom"# + abbreviationContext, "tomorrow"),
         (#"daily"#, "every day"), (#"weekly"#, "every week"), (#"monthly"#, "every month"),
         (#"mon"# + abbreviationContext, "monday"), (#"tue(?:s)?"# + abbreviationContext, "tuesday"),
         (#"wed"# + abbreviationContext, "wednesday"), (#"thu(?:rs)?"# + abbreviationContext, "thursday"),

@@ -15,14 +15,14 @@ final class MacUpdateService {
     private let appRoot: String
     private let exists: (String) -> Bool
     private let resolve: (String) -> String
-    private let locked: () -> Bool
+    private let locked: (String) -> Bool
     private let lockTimeout: Duration
     private let locate: @Sendable (String) async -> String?
     private var task: Task<Void, Never>?
 
     init(runner: any MacUpdateProcessRunning, appRoot: String,
          exists: @escaping (String) -> Bool, resolve: @escaping (String) -> String,
-         locked: @escaping () -> Bool, lockTimeout: Duration = .seconds(120),
+         locked: @escaping (String) -> Bool, lockTimeout: Duration = .seconds(120),
          locate: @escaping @Sendable (String) async -> String? = { await ExecutableLocator.locate($0)?.path }) {
         self.runner = runner
         self.appRoot = appRoot
@@ -80,7 +80,7 @@ final class MacUpdateService {
                     for command in commands {
                         if command.kind != .tool {
                             let deadline = ContinuousClock.now + lockTimeout
-                            while locked() {
+                            while locked(command.path) {
                                 guard ContinuousClock.now < deadline else {
                                     emit(.failed("homebrew-lock-timeout"))
                                     return
