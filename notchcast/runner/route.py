@@ -54,8 +54,12 @@ def hosted(label):
 def hosted_busy(repo, fetch):
     """Queued or running hosted macOS jobs, then queued hosted jobs and queued Mac pool jobs."""
     busy = hosted_queued = mac_queued = 0
+    seen = set()
     for status in ACTIVE:
         for run in fetch(f"/repos/{repo}/actions/runs?status={status}&per_page=100")["workflow_runs"]:
+            if run["id"] in seen:
+                continue
+            seen.add(run["id"])
             for job in fetch(f"/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest&per_page=100")["jobs"]:
                 if job["status"] not in ACTIVE:
                     continue

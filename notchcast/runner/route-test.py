@@ -97,9 +97,10 @@ jobs = {
     + [{"status": "queued", "labels": ["xcode-27"]}] * 2,
 }
 assert hosted_busy("owner/repo", api([1], [2], jobs)) == (3, 1, 1)
+assert hosted_busy("owner/repo", api([1], [1, 2], jobs)) == (3, 1, 1)
 assert hosted_busy("owner/repo", api([], [], jobs)) == (0, 0, 0)
 assert hosted_busy("owner/repo", api([], [3], jobs)) == (5, 2, 39)
-print("PASS: hosted count is queued or running macOS jobs on the hosted image, with both queue depths")
+print("PASS: hosted count is queued or running macOS jobs on the hosted image, with both queue depths, a run listed twice counted once")
 
 measured = {**OWNER, "COUNT": "4", "IDLE": "\n".join(three_busy), "EVENT": "push"}
 assert decide(measured, NOW, api([], [3], jobs)) == ["xcode-27"] * 4
