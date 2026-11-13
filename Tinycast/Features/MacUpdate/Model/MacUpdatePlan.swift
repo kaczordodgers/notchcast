@@ -50,7 +50,7 @@ nonisolated enum MacUpdatePlan: Sendable {
                     let beside = URL(filePath: path).deletingLastPathComponent().appending(path: "npm").path
                     guard let npm = exists(beside) ? beside : tools["npm"] else { continue }
                     commands.append(MacUpdateCommand(path: npm, arguments: ["install", "-g", package + "@latest"]))
-                } else if name == "claude" {
+                } else {
                     commands.append(MacUpdateCommand(path: path, arguments: ["update"]))
                 }
             }
