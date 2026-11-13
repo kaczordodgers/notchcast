@@ -78,7 +78,7 @@ struct NotchcastAppUpdatesSettingRow: View {
                 if let newer = result.isNewer {
                     Text(newer ? String(localized: "Update available", table: "Notchcast") : String(localized: "Up to date", table: "Notchcast"))
                     if let latest = result.latest { Text(latest) }
-                    if let link = result.link { Link(destination: link) { Text("Open", tableName: "Notchcast") } }
+                    if let link = result.link { Link(destination: link) { Text("Open") } }
                 } else {
                     Text("Unknown", tableName: "Notchcast")
                 }
