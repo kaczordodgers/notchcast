@@ -4,6 +4,6 @@
 
 Quit supervision is opt-in through `killsOnQuit`; the shared runner owns the notification token for the lifetime of the job. Archives instead drains its active operations through its module's `beforeMacUpdate` termination hook.
 
-Feature launch boundaries build their environment through `ExecutableLocator.toolEnvironment(directories:home:inherited:)`; Downloads retains its filtered inherited values and locale. MachineBackup and Clean keep their own PATH intentionally.
+CommandRunner and Downloads build their environment through `ExecutableLocator.toolEnvironment(directories:home:inherited:)`; Downloads retains its filtered inherited values and locale. MachineBackup and Clean keep their own PATH intentionally.
 
 `Output.exitCode` applies the shell convention of 128 plus the signal number; `status` retains the raw exit status or signal number.
