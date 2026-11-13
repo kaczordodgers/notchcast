@@ -5,6 +5,12 @@ import Foundation
 
 @main struct Tests {
     static func main() throws {
+        for host in ["youtu.be", "www.youtu.be", "WWW.YOUTU.BE", "youtube.com", "m.youtube.com"] {
+            assert(WebRules.isYouTubeHost(host))
+        }
+        for host in [nil, "", "evilyoutu.be", "youtu.be.evil.com", "youtube.com.evil.com"] {
+            assert(!WebRules.isYouTubeHost(host))
+        }
         for scheme in ["http", "https", "HTTP", "Https"] { assert(WebRules.isWebScheme(scheme)) }
         for scheme in [nil, "", "ftp", "file", "magnet", "httpx", "t3-thread"] { assert(!WebRules.isWebScheme(scheme)) }
         assert(WebRules.isWebScheme(URL(string: "HTTPS://example.com/#frag")?.scheme))

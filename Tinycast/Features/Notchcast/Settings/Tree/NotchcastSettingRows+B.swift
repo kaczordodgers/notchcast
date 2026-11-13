@@ -36,11 +36,6 @@ struct NotchcastSettingRowsB: View {
             ForEach(TweakToggle.dock) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: TweaksModule.dock) }
         case .privacyAndStartupLaunchAgents:
             NotchcastStartupItemsSettingRow()
-        case .privacyAndStartupAppleApps:
-            NotchcastGameCenterSettingRow()
-            NotchcastIPhoneMirroringSettingRow()
-            NotchcastMusicServiceSettingRow()
-            NotchcastBookstoreSettingRow()
         case .privacyAndStartupIPhoneBackup:
             NotchcastAutomaticBackupsSettingRow()
             NotchcastIPhoneBackupFolderSettingRow()

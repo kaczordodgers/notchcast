@@ -171,7 +171,6 @@ final class CaptureEditorCoordinator: NotchcastModule {
             guard let self else { return }
             do {
                 try await copy()
-            } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled else { return }
                 reportRenderFailure(error)

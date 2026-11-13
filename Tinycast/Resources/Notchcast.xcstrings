@@ -1,8 +1,374 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Dictation cleanup failed; pasted the original transcript" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diktat-Bereinigung fehlgeschlagen; das ursprüngliche Transkript wurde eingefügt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falló la limpieza del dictado; se pegó la transcripción original"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nettoyage de la dictée a échoué ; la transcription originale a été collée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声入力の整形に失敗したため、元の文字起こしを貼り付けました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "받아쓰기 정리에 실패하여 원본 텍스트를 붙여 넣었습니다"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A limpeza do ditado falhou; a transcrição original foi colada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось обработать диктовку; вставлена исходная расшифровка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "听写整理失败，已粘贴原始转录文本"
+          }
+        }
+      }
+    },
+    "Homebrew is busy. Try again later." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew ist beschäftigt. Versuche es später erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew está ocupado. Inténtalo más tarde."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew est occupé. Réessayez plus tard."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrewは使用中です。後でもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew가 사용 중입니다. 나중에 다시 시도하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Homebrew está ocupado. Tente novamente mais tarde."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew занят. Повторите попытку позже."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew 正忙。请稍后重试。"
+          }
+        }
+      }
+    },
+    "Homebrew is not installed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew ist nicht installiert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew no está instalado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew n’est pas installé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrewがインストールされていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew가 설치되지 않았습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Homebrew não está instalado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew не установлен."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装 Homebrew。"
+          }
+        }
+      }
+    },
+    "No supported command-line installation was found." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine unterstützte Kommandozeileninstallation gefunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró una instalación de línea de comandos compatible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune installation en ligne de commande prise en charge n’a été trouvée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "対応するコマンドラインのインストールが見つかりません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지원되는 명령줄 설치를 찾을 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma instalação de linha de comando compatível foi encontrada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поддерживаемая установка командной строки не найдена."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到受支持的命令行安装。"
+          }
+        }
+      }
+    },
+    "Set a Voice Ask destination in Settings." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Lege in den Einstellungen ein Voice Ask-Ziel fest."}},"es":{"stringUnit":{"state":"translated","value":"Configura un destino de Voice Ask en Ajustes."}},"fr":{"stringUnit":{"state":"translated","value":"Définissez une destination Voice Ask dans les réglages."}},"ja":{"stringUnit":{"state":"translated","value":"設定でVoice Askの送信先を設定してください。"}},"ko":{"stringUnit":{"state":"translated","value":"설정에서 Voice Ask 대상을 지정하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Defina um destino do Voice Ask nos Ajustes."}},"ru":{"stringUnit":{"state":"translated","value":"Укажите назначение Voice Ask в настройках."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"请在设置中指定 Voice Ask 目标。"}}}},
+    "No speech detected." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Sprache erkannt."}},"es":{"stringUnit":{"state":"translated","value":"No se detectó voz."}},"fr":{"stringUnit":{"state":"translated","value":"Aucune parole détectée."}},"ja":{"stringUnit":{"state":"translated","value":"音声が検出されませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"음성이 감지되지 않았습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Nenhuma fala detectada."}},"ru":{"stringUnit":{"state":"translated","value":"Речь не обнаружена."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未检测到语音。"}}}},
     "Magpie isn't running" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Magpie läuft nicht"}},"es":{"stringUnit":{"state":"translated","value":"Magpie no está en ejecución"}},"fr":{"stringUnit":{"state":"translated","value":"Magpie n’est pas en cours d’exécution"}},"ja":{"stringUnit":{"state":"translated","value":"Magpieは起動していません"}},"ko":{"stringUnit":{"state":"translated","value":"Magpie가 실행 중이 아닙니다"}},"pt":{"stringUnit":{"state":"translated","value":"O Magpie não está em execução"}},"ru":{"stringUnit":{"state":"translated","value":"Magpie не запущен"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Magpie 未运行"}}}},
     "Start Magpie to see how much of each AI account is left." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Starte Magpie, um das verbleibende Kontingent jedes KI-Kontos zu sehen."}},"es":{"stringUnit":{"state":"translated","value":"Inicia Magpie para ver la cuota restante de cada cuenta de IA."}},"fr":{"stringUnit":{"state":"translated","value":"Lancez Magpie pour voir le quota restant de chaque compte d’IA."}},"ja":{"stringUnit":{"state":"translated","value":"Magpieを起動すると、各AIアカウントの残り容量を確認できます。"}},"ko":{"stringUnit":{"state":"translated","value":"각 AI 계정의 남은 할당량을 보려면 Magpie를 시작하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Inicie o Magpie para ver a cota restante de cada conta de IA."}},"ru":{"stringUnit":{"state":"translated","value":"Запустите Magpie, чтобы увидеть остаток квоты каждого аккаунта ИИ."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启动 Magpie 以查看每个 AI 账户的剩余额度。"}}}},
+    "The mas tool is not installed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das mas-Tool ist nicht installiert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La herramienta mas no está instalada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’outil mas n’est pas installé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "masツールがインストールされていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mas 도구가 설치되지 않았습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A ferramenta mas não está instalada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструмент mas не установлен."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装 mas 工具。"
+          }
+        }
+      }
+    },
+    "The update timed out." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aktualisierung hat das Zeitlimit überschritten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La actualización agotó el tiempo de espera."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le délai de mise à jour a expiré."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新がタイムアウトしました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업데이트 시간이 초과되었습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A atualização excedeu o tempo limite."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время ожидания обновления истекло."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新超时。"
+          }
+        }
+      }
+    },
+    "The updated app could not be cleared to open." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die aktualisierte App konnte nicht zum Öffnen freigegeben werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo autorizar la apertura de la app actualizada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ouverture de l’app mise à jour n’a pas pu être autorisée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新されたアプリの起動を許可できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업데이트된 앱의 실행을 허용할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível autorizar a abertura do app atualizado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось разрешить запуск обновлённого приложения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法允许打开更新后的应用。"
+          }
+        }
+      }
+    },
     "as of %@" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Stand %@"}},"es":{"stringUnit":{"state":"translated","value":"a las %@"}},"fr":{"stringUnit":{"state":"translated","value":"à %@"}},"ja":{"stringUnit":{"state":"translated","value":"%@時点"}},"ko":{"stringUnit":{"state":"translated","value":"%@ 기준"}},"pt":{"stringUnit":{"state":"translated","value":"às %@"}},"ru":{"stringUnit":{"state":"translated","value":"на %@"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"截至 %@"}}}},
     "resets in %@" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Reset in %@"}},"es":{"stringUnit":{"state":"translated","value":"se restablece en %@"}},"fr":{"stringUnit":{"state":"translated","value":"réinitialisation dans %@"}},"ja":{"stringUnit":{"state":"translated","value":"%@後にリセット"}},"ko":{"stringUnit":{"state":"translated","value":"%@ 후 초기화"}},"pt":{"stringUnit":{"state":"translated","value":"redefine em %@"}},"ru":{"stringUnit":{"state":"translated","value":"сброс через %@"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@后重置"}}}},
     "Loading AI accounts…" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"KI-Konten werden geladen…"}},"es":{"stringUnit":{"state":"translated","value":"Cargando cuentas de IA…"}},"fr":{"stringUnit":{"state":"translated","value":"Chargement des comptes d’IA…"}},"ja":{"stringUnit":{"state":"translated","value":"AIアカウントを読み込み中…"}},"ko":{"stringUnit":{"state":"translated","value":"AI 계정 불러오는 중…"}},"pt":{"stringUnit":{"state":"translated","value":"Carregando contas de IA…"}},"ru":{"stringUnit":{"state":"translated","value":"Загрузка аккаунтов ИИ…"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"正在加载 AI 账户…"}}}},
@@ -18594,6 +18960,58 @@
         }
       }
     },
+    "Free disk space: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freier Speicherplatz: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espacio libre en disco: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espace disque disponible : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ディスクの空き容量：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용 가능한 디스크 공간: %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espaço livre em disco: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свободно на диске: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用磁盘空间：%@"
+          }
+        }
+      }
+    },
     "Full-Screen Apps" : {
       "localizations" : {
         "de" : {
@@ -19324,6 +19742,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按住 ⌘Q"
+          }
+        }
+      }
+    },
+    "Homebrew apps could not be checked." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew-Apps konnten nicht geprüft werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se han podido comprobar las apps de Homebrew."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les apps Homebrew n’ont pas pu être vérifiées."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrewのアプリを確認できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew 앱을 확인할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível verificar as apps do Homebrew."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось проверить приложения Homebrew."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法检查 Homebrew 应用。"
           }
         }
       }

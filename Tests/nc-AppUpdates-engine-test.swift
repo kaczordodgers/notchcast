@@ -55,6 +55,11 @@ struct AppUpdatesTest {
             .init(id: "current", version: "1", build: "1", cask: "current")
         ], now: Date(timeIntervalSince1970: 0)).results
         precondition(brewRows.map(\.isNewer) == [true, false])
+        let unknownBrew = try await brewChecker.check(apps: [
+            .init(id: "beta", version: "1.2beta", build: "1", cask: "fixture")
+        ], now: Date(timeIntervalSince1970: 0)).results[0]
+        precondition(unknownBrew.isNewer == nil)
+        precondition(unknownBrew.settingsLink == URL(string: "https://formulae.brew.sh/cask/fixture"))
         for value in ["1.2beta", "1.2 (42)", "", "latest", "1..2", "18446744073709551616"] {
             precondition(AppUpdateVersion.compare(value, "2") == nil)
         }
@@ -79,6 +84,7 @@ struct AppUpdatesTest {
         let snapshot = try await checker.check(apps: apps, now: Date(timeIntervalSince1970: 0))
         precondition(snapshot.results.count == 5)
         precondition(snapshot.results[3].isNewer == true)
+        precondition(snapshot.results[3].link != nil && snapshot.results[3].settingsLink == nil)
         for index in [0, 1, 2, 4] { precondition(snapshot.results[index].isNewer == nil) }
         let intelRoot = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let intelBrew = intelRoot.appending(path: "usr/local/bin/brew")
@@ -90,6 +96,18 @@ struct AppUpdatesTest {
         let intel = try await AppUpdateBrewRunner(brew: intelBrew).outdated()
         precondition(String(bytes: intel, encoding: .utf8)
             == "\(intelBrew.path) outdated --cask --json=v2 1 \(intelFolder)\n", "Homebrew outside /opt/homebrew")
-        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; located brew")
+        let failingBrew = intelRoot.appending(path: "failing-brew")
+        try Data("#!/bin/sh\nexit 1\n".utf8).write(to: failingBrew)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: failingBrew.path)
+        let (reports, reported) = AsyncStream<Bool>.makeStream()
+        for brew in [nil, failingBrew] {
+            let casks = await AppUpdateBrewRunner(brew: brew).installedCasks { _ in reported.yield(brew != nil) }
+            precondition(casks.isEmpty)
+        }
+        reported.finish()
+        var reportedFailures: [Bool] = []
+        for await failure in reports { reportedFailures.append(failure) }
+        precondition(reportedFailures == [true], "A failed cask scan is reported; no Homebrew is not a failure")
+        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; located brew; cask scan failure")
     }
 }

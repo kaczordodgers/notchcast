@@ -20,4 +20,15 @@ struct AppUpdateBrewRunner: Sendable {
         guard output.status == 0 else { throw URLError(.cannotLoadFromNetwork) }
         return output.stdout
     }
+
+    /// Installed casks by app name; a failed scan goes to `report`, never reads as "no casks".
+    @concurrent func installedCasks(report: @Sendable (any Error) -> Void) async -> [String: String] {
+        guard brew != nil else { return [:] }
+        do { return AppUpdateFeed.caskApplications(try await outdated()) } catch is CancellationError {
+            return [:]
+        } catch {
+            report(error)
+            return [:]
+        }
+    }
 }

@@ -14,7 +14,8 @@ extension NotchcastHost {
                 core?.settingsCoordinator.showSettings(tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
             },
             showLinkSettings: { [weak core] in
-                core?.settingsCoordinator.showSettings(tab: .notchcast, revealing: .section(.notchcastAIUsage))
+                let anchor = SettingsAnchor.notchcastAIUsage
+                core?.settingsCoordinator.showSettings(tab: anchor.tab, revealing: .section(anchor))
             },
             appearanceEnabled: { [weak core] in core?.appearanceCoordinator.isEnabled == true },
             showThemes: { [weak core] in core?.appearanceCoordinator.showThemes() },

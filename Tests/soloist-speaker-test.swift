@@ -334,7 +334,7 @@ struct SoloistSpeakerTest {
         func settle() async {
             for _ in 0..<6 {
                 await speaker.preparing?.value
-                await speaker.installing?.value
+                _ = await speaker.installing?.value
                 await speaker.checking?.value
                 await Task.yield()
             }

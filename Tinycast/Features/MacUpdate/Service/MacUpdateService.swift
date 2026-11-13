@@ -15,14 +15,14 @@ final class MacUpdateService {
     private let appRoot: String
     private let exists: (String) -> Bool
     private let resolve: (String) -> String
-    private let locked: () -> Bool
+    private let locked: (String) -> Bool
     private let lockTimeout: Duration
     private let locate: @Sendable (String) async -> String?
     private var task: Task<Void, Never>?
 
     init(runner: any MacUpdateProcessRunning, appRoot: String,
          exists: @escaping (String) -> Bool, resolve: @escaping (String) -> String,
-         locked: @escaping () -> Bool, lockTimeout: Duration = .seconds(120),
+         locked: @escaping (String) -> Bool, lockTimeout: Duration = .seconds(120),
          locate: @escaping @Sendable (String) async -> String? = { await ExecutableLocator.locate($0)?.path }) {
         self.runner = runner
         self.appRoot = appRoot
@@ -55,12 +55,19 @@ final class MacUpdateService {
     }
 
     private func perform(_ progress: AsyncStream<Progress>.Continuation) async {
-        let tools = await withTaskGroup(of: (String, String?).self) { [locate] group in
-            for name in MacUpdatePlan.tools { group.addTask { (name, await locate(name)) } }
-            var found: [String: String] = [:]
-            for await (name, path) in group { found[name] = path }
-            return found
+        // A shell lookup ignores cancellation, so cancel stops waiting instead of waiting it out.
+        let (lookups, finished) = AsyncStream<[String: String]>.makeStream()
+        Task { [locate] in
+            finished.yield(await withTaskGroup(of: (String, String?).self) { group in
+                for name in MacUpdatePlan.tools { group.addTask { (name, await locate(name)) } }
+                var found: [String: String] = [:]
+                for await (name, path) in group { found[name] = path }
+                return found
+            })
+            finished.finish()
         }
+        var tools: [String: String] = [:]
+        for await found in lookups { tools = found }
         for step in MacUpdateStep.allCases {
             func emit(_ state: State) { progress.yield(Progress(step: step, state: state)) }
             do {
@@ -73,7 +80,7 @@ final class MacUpdateService {
                     for command in commands {
                         if command.kind != .tool {
                             let deadline = ContinuousClock.now + lockTimeout
-                            while locked() {
+                            while locked(command.path) {
                                 guard ContinuousClock.now < deadline else {
                                     emit(.failed("homebrew-lock-timeout"))
                                     return

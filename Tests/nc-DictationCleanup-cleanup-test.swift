@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/MagpieGateway.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/*.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanup.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupClient.swift
@@ -23,7 +24,23 @@ struct CleanupTests {
         precondition(condition, message)
     }
 
+    @MainActor private final class Counter { var value = 0 }
+
+    @MainActor private static func reportsCleanupFallback() async {
+        let fallbacks = Counter()
+        let family = DictationFamily(process: { raw, _, _, onFallback in
+            await onFallback()
+            return raw
+        })
+        family.cleanupFallback = { fallbacks.value += 1 }
+        family.setCleanup(true)
+        expect(await DictationCoordinator.transcriptStage?("raw", nil) == "raw")
+        expect(fallbacks.value == 1, "Cleanup fallback was not reported")
+        family.setCleanup(false)
+    }
+
     static func main() async throws {
+        await reportsCleanupFallback()
         var settings = DictationCleanupSettings()
         settings.isEnabled = true
         settings.vocabulary = [.init(spelling: "Claude", misheardForms: ["klaud", "klod"]),

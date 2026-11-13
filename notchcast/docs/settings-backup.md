@@ -16,7 +16,7 @@ remain excluded, as do AgentGrantStore grants, credentials, tokens and API keys.
 Format 2 uses `settings-v2-<day>.plist`. Selection ignores old `settings-<day>.plist` files;
 there is no format-1 compatibility path. Format 3 is refused. The selected file must be a regular file
 of at most 1 MiB before reading; FIFOs and symbolic links are refused without blocking.
-Restore validates every value before confirmation and again before writing. Any unknown key,
+Restore validates every value before confirmation. Any unknown key,
 including a root or nested JSON key, wrong type, unsupported choice or out-of-range value refuses
 the whole file and leaves memory and defaults unchanged. Plist booleans are distinct from numbers.
 Missing keys stay untouched. Restore opens a list ordered by creation date, newest first, with sizes.
@@ -25,6 +25,7 @@ Selecting a copy validates and holds that exact file's data through confirmation
 Switches apply through `NotchcastPreferences.set`; unwired switches present in the backup are
 written as false so restore cannot enable hidden features, and a snapshot records them as false too,
 so every saved value is the one a restore sets. Other values use setters and store APIs.
+If one feature fails to apply, its key names are logged, the rest and the switches still apply, and restore reports failure.
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
 opening the folder has its own task. Missing backups show an empty state.
 The command reveals the backup section. Cancelling, restoring or leaving it clears the copy list.
@@ -88,6 +89,7 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | monitorMemory | Int, 0...1 | Threshold mode |
 | monitorDisk | Int, 1...50 | Threshold |
 | monitorBattery | Int, 1...50 | Threshold |
+| monitorBatteryTemperature | Int, 30...60 | Threshold |
 | islandHoverDelay | 0.1, 0.3, 0.5, 1 | Known delays |
 | notchcast.liveTimer.defaultDuration | 300, 600, 900, 1500, 1800, 3600 | Default duration |
 | notchcast.liveTimer.playSound | Bool | Sound preference |
@@ -128,6 +130,8 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | music.lastPlayer | Runtime remembered player, not configuration |
 | spotify.deviceName | Configuration of a credential-backed network speaker; retained locally |
 | remoteMacAddress | Device-specific address of another Mac, like fanMode; stays on this Mac |
+| remoteTerminalDirectory | Device-specific terminal directory; stays on this Mac |
+| remoteUpdatePath | Device-specific update path; stays on this Mac |
 | microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
 | archiveHandlersClaimed | OS association ownership state |
 | archiveRecoveryParents | Runtime archive recovery journal locations |
@@ -157,7 +161,7 @@ Restored promptAddition changes cleanup instructions sent to the current endpoin
 punctuation, wording and formatting within DictationCleanupGuard's lexical checks; those checks
 limit changes but do not guarantee semantic equivalence.
 
-A snapshot skips a feature whose settings cannot be read, logging its key names and the error, and skips individual invalid keys, logging only their names. The hourly check still saves the copy of everything else, and ends with the module's `failed` set, as it does when the copy could not be written; no screen shows that state yet. A day's copy is written once, except that a whole snapshot replaces a partial copy the same module run wrote that day, so `failed` describes the copy on disk; a partial copy left by an earlier launch stays until the next day.
+A snapshot skips a feature whose settings cannot be read, logging its key names and the error, and skips individual invalid keys, logging only their names. The hourly check still saves the copy of everything else, and ends with the module's `failed` set, as it does when the copy could not be written; turning `failed` on shows a "Backup needs attention." island message once. A day's copy is written once, except that a whole snapshot replaces a partial copy the same module run wrote that day, so `failed` describes the copy on disk; a partial copy left by an earlier launch stays until the next day.
 
 Appearance snapshots read defaults
 without constructing AppearanceStore. Apply updates a running store if one exists. No store is

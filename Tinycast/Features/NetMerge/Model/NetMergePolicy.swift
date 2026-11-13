@@ -18,6 +18,12 @@ enum NetMergePolicy {
 
     static let bigDownloadBytes: Int64 = 200_000_000
 
+    static func interfaceNames(in arguments: [String]) -> [String] {
+        let prefix = "--multiple-interface="
+        guard let argument = arguments.first(where: { $0.hasPrefix(prefix) }) else { return [] }
+        return argument.dropFirst(prefix.count).split(separator: ",").map(String.init)
+    }
+
     static func evaluate(
         interfaces: [Interface], kind: JobKind, sizeBytes: Int64?, enabled: Bool
     ) -> Decision {

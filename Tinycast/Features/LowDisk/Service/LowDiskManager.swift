@@ -7,12 +7,13 @@ import OSLog
 final class LowDiskManager {
     typealias Read = @Sendable () async throws -> LowDiskEngine.Space
     static let checkInterval: Duration = .seconds(600)
-    nonisolated static let spellKey = "notchcast.lowDisk.isLow"
+    nonisolated static let isLowKey = "notchcast.lowDisk.isLow"
     private static let log = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "LowDisk")
 
     private(set) var engine: LowDiskEngine
     private(set) var isRunning = false
     var onNotice: ((LowDiskEngine.Space) -> Void)?
+    var onReport: ((LowDiskEngine.Space) -> Void)?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let read: Read
     @ObservationIgnored private let interval: Duration
@@ -22,6 +23,7 @@ final class LowDiskManager {
     @ObservationIgnored private var reading: Task<Void, Never>?
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var readAgain = false
+    @ObservationIgnored private var reportNext = false
 
     init(defaults: UserDefaults = NotchcastIdentity.current.defaults,
          volumeURL: URL = URL(filePath: NSHomeDirectory()),
@@ -31,7 +33,7 @@ final class LowDiskManager {
         self.read = read ?? { try await Self.readSpace(at: volumeURL) }
         self.interval = interval
         self.wakeCenter = wakeCenter
-        engine = LowDiskEngine(isLow: defaults.bool(forKey: Self.spellKey))
+        engine = LowDiskEngine(isLow: defaults.bool(forKey: Self.isLowKey))
     }
 
     func start() {
@@ -58,8 +60,15 @@ final class LowDiskManager {
         reading?.cancel()
         reading = nil
         readAgain = false
+        reportNext = false
         if let wakeToken { wakeCenter.removeObserver(wakeToken) }
         wakeToken = nil
+    }
+
+    func check() {
+        guard isRunning else { return }
+        reportNext = true
+        refresh()
     }
 
     func refresh() {
@@ -71,12 +80,17 @@ final class LowDiskManager {
                 let space = try await read()
                 guard !Task.isCancelled, let self, self.generation == current, self.isRunning else { return }
                 let notice = self.engine.consume(space)
-                self.defaults.set(self.engine.isLow, forKey: Self.spellKey)
-                if notice { self.onNotice?(space) }
+                self.defaults.set(self.engine.isLow, forKey: Self.isLowKey)
+                if notice || self.reportNext && self.engine.isLow {
+                    self.onNotice?(space)
+                } else if self.reportNext {
+                    self.onReport?(space)
+                }
             } catch {
                 if !Task.isCancelled { Self.log.error("Disk capacity read failed: \(error.localizedDescription)") }
             }
             guard !Task.isCancelled, let self, self.generation == current else { return }
+            self.reportNext = false
             self.reading = nil
             if self.readAgain {
                 self.readAgain = false

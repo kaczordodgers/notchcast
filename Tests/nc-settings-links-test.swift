@@ -17,6 +17,17 @@ struct NotchcastSettingsLinksTests {
             precondition(NotchcastSettingsModule(tab: module.tab) == module)
         }
         precondition(SettingsTab(slug: "notchcast") == NotchcastSettingsModule.island.tab)
+        for (title, feature) in [
+            ("Show hidden files", NotchcastFeature.finderTweaks),
+            ("New Finder windows", .finderTweaks),
+            ("Hide recent apps", .dockTweaks),
+            ("Hide desktop widgets", .dockTweaks),
+            ("Battery temperature threshold", .monitorAlerts)
+        ] {
+            let entry = SettingsSearchCatalog.notchcast.first { $0.keywords.contains(title) }!
+            precondition(entry.target == .section(.notchcast(feature: feature)),
+                         "Conditional rows must reveal their owning section: \(title)")
+        }
         precondition(SettingsSearchCatalog.results(for: "caps lock").first?.tab == .general)
         for entry in SettingsSearchCatalog.notchcast where entry.target == nil {
             precondition(!SettingsTab.allCases.contains {
