@@ -30,7 +30,7 @@ enum DialogTone {}
 }
 
 @main struct ShelfCommandTest {
-    @MainActor static func main() async {
+    @MainActor static func main() async throws {
         NotchcastHost.current.remoteResult = { Probe.messages.append($0) }
         let module = ShelfModule.shared
         let entries = ShelfModule.register()
@@ -58,7 +58,7 @@ enum DialogTone {}
         while Probe.messages.count < 2 { await Task.yield() }
         precondition(peer.items.last?.kind == .link)
         let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".txt")
-        try! Data("file payload".utf8).write(to: file)
+        try Data("file payload".utf8).write(to: file)
         defer { try? FileManager.default.removeItem(at: file) }
         PasteboardFiles.write(file, to: board)
         command.run()
