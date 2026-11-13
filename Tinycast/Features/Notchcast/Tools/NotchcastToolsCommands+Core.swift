@@ -38,15 +38,12 @@ extension NotchcastToolsCommands {
                       valid() else { return }
                 let result = try await CatalogShellCommandRunner(processRunner: CommandProcessRunner.run).run(entries[index])
                 guard valid() else { return }
-                let output = String(decoding: result.succeeded || result.standardError.isEmpty
-                                    ? result.standardOutput : result.standardError, as: UTF8.self)
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !output.isEmpty else {
+                guard let output = result.noticeText else {
                     Self.post(result.succeeded ? String(localized: "Host command completed.", table: "Notchcast")
                               : String(localized: "Host command failed.", table: "Notchcast"))
                     return
                 }
-                await core.showNotice(title: entries[index].title, message: String(output.suffix(4_000)),
+                await core.showNotice(title: entries[index].title, message: output,
                                       symbol: "terminal", tone: result.succeeded ? .neutral : .danger)
             default:
                 let tool: MediaToolsRunner.Tool

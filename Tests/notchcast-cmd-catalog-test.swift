@@ -30,6 +30,15 @@ struct CommandCatalogTest {
         let result = try await runner.run(entry, arguments: [payload])
         precondition(!result.succeeded && result.exitStatus == 7)
         precondition(result.standardOutput == Data("out".utf8) && result.standardError == Data("err".utf8))
+        precondition(result.noticeText == "err")
+        func notice(_ status: Int32, _ out: String, _ err: String) -> String? {
+            CatalogShellCommandRunner.Result(exitStatus: status, standardOutput: Data(out.utf8),
+                                             standardError: Data(err.utf8)).noticeText
+        }
+        precondition(notice(0, " ok\n", "warn") == "ok" && notice(1, "out", "") == "out")
+        precondition(notice(0, "\n", "") == nil && notice(0, String(repeating: "x", count: 5_000), "")?.count == 4_000)
+        precondition(CatalogShellCommandRunner.Result(exitStatus: 0, standardOutput: Data([0xE9, 0x74]),
+                                                      standardError: Data()).noticeText == "\u{FFFD}t")
         let request = requests.withLock { $0[0] }
         precondition(request.executable == "/synthetic/tool")
         precondition(request.arguments == ["fixed argument", "'quoted'", payload])

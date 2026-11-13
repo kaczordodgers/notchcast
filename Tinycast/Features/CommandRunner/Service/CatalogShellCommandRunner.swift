@@ -14,6 +14,12 @@ struct CatalogShellCommandRunner: Sendable {
         let standardError: Data
 
         var succeeded: Bool { exitStatus == 0 }
+
+        var noticeText: String? {
+            let text = String(decoding: succeeded || standardError.isEmpty ? standardOutput : standardError,
+                              as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            return text.isEmpty ? nil : String(text.suffix(4_000))
+        }
     }
 
     let processRunner: @Sendable (Request) async throws -> Result
