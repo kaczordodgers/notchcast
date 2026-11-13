@@ -25,6 +25,7 @@ Selecting a copy validates and holds that exact file's data through confirmation
 Switches apply through `NotchcastPreferences.set`; unwired switches present in the backup are
 written as false so restore cannot enable hidden features, and a snapshot records them as false too,
 so every saved value is the one a restore sets. Other values use setters and store APIs.
+If one feature fails to apply, its key names are logged, the rest and the switches still apply, and restore reports failure.
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
 opening the folder has its own task. Missing backups show an empty state.
 The command reveals the backup section. Cancelling, restoring or leaving it clears the copy list.
@@ -157,7 +158,7 @@ Restored promptAddition changes cleanup instructions sent to the current endpoin
 punctuation, wording and formatting within DictationCleanupGuard's lexical checks; those checks
 limit changes but do not guarantee semantic equivalence.
 
-A snapshot skips a feature whose settings cannot be read, logging its key names and the error, and skips individual invalid keys, logging only their names. The hourly check still saves the copy of everything else, and ends with the module's `failed` set, as it does when the copy could not be written; no screen shows that state yet. A day's copy is written once, except that a whole snapshot replaces a partial copy the same module run wrote that day, so `failed` describes the copy on disk; a partial copy left by an earlier launch stays until the next day.
+A snapshot skips a feature whose settings cannot be read, logging its key names and the error, and skips individual invalid keys, logging only their names. The hourly check still saves the copy of everything else, and ends with the module's `failed` set, as it does when the copy could not be written; turning `failed` on shows a "Backup needs attention." island message once. A day's copy is written once, except that a whole snapshot replaces a partial copy the same module run wrote that day, so `failed` describes the copy on disk; a partial copy left by an earlier launch stays until the next day.
 
 Appearance snapshots read defaults
 without constructing AppearanceStore. Apply updates a running store if one exists. No store is

@@ -66,7 +66,7 @@ final class BackupStatusModule: NotchcastModule {
             guard let self else { return }
             self.cancelRestart = nil
             self.halt()
-            if self.configurationNotice() == nil { self.begin() }
+            self.start()
         }
     }
 
