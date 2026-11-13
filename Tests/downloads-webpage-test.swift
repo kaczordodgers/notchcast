@@ -202,7 +202,7 @@ struct DownloadsWebpageTests {
         defer { probe.stop() }
         expect((try? PublicWebAddress.validate(privateURL)) == nil, "refuses loopback navigation")
         do {
-            _ = try await WebpageExtractor().extract(privateURL)
+            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1/")!)
             expect(false, "extractor refuses loopback")
         } catch PublicWebAddress.Refusal.privateAddress {
             expect(true, "extractor preserves private-address refusal")
