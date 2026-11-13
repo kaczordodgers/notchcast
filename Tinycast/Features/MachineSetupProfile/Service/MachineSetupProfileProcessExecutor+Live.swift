@@ -7,7 +7,9 @@ extension MachineSetupProfileProcessExecutor {
             guard geteuid() != 0,
                   (executable == "/usr/bin/defaults"
                     && (arguments == ["read", "com.apple.dock", "autohide"]
-                        || arguments == ["write", "com.apple.dock", "autohide", "-bool", "true"]))
+                        || arguments == ["write", "com.apple.dock", "autohide", "-bool", "true"]
+                        || arguments == ["write", "com.apple.dock", "autohide", "-bool", "false"]
+                        || arguments == ["delete", "com.apple.dock", "autohide"]))
                     || (executable == "/usr/bin/killall" && arguments == ["Dock"])
             else { throw Failure.unsupportedPayload }
             let url = URL(fileURLWithPath: executable)
