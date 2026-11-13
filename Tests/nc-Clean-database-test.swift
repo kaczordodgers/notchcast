@@ -19,7 +19,12 @@ struct CleanDatabaseTest {
         precondition(sqlite3_exec(connection, "BEGIN IMMEDIATE", nil, nil, nil) == SQLITE_OK)
         let entered = DispatchSemaphore(value: 0)
         let task = Task.detached {
-            try CleanQuarantineDatabase.run(url, timeout: 5, clear: true) { entered.signal() }
+            try CleanQuarantineDatabase.run(url, timeout: 5, clear: true) { database in
+                sqlite3_busy_handler(database, { context, _ in
+                    Unmanaged<DispatchSemaphore>.fromOpaque(context!).takeUnretainedValue().signal()
+                    return 1
+                }, Unmanaged.passUnretained(entered).toOpaque())
+            }
         }
         precondition(entered.wait(timeout: .now() + 5) == .success)
         task.cancel()
@@ -28,6 +33,7 @@ struct CleanDatabaseTest {
             _ = try await task.value
             preconditionFailure("Cancelled transaction deleted quarantine rows")
         } catch is CancellationError {}
+        withExtendedLifetime(entered) {}
         let count = try CleanQuarantineDatabase.run(url, timeout: 1, clear: false)
         precondition(count == 2, "Cancelled transaction must preserve every row")
         let remaining = try CleanQuarantineDatabase.run(url, timeout: 1, clear: true)

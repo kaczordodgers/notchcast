@@ -4,7 +4,7 @@ import SQLite3
 enum CleanQuarantineDatabase {
     static func run(
         _ url: URL, timeout: TimeInterval, clear: Bool,
-        beforeTransaction: @Sendable () -> Void = {}
+        beforeTransaction: @Sendable (OpaquePointer?) -> Void = { _ in }
     ) throws -> Int {
         try Task.checkCancellation()
         guard FileManager().fileExists(atPath: url.path) else { return 0 }
@@ -20,7 +20,7 @@ enum CleanQuarantineDatabase {
         defer { sqlite3_close(database) }
         sqlite3_busy_timeout(database, Int32(min(max(timeout, 0) * 1000, Double(Int32.max))))
         if clear {
-            beforeTransaction()
+            beforeTransaction(database)
             guard sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil) == SQLITE_OK else {
                 throw CocoaError(.fileWriteUnknown)
             }
