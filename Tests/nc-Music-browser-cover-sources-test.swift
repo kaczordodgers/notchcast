@@ -25,6 +25,7 @@ final class Lookups {
 final class Server: Sendable {
     let listener: NWListener
     let requests = Mutex<[(path: String, accept: String?)]>([])
+    let ready = Mutex(false)
 
     init() throws {
         let parameters = NWParameters.tcp
@@ -42,11 +43,14 @@ final class Server: Sendable {
                                 completion: .contentProcessed { _ in connection.cancel() })
             }
         }
+        listener.stateUpdateHandler = { [self] state in
+            if case .ready = state { ready.withLock { $0 = true } }
+        }
         listener.start(queue: .global())
     }
 
     func base() async -> String {
-        while listener.port == nil { try? await Task.sleep(for: .milliseconds(10)) }
+        while !ready.withLock({ $0 }) { try? await Task.sleep(for: .milliseconds(10)) }
         return "http://127.0.0.1:\(listener.port!.rawValue)"
     }
 
