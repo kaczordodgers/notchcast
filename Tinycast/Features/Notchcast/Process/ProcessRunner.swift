@@ -276,7 +276,7 @@ nonisolated enum ProcessRunner {
             if request.stopsGroup, request.groupCleanup == .drainThenKill {
                 state.withLock { _ = kill(-$0.process.processIdentifier, SIGKILL) }
             }
-            state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() } }
+            state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() }; $0.timers.removeAll() }
         }
 
         func finish() throws -> Output {
@@ -300,6 +300,7 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 state.termination = nil
                 state.timers.forEach { $0.cancel() }
+                state.timers.removeAll()
             }
             for handle in handles { try? handle.close() }
             try? FileManager.default.removeItem(at: folder)
