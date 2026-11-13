@@ -18,11 +18,19 @@ struct TodoCommandContext {
                 return
             }
             let instant = now()
-            let draft = TodoQuickAddParser.parse(text, projects: store.state.projects.values.map(\.name),
+            var parser = TodoQuickAddParser(text: text, projects: store.state.projects.values.map(\.name),
                 sections: store.state.sections.values.map(\.name), labels: store.state.labels.values.map(\.name)) { text in
                 guard let date = parseDate(text, now: instant) else { return nil }
                 return TodoQuickAddDate(range: NSRange(date.matchedRange, in: text),
                                         display: date.normalised, payload: String(text[date.matchedRange]))
+            }
+            var draft = parser.draft
+            let projectID = store.state.projects.values.sorted { $0.id < $1.id }
+                .first { $0.name == draft.project }?.id
+            let sectionID = store.state.sections.values.sorted { $0.id < $1.id }
+                .first { $0.name == draft.section && $0.projectID == projectID }?.id
+            while sectionID == nil, let token = draft.tokens.first(where: { $0.kind == .section }) {
+                draft = parser.revert(tokenAt: token.range.location)
             }
             guard !draft.title.isEmpty else {
                 report(String(localized: "The clipboard has no task text.", table: "Notchcast"))
@@ -31,10 +39,8 @@ struct TodoCommandContext {
             var task = TodoTask(id: UUID().uuidString, title: draft.title)
             task.priority = draft.priority
             task.addedAt = instant
-            task.projectID = store.state.projects.values.sorted { $0.id < $1.id }
-                .first { $0.name == draft.project }?.id
-            task.sectionID = store.state.sections.values.sorted { $0.id < $1.id }
-                .first { $0.name == draft.section && $0.projectID == task.projectID }?.id
+            task.projectID = projectID
+            task.sectionID = sectionID
             task.labels = draft.labels.compactMap { name in
                 store.state.labels.values.sorted { $0.id < $1.id }.first { $0.name == name }?.id
             }

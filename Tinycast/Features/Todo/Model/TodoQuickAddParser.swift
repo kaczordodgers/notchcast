@@ -22,7 +22,7 @@ struct TodoQuickAddParser: Sendable {
         draft = Self.parse(text, projects: projects, sections: sections, labels: labels, dateParser: dateParser)
     }
 
-    /// Date callbacks see UTF-16-preserving blanks and return nil when no unmasked phrase remains.
+    /// Date callbacks see UTF-16-preserving masks and return nil when no unmasked phrase remains.
     static func parse(
         _ text: String, projects: [String] = [], sections: [String] = [], labels: [String] = [],
         dateParser: (String) -> TodoQuickAddDate? = { _ in nil }
@@ -231,7 +231,7 @@ struct TodoQuickAddParser: Sendable {
     ) -> [Candidate] {
         var units = Array(text.utf16)
         for range in ranges {
-            units.replaceSubrange(range.location..<NSMaxRange(range), with: repeatElement(32, count: range.length))
+            units.replaceSubrange(range.location..<NSMaxRange(range), with: repeatElement(0xFFFC, count: range.length))
         }
         var excluded = ranges
         var result: [Candidate] = []

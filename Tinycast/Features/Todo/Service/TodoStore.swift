@@ -13,6 +13,7 @@ final class TodoStore {
     var canUndo: Bool { !inverses.isEmpty }
     private var inverses: [TodoCommand]
     @ObservationIgnored private let log: FileHandle
+    @ObservationIgnored private let write: (FileHandle, Data) throws -> Void
     @ObservationIgnored private var writeFailed = false
     private(set) var isClosed = false
     @ObservationIgnored var localCommit: (() -> Void)?
@@ -45,13 +46,15 @@ final class TodoStore {
         var validBytes: UInt64 = 0
     }
 
-    static func open(directory: URL, now: Date = Date()) async throws -> TodoStore {
+    static func open(directory: URL, now: Date = Date(),
+                     write: @escaping (FileHandle, Data) throws -> Void = { try $0.write(contentsOf: $1) }) async throws -> TodoStore {
         let loaded = try await read(directory: directory, now: now)
         try Task.checkCancellation()
-        return try TodoStore(directory: directory, loaded: loaded)
+        return try TodoStore(directory: directory, loaded: loaded, write: write)
     }
 
-    private init(directory: URL, loaded: Loaded) throws {
+    private init(directory: URL, loaded: Loaded, write: @escaping (FileHandle, Data) throws -> Void) throws {
+        self.write = write
         self.directory = directory
         replication = loaded.replication
         state = loaded.replication.state
@@ -131,7 +134,7 @@ final class TodoStore {
         data.append(0x0A)
         let offset = try log.offset()
         do {
-            try log.write(contentsOf: data)
+            try write(log, data)
             try log.synchronize()
         } catch {
             do {
