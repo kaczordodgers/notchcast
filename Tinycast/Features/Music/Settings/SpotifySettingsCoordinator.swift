@@ -84,14 +84,15 @@ final class SpotifySettingsCoordinator {
         guard download == nil else { return }
         let speaker = module.speaker
         speaker.installBuild()
+        let installation = speaker.installing
         download = Task { [weak self] in
-            await speaker.installing?.value
+            let installed = await installation?.value == true
             guard !Task.isCancelled, let self else { return }
             download = nil
             guard module.speaker === speaker, module.isEnabled else { return }
             if let failure = speaker.installFailure {
                 present(failure)
-            } else if speaker.build != nil {
+            } else if installed {
                 core?.showMessage(String(localized: "Soloist Downloaded", table: "Notchcast"))
             }
         }

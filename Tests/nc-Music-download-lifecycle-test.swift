@@ -66,6 +66,7 @@ struct DownloadLifecycleTest {
         callbacks.removeFirst()()
         precondition(speaker.port == 51234)
         speaker.installBuild()
+        let installation = speaker.installing
         while builds.installation == nil { await Task.yield() }
         speaker.recheckAfterWake()
         await speaker.checking?.value
@@ -73,6 +74,9 @@ struct DownloadLifecycleTest {
                      "Wake must not overwrite or disrupt an in-flight download")
         speaker.setEnabled(false)
         builds.installation?.resume(returning: builds.build)
-        print("PASS: wake preserves the active download")
+        let installed = await installation?.value
+        precondition(installed == false && speaker.build == builds.build,
+                     "Cancelled download must not report success just because an old build exists")
+        print("PASS: wake preserves the download; cancelled installation reports no success")
     }
 }
