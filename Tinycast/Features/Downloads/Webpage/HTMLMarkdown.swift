@@ -56,10 +56,10 @@ enum HTMLMarkdown {
             guard !trimmed.isEmpty else { return "" }
             guard let url = absolute(node.attributes["href"], baseURL: baseURL, image: false) else { return content }
             let label = content.contains("\n")
-                ? trimmed.split(separator: "\n").map {
-                    $0.replacingOccurrences(of: "^(#{1,6} |> ?|- |[0-9]+\\. |---$)",
+                ? collapsed(trimmed.split(separator: "\n").map {
+                    $0.replacingOccurrences(of: "^(#{1,6} |> ?)",
                                                with: "", options: .regularExpression)
-                }.filter { !$0.isEmpty }.joined(separator: " ")
+                }.filter { !$0.isEmpty }.joined(separator: " "))
                 : collapsed(trimmed)
             return "[\(label)](<\(url)>)"
         case "img":

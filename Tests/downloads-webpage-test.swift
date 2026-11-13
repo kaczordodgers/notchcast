@@ -141,6 +141,12 @@ struct DownloadsWebpageTests {
         expect(markdown("<main>\n <p>One</p>\n <p>Two</p>\n </main>") == "One\n\nTwo", "block whitespace normalized")
         expect(markdown("<a href='/next'><div><h2>Title</h2><p>Read more</p></div></a>") ==
                "[Title Read more](<https://example.com/next>)", "block link label stays inline")
+        expect(markdown("<a href='/p'><div><p>1. Intro</p><p>- 20%</p></div></a>") ==
+               "[1. Intro - 20%](<https://example.com/p>)", "block link preserves literal list prefixes")
+        expect(markdown("<a href='/p'><div><p>Title</p><p>---</p></div></a>") ==
+               "[Title ---](<https://example.com/p>)", "block link preserves literal divider")
+        expect(markdown("<a href='/p'><ul><li>Two<br>more</li></ul></a>") ==
+               "[- Two more](<https://example.com/p>)", "block link collapses indentation and break spaces")
         expect(markdown("<a href='/p'><figure><img src='/c.png' alt='Cover'></figure></a>") ==
                "[![Cover](<https://example.com/c.png>)](<https://example.com/p>)", "linked figure keeps image")
         expect(markdown("<a href='/p'><div><svg><title>Arrow</title></svg><h3>Post</h3>" +
