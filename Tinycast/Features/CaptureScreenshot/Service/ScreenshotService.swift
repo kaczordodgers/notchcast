@@ -44,15 +44,18 @@ enum ScreenshotService {
         try Task.checkCancellation()
         switch destination {
         case .clipboard, .both:
-            guard writeClipboard(data) else {
+            if !writeClipboard(data) {
                 if let url {
                     clipboardFailure(url)
-                    return url
+                } else {
+                    throw ScreenshotRequest.Failure.clipboardFailed
                 }
-                throw ScreenshotRequest.Failure.clipboardFailed
             }
         case .file:
             break
+        }
+        if let image = NSImage(data: data) {
+            CaptureEditorCoordinator.shared.lastCapture = image
         }
         return url
     }

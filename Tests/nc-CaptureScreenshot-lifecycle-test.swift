@@ -4,9 +4,15 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Registration.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
 import Foundation
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
+
+extension CaptureEditorCoordinator {
+    static let shared = CaptureEditorCoordinator()
+}
 
 @MainActor
 private final class CaptureProbe {
