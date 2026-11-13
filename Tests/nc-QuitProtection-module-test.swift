@@ -60,6 +60,7 @@ enum ASCIIKeyboardLayout {
         func doublePress() {
             precondition(press(true) == .swallow && press(false) == .swallow && press(true) == .swallow)
         }
+        precondition(press(false) == .swallow, "The first press's release stays swallowed")
         doublePress()
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
         precondition(posts == ["42:12"], "A confirmed double press posts Cmd+Q to the target once: \(posts)")
