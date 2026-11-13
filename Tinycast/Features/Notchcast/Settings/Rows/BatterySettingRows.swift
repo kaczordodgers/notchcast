@@ -46,7 +46,8 @@ struct NotchcastBatteryStatusSettingRow: View {
             {
                 Text("Not supported on this Mac", tableName: "Notchcast").foregroundStyle(.secondary)
             }
-            if feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
+            if BatteryModule.shared.helperInstalled,
+                feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
                 BatteryModule.shared.needsHelperUpdate
                     || (feature == .batteryChargeLimit && !BatteryModule.shared.nativeLimitAvailable)
             {
@@ -60,7 +61,8 @@ struct NotchcastBatteryStatusSettingRow: View {
                     Text(failure.localizedDescription).foregroundStyle(.secondary)
                 }
             }
-            if feature == .batteryChargeLimit, !BatteryModule.shared.helperInstalled {
+            if feature == .batteryChargeLimit, !BatteryModule.shared.helperInstalled,
+                BatteryModule.shared.failure == nil {
                 Text("The privileged helper is not installed.", tableName: "Notchcast").foregroundStyle(.secondary)
             }
         }
