@@ -33,7 +33,7 @@ final class DownloadQueue {
         let loaded = try await Self.load(file: file, now: clock())
         jobs = loaded.jobs
         save()
-        do { try await flush() } catch { Self.logger.error("Could not save downloads: \(error.localizedDescription)") }
+        try? await flush()
         persistenceError = loaded.error ?? persistenceError
     }
 
@@ -114,11 +114,7 @@ final class DownloadQueue {
         Self.interruptRunning(&jobs, at: clock())
         save()
         for task in running { await task.value }
-        do {
-            try await flush()
-        } catch {
-            persistenceError = error.localizedDescription
-        }
+        try? await flush()
     }
 
     func flush() async throws {

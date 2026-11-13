@@ -32,7 +32,7 @@ struct DownloadsWebpageTests {
         NSApp.setActivationPolicy(.accessory)
         try await extraction()
         do {
-            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1.nip.io/")!)
+            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1/")!)
             expect(false, "private DNS destination is refused")
         } catch let refusal as PublicWebAddress.Refusal {
             expect(refusal.localizedDescription == PublicWebAddress.Refusal.privateAddress.localizedDescription,
