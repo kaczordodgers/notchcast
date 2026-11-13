@@ -37,17 +37,6 @@ struct ConvertFilesPlan: Sendable, Equatable {
 
     let items: [Item]
 
-    var tools: [DownloadTool] {
-        var tools: [DownloadTool] = []
-        for item in items {
-            for tool in (item.needsProbe ? [.ffprobe] : []) + [item.tool.executable].compactMap({ $0 })
-                where !tools.contains(tool) {
-                tools.append(tool)
-            }
-        }
-        return tools
-    }
-
     static func make(sources: [URL], target: String, pages: String = "") throws -> Self {
         guard !sources.isEmpty, sources.allSatisfy({ $0.isFileURL && $0.path.hasPrefix("/") }) else {
             throw Failure(message: String(localized: "Choose local files.", table: "Notchcast"))

@@ -33,9 +33,9 @@ struct ConvertFilesTests {
             precondition(planned.items[0].tool.rawValue == tool)
         }
         let subtitles = try ConvertFilesPlan.make(sources: [url("input.srt")], target: "vtt")
-        precondition(subtitles.tools == [.ffmpeg] && !subtitles.items[0].needsProbe)
+        precondition(subtitles.items[0].tool.executable == .ffmpeg && !subtitles.items[0].needsProbe)
         let media = try ConvertFilesPlan.make(sources: [url("input.wav")], target: "mp3")
-        precondition(media.tools == [.ffprobe, .ffmpeg] && media.items[0].needsProbe)
+        precondition(media.items[0].tool.executable == .ffmpeg && media.items[0].needsProbe)
         do {
             _ = try ConvertFilesPlan.make(sources: [source], target: "mp4")
             preconditionFailure("Unsupported pair accepted")
