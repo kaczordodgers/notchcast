@@ -49,7 +49,6 @@ extension QuickLookCoordinator {
 }
 @main struct PaletteHookTest {
     @MainActor static func main() {
-        _ = NSApplication.shared
         let panel = PalettePanel()
         let core = AppCore.shared
         QuickLookCoordinator.shared.start()
