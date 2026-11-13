@@ -11,6 +11,10 @@ struct TimerRecoveryTest {
         var now = Date()
         var sounds = 0
         var stops = 0
+        _ = LiveTimerStore(defaults: defaults)
+        _ = LiveTimerStore(defaults: defaults)
+        let copies = defaults.dictionaryRepresentation().keys.filter { $0.hasPrefix(LiveTimerStore.entriesKey + ".corrupt.") }
+        precondition(copies.count == 1, "A corrupt blob is backed up once, not on every launch")
         let store = LiveTimerStore(defaults: defaults, clock: { now },
                                    playSound: { sounds += 1 }, stopSound: { stops += 1 })
         let timer = store.start(1)!
