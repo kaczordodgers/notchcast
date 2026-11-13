@@ -88,6 +88,8 @@ struct DownloadsXPostTests {
             ("http://www.x.com/a/status/12", "a/status/12"),
             ("https://mobile.twitter.com/a/article/34", "a/status/34"),
             ("https://X.COM/a/status/5", "a/status/5"),
+            ("https://x.com/i/web/status/123", "i/status/123"),
+            ("https://twitter.com/Some_User/statuses/456", "Some_User/status/456"),
             ("https://x.com/I/status/20", "I/status/20")
         ] {
             expect(XPost.apiURL(URL(string: value)!)?.absoluteString == "https://api.fxtwitter.com/\(api)", "matches \(value)")
@@ -118,7 +120,13 @@ struct DownloadsXPostTests {
         expect(text.contains("1. If you find this valuable at the end, follow me\n2. Repost/Like"), "ordered list")
         expect(text.contains("**Today's masterclass:**"), "bold paragraph")
         expect(text.contains("- **Fundamentals**\n- **Hooks 101**"), "unordered list with bold")
-        expect(text.contains("\n---\n\n### Fundamentals\n"), "divider and plain heading")
+        expect(text.contains("\n---\n\n### Fundamentals\n"), "divider and heading")
+        for (kind, tag) in [("header-one", "h2"), ("header-two", "h3"), ("header-three", "h4")] {
+            let json = #"{"tweet":{"article":{"content":{"blocks":[{"type":"\#(kind)","text":"Guide","entityRanges":[{"key":0,"offset":0,"length":5}]}],"entityMap":[{"key":"0","value":{"type":"LINK","data":{"url":"https://example.com/guide"}}}]}}}}"#
+            let heading = try? XPost.article(Data(json.utf8), source: source)
+            expect(heading?.html.contains("<\(tag)><a href=\"https://example.com/guide\">Guide</a></\(tag)>") == true,
+                   "\(kind) preserves link entities")
+        }
         expect(text.contains("```\nHooks by format\n\nShort posts   → The hook IS the post.\n```"), "markdown block as code")
         expect(text.contains("[https://x.com/i/status/2109282873391956203](<https://x.com/i/status/2109282873391956203>)"),
                "embedded post as link")

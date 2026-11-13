@@ -12,6 +12,7 @@ struct DictationHistorySettingRow: View {
     @State private var isLoading = true
     @State private var isClearing = false
     @State private var loadFailed = false
+    @State private var hasQuarantine = false
 
     private var reloadID: String {
         "\(preferences.isOn(.dictationHistory))-\(DictationHistoryModule.shared.revision)"
@@ -29,8 +30,10 @@ struct DictationHistorySettingRow: View {
                 loadFailed = false
                 do {
                     let loaded = try await DictationHistoryModule.shared.recent(limit: 100)
+                    let quarantine = try await DictationHistoryModule.shared.hasQuarantine()
                     try Task.checkCancellation()
                     entries = loaded
+                    hasQuarantine = quarantine
                 } catch is CancellationError {
                     return
                 } catch {
@@ -50,6 +53,7 @@ struct DictationHistorySettingRow: View {
                 do {
                     try await DictationHistoryModule.shared.deleteAll()
                     entries = []
+                    hasQuarantine = false
                     loadFailed = false
                 }
                 catch {
@@ -60,6 +64,7 @@ struct DictationHistorySettingRow: View {
             SettingsRowTitle(.notchcastCaptureAndDictation, "Clear History")
         }
         .disabled(!DictationHistoryClearPolicy.isEnabled(
-            isLoading: isLoading, isClearing: isClearing, isEmpty: entries.isEmpty, loadFailed: loadFailed))
+            isLoading: isLoading, isClearing: isClearing, isEmpty: entries.isEmpty,
+            hasQuarantine: hasQuarantine, loadFailed: loadFailed))
     }
 }

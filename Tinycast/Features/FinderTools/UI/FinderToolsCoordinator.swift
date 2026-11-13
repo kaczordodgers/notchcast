@@ -38,7 +38,10 @@ final class FinderToolsCoordinator {
     }
 
     private func perform(keyCode: Int64, modifiers: FinderShortcutPolicy.Modifiers) {
-        guard AXIsProcessTrusted() else { return }
+        guard Permissions.ensureAccessibility() else {
+            NotchcastHost.current.showMessage(String(localized: "Accessibility permission required"), .danger)
+            return
+        }
         refreshContext()
         let (_, request) = input.receive(.init(keyCode: keyCode, modifiers: modifiers))
         _ = input.receive(.init(keyCode: keyCode, modifiers: modifiers, isKeyDown: false))
