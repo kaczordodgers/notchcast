@@ -35,11 +35,16 @@ final class SystemLevelKeysModule: NotchcastModule {
     func start() {
         guard !running else { return }
         running = true
+        levels.announce = { [weak self] notice in
+            guard let self, keysEnabled(isBrightness: false) else { return }
+            publish(notice)
+        }
         observeSwitches()
     }
 
     func stop() {
         running = false
+        levels.announce = { _ in }
         monitor.stop()
         latest = nil
         present(nil)
