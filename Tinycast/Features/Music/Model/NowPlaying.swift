@@ -23,10 +23,11 @@ struct NowPlaying: Equatable, Sendable {
     var origin: Origin
     var shuffle: Bool?
     var repeatMode: RepeatMode?
+    var playbackRate: Double = 1
 
     /// The position at `now`, run on from `stamp` while playing and clamped to the track.
     func position(at now: Date) -> TimeInterval {
-        let moved = isPlaying ? max(0, now.timeIntervalSince(stamp)) : 0
+        let moved = isPlaying ? max(0, now.timeIntervalSince(stamp)) * playbackRate : 0
         return duration > 0 ? min(duration, elapsed + moved) : elapsed + moved
     }
 }

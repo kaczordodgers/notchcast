@@ -12,17 +12,17 @@ private final class CancelledBuilds: SoloistBuildSource {
 }
 
 @MainActor
-private struct NoLauncher: SoloistLauncher {
-    func launch(executable: URL, arguments: [String], onExit: @escaping @MainActor (Int32) -> Void) throws -> any SoloistChild {
+private final class NoLauncher: SoloistLauncher {
+    func launch(_ executable: URL, arguments: [String], onExit: @escaping @MainActor (Int32) -> Void) throws -> any SoloistChild {
         fatalError("Scan must not launch")
     }
 }
 
 @MainActor
-private struct NoProcesses: SoloistProcessList {
-    func peers() -> [SoloistPeer] { [] }
-    func stopOwned(_ peer: SoloistPeer) {}
-    func watch(_ peer: SoloistPeer, onExit: @escaping @MainActor () -> Void) -> SoloistCancellation {
+private final class NoProcesses: SoloistProcessList {
+    func soloists() -> [SoloistPeer] { [] }
+    func stop(_ peer: SoloistPeer) {}
+    func watchExit(of pid: Int32, _ onExit: @escaping @MainActor () -> Void) -> SoloistCancellation {
         SoloistCancellation {}
     }
 }
