@@ -83,10 +83,16 @@ extension KatanaModule: AgentDeviceBackend {
             guard case .string(let id)? = fields["toneID"] else { throw AgentReply.Code.badRequest }
             try await tones.refresh()
             try Task.checkCancellation()
-            guard let tone = tones.tones.first(where: { $0.name == id }) else { throw AgentReply.Code.badRequest }
-            try await client.loadTone(tone, to: channel)
+            try await client.loadTone(Self.tone(named: id, in: tones.tones), to: channel)
         default: throw AgentReply.Code.badRequest
         }
         return .object(["channel": .number(value)])
+    }
+
+    /// A name two imported tones share is refused rather than resolved to whichever comes first.
+    nonisolated static func tone(named id: String, in tones: [KatanaTone]) throws -> KatanaTone {
+        let matches = tones.filter { $0.name == id }
+        guard matches.count == 1 else { throw AgentReply.Code.badRequest }
+        return matches[0]
     }
 }

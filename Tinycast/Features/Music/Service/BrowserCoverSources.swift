@@ -11,9 +11,9 @@ struct BrowserCoverSession: Sendable {
 enum BrowserCoverSources {
     /// The running profile keeps rewriting its recovery file, so the newest file is the one playing.
     @concurrent
-    static func readSession(bundleID: String) async -> BrowserCoverSession? {
+    static func readSession(bundleID: String, in support: URL = .applicationSupportDirectory) async -> BrowserCoverSession? {
         guard let folder = BrowserCoverRules.profileFolders[bundleID] else { return nil }
-        let root = URL.applicationSupportDirectory.appending(path: folder, directoryHint: .isDirectory)
+        let root = support.appending(path: folder, directoryHint: .isDirectory)
         let profiles = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
         let newest = profiles
             .flatMap { profile in BrowserCoverRules.sessionFiles.map { profile.appending(path: $0) } }
