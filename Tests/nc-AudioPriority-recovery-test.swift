@@ -114,6 +114,9 @@ struct RecoveryTests {
         audio.failStart = true
         manager.start()
         let starts = audio.starts
+        store.move("usb", by: -2, direction: .output)
+        await settle { audio.current == "usb" }
+        check(store.failure != nil, "switch keeps listener failure")
         audio.failStart = false
         audio.callback?()
         await settle { audio.starts == starts + 1 }
