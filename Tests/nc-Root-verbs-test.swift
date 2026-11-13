@@ -35,11 +35,11 @@ struct RootVerbsTest {
 
         var sent: [String] = []
         let plan = ChargePlanService()
-        try? plan.apply(.init(charging: true, adapter: true), watchdogReady: false) { sent.append($0.rawValue) }
+        try? plan.apply(.init(charging: true, adapter: true)) { sent.append($0.rawValue) }
         precondition(sent == ["battery-adapter-on", "battery-charging-on"], "charging plan verbs")
         sent = []
-        try? plan.apply(.init(charging: false, adapter: false), watchdogReady: true) { sent.append($0.rawValue) }
-        precondition(sent == ["battery-charging-off", "battery-adapter-off"], "drain plan verbs")
+        try? plan.apply(.init(charging: false, adapter: false)) { sent.append($0.rawValue) }
+        precondition(sent == ["battery-charging-off"], "drain plan never disconnects adapter")
         sent = []
         try? plan.release { sent.append($0.rawValue) }
         precondition(sent == ["battery-adapter-on", "battery-charging-on"], "release verbs")

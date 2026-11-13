@@ -209,7 +209,8 @@ final class GreenMaximizeModule: NotchcastModule {
             geometry.flip($0.frame).intersection(current).area
                 < geometry.flip($1.frame).intersection(current).area
         }), let target = GreenMaximizeEngine.target(
-            current: current, visible: geometry.flip(screen.visibleFrame), memory: memory)
+            current: current, visible: geometry.flip(screen.visibleFrame), memory: memory,
+            gap: CGFloat(UserDefaults.standard.integer(forKey: AppSettingsKey.windowGap.rawValue)))
         else { return }
         let restore = AXWindowAccess.suppressEnhancedUserInterface(
             on: AXWindowAccess.application(for: snapshot.pid, timeout: 0.1))

@@ -21620,54 +21620,54 @@
         }
       }
     },
-    "Keep awake while the lid is closed." : {
+    "Requires Keep Awake to be active while the lid is closed." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bei geschlossenem Deckel wach bleiben."
+            "value" : "Erfordert aktives Wachhalten bei geschlossenem Deckel."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantener activo mientras la tapa esté cerrada."
+            "value" : "Requiere Mantener activo mientras la tapa esté cerrada."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rester éveillé lorsque le capot est fermé."
+            "value" : "Nécessite le maintien en éveil lorsque le capot est fermé."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "蓋を閉じている間もスリープを防止します。"
+            "value" : "蓋を閉じている間はスリープ防止を有効にする必要があります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "덮개가 닫혀 있는 동안 잠자기를 방지합니다."
+            "value" : "덮개가 닫혀 있는 동안 잠자기 방지가 활성화되어 있어야 합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manter ativo enquanto a tampa estiver fechada."
+            "value" : "Requer Manter ativo enquanto a tampa estiver fechada."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не засыпать при закрытой крышке."
+            "value" : "При закрытой крышке требуется активный режим предотвращения сна."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "合盖时保持唤醒。"
+            "value" : "合盖时需要启用保持唤醒。"
           }
         }
       }
@@ -36277,54 +36277,54 @@
         }
       }
     },
-    "Run a full battery calibration cycle." : {
+    "Manual cycle: charge to 100%, unplug to 10%, reconnect to 100%, then unplug to the charge limit and reconnect." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einen vollständigen Kalibrierungszyklus starten."
+            "value" : "Manueller Zyklus: auf 100 % laden, bis 10 % trennen, wieder auf 100 % laden, dann bis zum Ladelimit trennen und wieder anschließen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ejecutar un ciclo completo de calibración."
+            "value" : "Ciclo manual: cargar al 100 %, desconectar hasta el 10 %, reconectar hasta el 100 %, luego desconectar hasta el límite y reconectar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exécuter un cycle complet d’étalonnage."
+            "value" : "Cycle manuel : charger à 100 %, débrancher jusqu’à 10 %, rebrancher jusqu’à 100 %, puis débrancher jusqu’à la limite et rebrancher."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "バッテリーの完全な調整サイクルを実行します。"
+            "value" : "手動サイクル：100%まで充電し、電源を抜いて10%まで放電し、再接続して100%まで充電後、再び抜いて充電上限まで放電し再接続します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "전체 배터리 보정 주기를 실행합니다."
+            "value" : "수동 주기: 100%까지 충전하고 분리하여 10%까지 방전한 후 다시 연결하여 100%까지 충전하고, 다시 분리하여 충전 한도까지 방전한 후 연결합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Executar um ciclo completo de calibração."
+            "value" : "Ciclo manual: carregar até 100%, desligar até 10%, ligar até 100%, depois desligar até ao limite de carga e voltar a ligar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запустить полный цикл калибровки батареи."
+            "value" : "Ручной цикл: зарядить до 100 %, отключить до 10 %, подключить до 100 %, затем отключить до предела заряда и подключить снова."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "运行完整的电池校准周期。"
+            "value" : "手动循环：充至100%，拔下电源放电至10%，重新连接充至100%，再拔下放电至充电上限后重新连接。"
           }
         }
       }
@@ -51895,54 +51895,54 @@
         }
       }
     },
-    "Use battery power above the charge limit." : {
+    "Pause charging above the charge limit without disconnecting the adapter." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oberhalb des Ladelimits Batteriestrom nutzen."
+            "value" : "Oberhalb des Ladelimits pausieren, ohne das Netzteil zu trennen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usar batería por encima del límite de carga."
+            "value" : "Pausar la carga por encima del límite sin desconectar el adaptador."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utiliser la batterie au-dessus de la limite de charge."
+            "value" : "Suspendre la charge au-dessus de la limite sans déconnecter l’adaptateur."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "充電上限を超えるとバッテリーを使用します。"
+            "value" : "充電上限を超えると、アダプタを切断せずに充電を一時停止します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "충전 한도를 넘으면 배터리 전원을 사용합니다."
+            "value" : "충전 한도를 넘으면 어댑터를 분리하지 않고 충전을 일시 중지합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usar a bateria acima do limite de carga."
+            "value" : "Pausar a carga acima do limite sem desligar o adaptador."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Использовать батарею выше предела заряда."
+            "value" : "Приостанавливать зарядку выше предела без отключения адаптера."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "超过充电上限时使用电池供电。"
+            "value" : "超过充电上限时暂停充电，不断开适配器。"
           }
         }
       }

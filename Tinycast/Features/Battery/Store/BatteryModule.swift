@@ -229,7 +229,7 @@ final class BatteryModule: NotchcastModule {
         }
         let awake = KeepAwakePolicy(enabled: on(.keepAwake) && !awakePaused, until: awakeUntil)
         let holding = awake.evaluate(now: now, onBattery: reading?.onBattery ?? false,
-                                     percent: percent, locked: false) == .hold
+                                     percent: percent) == .hold
         do {
             if nativeLimitAvailable {
                 guard let verb = on(.batteryChargeLimit)
@@ -277,8 +277,7 @@ final class BatteryModule: NotchcastModule {
             let enabled = !chargingUnsupported && preferences.holdsBatteryCharging
             let policy = ChargePolicy(enabled: enabled,
                                       limit: on(.batterySailing)
-                                        ? preferences.batteryChargePercent : 100,
-                                      drain: on(.batterySailing))
+                                        ? preferences.batteryChargePercent : 100)
             let decision = engine.evaluate(
                 policy: policy, percent: percent, charging: reading?.isCharging ?? false,
                 connected: reading.map { !$0.onBattery } ?? false,
@@ -292,8 +291,7 @@ final class BatteryModule: NotchcastModule {
             guard helperInstalled && !helperGateClosed else { return }
             guard enabled || on(.lidClosedAwake) || !journal.effects.isEmpty else { return }
             var verbs: [RootContract.Command] = []
-            // Adapter disconnection requires a helper watchdog before it can be enabled safely.
-            try ChargePlanService().apply(decision, watchdogReady: false) { verbs.append($0) }
+            try ChargePlanService().apply(decision) { verbs.append($0) }
             verbs.append(LidClosedPolicy.plan(enabled: on(.lidClosedAwake),
                                              helperReady: true, keepAwakeHolding: holding))
             for verb in verbs {

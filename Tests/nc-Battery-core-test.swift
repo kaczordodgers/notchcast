@@ -11,10 +11,10 @@ struct BatteryCoreTests {
             count += 1
         }
         let now = Date(timeIntervalSince1970: 1000)
-        var policy = ChargePolicy(enabled: true)
-        check(!policy.decide(percent: 90, charging: true, connected: true).adapter, "drain above limit")
+        let policy = ChargePolicy(enabled: true)
+        check(policy.decide(percent: 90, charging: true, connected: true) == .init(charging: false, adapter: true),
+              "above limit pauses charging with adapter connected")
         check(policy.decide(percent: 80, charging: false, connected: true).adapter, "restore at limit")
-        policy.drain = false
         check(!policy.decide(percent: 75, charging: false, connected: true).charging, "margin equality")
         check(policy.decide(percent: 74, charging: false, connected: true).charging, "resume below margin")
         check(policy.decide(percent: nil, charging: false, connected: true) == .release, "missing battery")
@@ -28,6 +28,16 @@ struct BatteryCoreTests {
             session.advance(percent: percent, limit: 80, connected: true, now: now)
         }
         check(session.step == nil && session.completedAt == now, "four stages finish")
+        session.start()
+        session.advance(percent: 100, limit: 80, connected: true, now: now)
+        check(session.decision == .init(charging: false, adapter: true),
+              "manual calibration drain keeps the adapter connected")
+        session.advance(percent: 10, limit: 80, connected: false, now: now)
+        check(session.step == .drainToLow, "manual drain waits for reconnection")
+        session.advance(percent: 10, limit: 80, connected: true, now: now)
+        check(session.step == .chargeToFullAgain && session.decision == .release,
+              "reconnecting after manual drain resumes charging")
+        session.cancel()
         session.start()
         let saved = try JSONEncoder().encode(session)
         check(try JSONDecoder().decode(CalibrationSession.self, from: saved) == session, "persist roundtrip")
@@ -44,25 +54,22 @@ struct BatteryCoreTests {
         check(engine.evaluate(policy: policy, percent: 95, charging: true, connected: false,
                               celsius: 20, now: now) == held, "unplugging holds state")
         var awake = KeepAwakePolicy(enabled: true)
-        check(awake.evaluate(now: now, onBattery: true, percent: 20, locked: false) == .batteryFloor,
+        check(awake.assertionTypes == ["PreventUserIdleSystemSleep", "PreventUserIdleDisplaySleep"],
+              "keep awake holds both system and display")
+        check(awake.evaluate(now: now, onBattery: true, percent: 20) == .batteryFloor,
               "battery floor boundary")
         awake.until = now
-        check(awake.evaluate(now: now, onBattery: false, percent: nil, locked: false) == .expired, "deadline")
+        check(awake.evaluate(now: now, onBattery: false, percent: nil) == .expired, "deadline")
         check(LidClosedPolicy.plan(enabled: true, helperReady: true, keepAwakeHolding: false) == .batterySleepOn,
               "lid follows actual hold")
         var calls: [RootContract.Command] = []
         let service = ChargePlanService()
-        try service.apply(.init(charging: false, adapter: false), watchdogReady: false) { calls.append($0) }
+        try service.apply(.init(charging: false, adapter: false)) { calls.append($0) }
         check(calls == [.batteryChargingOff], "drain pauses charging without touching adapter")
         calls = []
         enum Injected: Error { case failure }
-        do {
-            try service.apply(.init(charging: false, adapter: false), watchdogReady: true) {
-                calls.append($0)
-                if $0 == .batteryAdapterOff { throw Injected.failure }
-            }
-        } catch Injected.failure {}
-        check(calls == [.batteryChargingOff, .batteryAdapterOff], "failure never enables charging")
+        try service.apply(.init(charging: false, adapter: true)) { calls.append($0) }
+        check(calls == [.batteryAdapterOn, .batteryChargingOff], "manual drain leaves adapter connected")
         var released: [UInt32] = []
         do {
             _ = try KeepAwakePlanService().acquire(types: awake.assertionTypes, create: {
