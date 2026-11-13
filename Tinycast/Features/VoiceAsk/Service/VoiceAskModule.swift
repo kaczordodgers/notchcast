@@ -46,8 +46,15 @@ final class VoiceAskModule: NotchcastModule {
     private func shutdown() { enabled = false; onStop?(); cancel() }
 
     func press(alone: Bool) {
-        guard enabled, transport != nil, !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              hold.state == .idle, !isProcessing else { return }
+        guard enabled, alone, hold.state == .idle, !isProcessing else { return }
+        guard !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            message(String(localized: "Set a Voice Ask destination in Settings."), .danger)
+            return
+        }
+        guard transport != nil else {
+            message(String(localized: "Voice Ask is unavailable."), .danger)
+            return
+        }
         cancel()
         failure = nil
         hold.press(alone: alone)
@@ -91,7 +98,10 @@ final class VoiceAskModule: NotchcastModule {
                 let text = try await finishRecording()
                 try Task.checkCancellation()
                 guard identity == current, self.destination == destination else { return }
-                guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+                guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    message(String(localized: "No speech detected."), .danger)
+                    return
+                }
                 let reply = try await transport.send(text, destination: destination)
                 try Task.checkCancellation()
                 guard identity == current, enabled, self.destination == destination else { return }
