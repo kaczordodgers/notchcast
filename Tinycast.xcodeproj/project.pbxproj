@@ -429,6 +429,7 @@
 		337FAC7FB0687BFB3B7B23CD /* AgentPricingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDD456ECFB1459AE69AD102 /* AgentPricingSettingsSection.swift */; };
 		339373BF309C9373683047ED /* AgentDeviceActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E429CA7ABF7AC45912426FB /* AgentDeviceActions.swift */; };
 		33AC1E9456ED4F87C504971F /* AIUsagePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625ACBB765BB0C60681C0D0 /* AIUsagePageView.swift */; };
+		33B552CFFAAE0693292F0079 /* EventReminderAlarms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2063671FEBB65462556FA5 /* EventReminderAlarms.swift */; };
 		33B700D974E1519F39C307F8 /* DayMarketsDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30FDB3B44601E55271664A90 /* DayMarketsDescriptor.swift */; };
 		33CDC9C90C19C0B87F37C7AA /* DictationTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3514AC5995904AFF15855E68 /* DictationTokenizer.swift */; };
 		33D322E197E4405618D30AE3 /* AppEntry+NotchcastCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBB05367D2BE15AD9D8C167 /* AppEntry+NotchcastCommands.swift */; };
@@ -3554,6 +3555,7 @@
 		9ADA31FFE27C333DDAF33F9D /* FormRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormRow.swift; sourceTree = "<group>"; };
 		9ADAA05D695590C4B654E5BF /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		9B107F5E532C8DE74430723B /* PaletteTabAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteTabAction.swift; sourceTree = "<group>"; };
+		9B2063671FEBB65462556FA5 /* EventReminderAlarms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventReminderAlarms.swift; sourceTree = "<group>"; };
 		9B59F109217D6EE8691B7628 /* AgentSessionIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSessionIndex.swift; sourceTree = "<group>"; };
 		9B5B7B258B9277976E162263 /* KatanaAudioTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KatanaAudioTransport.swift; sourceTree = "<group>"; };
 		9B64D32132633024A8798E80 /* RoomsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomsSection.swift; sourceTree = "<group>"; };
@@ -9348,6 +9350,7 @@
 		CEBF7BE5B7CFBECDDBECD159 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				9B2063671FEBB65462556FA5 /* EventReminderAlarms.swift */,
 				8FFFE85E3E0FCC0F782AF3C9 /* EventReminderModule.swift */,
 			);
 			path = Service;
@@ -11352,6 +11355,7 @@
 				84511D8815734953965B1903 /* EventEditorScreen.swift in Sources */,
 				1DCD31110681F23A2B17EA14 /* EventEditorSession.swift in Sources */,
 				567BF142060D11190D5A949A /* EventEditorView.swift in Sources */,
+				33B552CFFAAE0693292F0079 /* EventReminderAlarms.swift in Sources */,
 				9F41BB14FEDC3273918784E7 /* EventReminderDescriptor.swift in Sources */,
 				8F94C8F81AF5542397F68C91 /* EventReminderEngine.swift in Sources */,
 				07EF0E091521FA9963F9AB3B /* EventReminderModule+Shared.swift in Sources */,
