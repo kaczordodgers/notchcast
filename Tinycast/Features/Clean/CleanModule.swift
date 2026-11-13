@@ -89,7 +89,7 @@ final class CleanModule: NotchcastModule {
                 chatIdle: {
                     do { return try await CleanTool.idle($0) } catch { return nil }
                 })
-            service.cleanupLegacyRecovery(defaults: NotchcastIdentity.current.defaults) {
+            CleanAIRecoveryMigration.run(home: home, defaults: NotchcastIdentity.current.defaults) {
                 try FileManager().trashItem(at: $0, resultingItemURL: nil)
             }
             let items = try await service.scan()

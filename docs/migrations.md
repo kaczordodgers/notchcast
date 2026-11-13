@@ -31,3 +31,4 @@ When the check fails, delete everything the row lists, then the row.
 
 | Migration | Repairs | Delete with it |
 | --- | --- | --- |
+| `CleanAIRecoveryMigration` | Moves legacy `~/.clean-ai-recovery` intact to Trash before an AI scan; logs failures and retries on the next scan without blocking it. | The file, its call in `CleanModule`, and its cases and source header entry in `Tests/nc-Clean-aidata-test.swift`. |

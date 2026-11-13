@@ -1,3 +1,5 @@
+// notchcast-sources: Tinycast/Features/Clean/Model/*.swift Tinycast/Features/Clean/Service/*.swift
+// notchcast-sources: Tinycast/Migrations/CleanAIRecoveryMigration.swift
 import Foundation
 
 struct AITrash: CleanTrashTransport {
@@ -177,7 +179,7 @@ struct CleanAIDataTest {
         defer { defaults.removePersistentDomain(forName: suite) }
         let legacy = home.appendingPathComponent(".clean-ai-recovery")
         try manager.createSymbolicLink(at: legacy, withDestinationURL: sentinel)
-        service.cleanupLegacyRecovery(defaults: defaults) { _ in preconditionFailure("Trashed a symbolic link") }
+        CleanAIRecoveryMigration.run(home: home, defaults: defaults) { _ in preconditionFailure("Trashed a symbolic link") }
         precondition(!defaults.bool(forKey: "cleanAIRecoveryRemoved"))
         let afterRefusal = try await service.scan()
         precondition(afterRefusal.contains { $0.path.path == chat.path && $0.selectable })
@@ -185,20 +187,20 @@ struct CleanAIDataTest {
         try manager.removeItem(at: legacy)
         try manager.createDirectory(at: legacy, withIntermediateDirectories: false)
         try bytes.write(to: legacy.appendingPathComponent("old-chat"))
-        service.cleanupLegacyRecovery(defaults: defaults) { _ in throw CocoaError(.fileWriteNoPermission) }
+        CleanAIRecoveryMigration.run(home: home, defaults: defaults) { _ in throw CocoaError(.fileWriteNoPermission) }
         precondition(!defaults.bool(forKey: "cleanAIRecoveryRemoved"))
         precondition(manager.fileExists(atPath: legacy.path))
         let afterFailure = try await service.scan()
         precondition(afterFailure.contains { $0.path.path == chat.path && $0.selectable })
         precondition(afterFailure.filter { $0.kind == .worktree }.count == 4)
         print("PASS: refused symlink and failed legacy cleanup do not block AI scans")
-        service.cleanupLegacyRecovery(defaults: defaults) {
+        CleanAIRecoveryMigration.run(home: home, defaults: defaults) {
             try manager.moveItem(at: $0, to: receipts.appendingPathComponent("legacy-recovery"))
         }
         precondition(!manager.fileExists(atPath: legacy.path))
         let saved = try Data(contentsOf: receipts.appendingPathComponent("legacy-recovery/old-chat"))
         precondition(saved == bytes)
-        service.cleanupLegacyRecovery(defaults: defaults) { _ in preconditionFailure("Cleanup ran twice") }
+        CleanAIRecoveryMigration.run(home: home, defaults: defaults) { _ in preconditionFailure("Cleanup ran twice") }
         precondition(defaults.bool(forKey: "cleanAIRecoveryRemoved"))
         print("PASS: legacy recovery moved intact to Trash once; no new recovery copies")
         let sidecar = chat.deletingPathExtension()
