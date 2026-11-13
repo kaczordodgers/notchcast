@@ -26,7 +26,11 @@ enum DialogTone {}
 @MainActor final class ShelfPeer: ShelfLinkStatus, ShelfTransport {
     var shelfPeerAvailable = true
     var items: [ShelfItem] = []
-    func sendShelfItem(_ item: ShelfItem) async throws { items.append(item) }
+    var failAfter: Int?
+    func sendShelfItem(_ item: ShelfItem) async throws {
+        if items.count == failAfter { throw ShelfEngine.Failure.peerDown }
+        items.append(item)
+    }
 }
 
 @main struct ShelfCommandTest {
@@ -72,6 +76,27 @@ enum DialogTone {}
         board.clearContents()
         command.run()
         precondition(Probe.messages.count == 5)
+        peer.shelfPeerAvailable = true
+        func runFiles(_ urls: [URL]) async {
+            board.clearContents()
+            board.writeObjects(urls as [NSURL])
+            let count = Probe.messages.count
+            command.run()
+            while Probe.messages.count == count { await Task.yield() }
+        }
+        await runFiles(Array(repeating: file, count: 65))
+        precondition(Probe.messages.last == "Send at most 64 files at once" && peer.items.count == 3)
+        await runFiles([file.deletingLastPathComponent()])
+        precondition(Probe.messages.last == "Folders cannot be sent to Other Mac" && peer.items.count == 3)
+        try Data(repeating: 1, count: ShelfEngine.maximumItemBytes + 1).write(to: file)
+        await runFiles([file])
+        precondition(Probe.messages.last == "Each clipboard item must be 24 KiB or smaller" && peer.items.count == 3)
+        try Data("file payload".utf8).write(to: file)
+        await runFiles([file, file, file])
+        precondition(peer.items.count == 6 && Probe.messages.last == "Sent Clipboard to Other Mac")
+        peer.failAfter = 7
+        await runFiles([file, file, file])
+        precondition(peer.items.count == 7 && Probe.messages.last == "Sent 1 of 3 files to Other Mac")
         module.stop()
         print("shelf command: fake peer received text; unavailable peer, empty clipboard and gate passed")
     }

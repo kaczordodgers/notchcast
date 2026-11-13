@@ -72,6 +72,14 @@ struct ShelfTest {
         } catch ShelfEngine.Failure.invalidItem {}
         module.stop()
         do { _ = try await module.receive(text); fatalError("received while stopped") } catch ShelfEngine.Failure.stopped {}
+        let queuedDirectory = directory.appendingPathComponent("queued")
+        let queuedModule = ShelfModule(directory: queuedDirectory)
+        queuedModule.start()
+        let queued = Task { @MainActor in try await queuedModule.receive(text) }
+        let stopping = Task { @MainActor in queuedModule.stop() }
+        await stopping.value
+        do { _ = try await queued.value; fatalError("queued receive survived stop") } catch ShelfEngine.Failure.stopped {}
+        precondition(!FileManager.default.fileExists(atPath: queuedDirectory.path))
         print("Shelf send, receive, size, peer-down, duplicate and path safety passed")
     }
 }
