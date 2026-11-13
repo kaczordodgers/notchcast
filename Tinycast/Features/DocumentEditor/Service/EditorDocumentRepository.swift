@@ -29,10 +29,18 @@ struct EditorDocumentRepository: Sendable {
             if bytes != snapshot.bytes {
                 let attributes = try FileManager.default.attributesOfItem(atPath: location.path)
                 if (attributes[.referenceCount] as? NSNumber)?.intValue ?? 1 > 1 {
+                    let temporary = location.deletingLastPathComponent().appendingPathComponent(".\(UUID().uuidString).tmp")
+                    defer { try? FileManager.default.removeItem(at: temporary) }
+                    try bytes.write(to: temporary)
+                    let staged = try FileHandle(forWritingTo: temporary)
+                    defer { try? staged.close() }
+                    try staged.synchronize()
                     let file = try FileHandle(forWritingTo: location)
                     defer { try? file.close() }
-                    try file.truncate(atOffset: 0)
                     try file.write(contentsOf: bytes)
+                    try file.synchronize()
+                    try file.truncate(atOffset: UInt64(bytes.count))
+                    try file.synchronize()
                     return try EditorDocumentSnapshot(bytes: bytes)
                 }
                 let temporary = location.deletingLastPathComponent().appendingPathComponent(".\(UUID().uuidString).tmp")

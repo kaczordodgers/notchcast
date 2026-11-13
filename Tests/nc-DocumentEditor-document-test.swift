@@ -90,9 +90,14 @@ struct EditorDocumentTests {
         precondition(count == tag.count && actual == tag)
         let hardLink = directory.appendingPathComponent("linked.md")
         try FileManager.default.linkItem(at: url, to: hardLink)
+        let inode = try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as! NSNumber
         let beforeLinkedSave = try await EditorDocumentRepository.load(url)
         _ = try await EditorDocumentRepository.save("linked replacement", to: url, expecting: beforeLinkedSave)
         try check(try Data(contentsOf: hardLink) == Data("linked replacement".utf8))
+        let linkedSnapshot = try await EditorDocumentRepository.load(url)
+        _ = try await EditorDocumentRepository.save("short", to: url, expecting: linkedSnapshot)
+        try check(try Data(contentsOf: hardLink) == Data("short".utf8))
+        try check(try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber == inode)
         let restored = try await EditorDocumentRepository.load(url)
         try FileManager.default.removeItem(at: url)
         do {
@@ -191,6 +196,26 @@ struct EditorDocumentTests {
             }
             precondition(document.source == external && !document.isDirty)
         }
+        let renamed = directory.appendingPathComponent("renamed.txt")
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var moveError: NSError?
+        coordinator.coordinate(writingItemAt: copy, options: .forMoving,
+                               writingItemAt: renamed, options: .forReplacing, error: &moveError) { old, new in
+            do {
+                try FileManager.default.moveItem(at: old, to: new)
+                coordinator.item(at: old, didMoveTo: new)
+            } catch { preconditionFailure("Rename failed: \(error)") }
+        }
+        if let moveError { throw moveError }
+        for _ in 0..<100 where document.url != renamed {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        precondition(document.url == renamed)
+        try await document.refresh()
+        precondition(document.failure == nil)
+        precondition(document.edit("saved after rename"))
+        try await document.flush()
+        try check(try Data(contentsOf: renamed) == Data("saved after rename".utf8))
     }
 
     private static func statistics() async throws {

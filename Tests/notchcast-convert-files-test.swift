@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
+// notchcast-reads: Tinycast/Features/ConvertFiles/ConvertFilesDescriptor.swift
 import Foundation
 import PDFKit
 import ImageIO
@@ -15,6 +16,9 @@ import CoreText
 struct ConvertFilesTests {
     static func main() async throws {
         let manager = FileManager.default
+        let descriptor = try String(contentsOfFile:
+            "Tinycast/Features/ConvertFiles/ConvertFilesDescriptor.swift", encoding: .utf8)
+        precondition(descriptor.contains("dependencies: [.downloads]"))
         let temporary = manager.temporaryDirectory.appending(path: UUID().uuidString)
         try manager.createDirectory(at: temporary, withIntermediateDirectories: false)
         defer { try? manager.removeItem(at: temporary) }
@@ -53,6 +57,13 @@ struct ConvertFilesTests {
         let context = DownloadRunContext(destination: temporary, tools: DownloadToolLookup())
         let result = try await fake.run(job, context: context)
         precondition(result != nil)
+        let archiveSource = url("notes.txt")
+        try Data("archive".utf8).write(to: archiveSource)
+        try Data("taken".utf8).write(to: url("notes.tar.gz"))
+        var archiveJob = job
+        archiveJob.encodedOptions = try options([archiveSource.path], "tar.gz")
+        let archiveOutput = try await ConvertFilesRunner().run(archiveJob, context: context)
+        precondition(archiveOutput?.lastPathComponent == "notes (2).tar.gz")
         do {
             _ = try await fake.run(job, context: DownloadRunContext(destination: temporary,
                 tools: DownloadToolLookup(directories: [])))

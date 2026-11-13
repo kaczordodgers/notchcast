@@ -21,6 +21,7 @@ final class EditorDocumentSession {
     @ObservationIgnored private var autosave: Task<Void, Never>?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private var presenter: EditorFilePresenter?
+    @ObservationIgnored private var watchID = UUID()
     @ObservationIgnored private var idleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var needsRefresh = false
 
@@ -210,8 +211,14 @@ final class EditorDocumentSession {
     }
 
     private func watch() {
-        presenter = EditorFilePresenter(url: url) { [weak self] in
-            Task { @MainActor [weak self] in self?.requestRefresh() }
+        watchID = UUID()
+        let identity = watchID
+        presenter = EditorFilePresenter(url: url) { [weak self] location in
+            Task { @MainActor [weak self] in
+                guard let self, self.isEnabled, self.watchID == identity else { return }
+                self.url = location.standardizedFileURL
+                self.requestRefresh()
+            }
         }
     }
 
