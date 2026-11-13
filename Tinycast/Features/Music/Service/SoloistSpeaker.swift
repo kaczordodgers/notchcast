@@ -4,41 +4,41 @@ import Observation
 @MainActor
 @Observable
 final class SoloistSpeaker {
-    private(set) var state: SoloistSpeakerState = .off
+    var state: SoloistSpeakerState = .off
     private(set) var port: Int?
-    private(set) var build: SoloistBuild?
-    private(set) var installFailure: SoloistFailure?
+    var build: SoloistBuild?
+    var installFailure: SoloistFailure?
     @ObservationIgnored var onPort: ((Int?) -> Void)?
 
     @ObservationIgnored private let key: SoloistKey
     @ObservationIgnored private let files: SoloistFiles
-    @ObservationIgnored private let builds: any SoloistBuildSource
+    @ObservationIgnored let builds: any SoloistBuildSource
     @ObservationIgnored private let launcher: any SoloistLauncher
     @ObservationIgnored private let processes: any SoloistProcessList
-    @ObservationIgnored private let schedule: SoloistSchedule
+    @ObservationIgnored let schedule: SoloistSchedule
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let probe: @MainActor (Int) async -> Bool
     @ObservationIgnored private let watch: @MainActor (@escaping @MainActor () -> Void,
                                             @escaping @MainActor () -> Void,
                                             @escaping @MainActor () -> Void) -> SoloistCancellation
     @ObservationIgnored private let deviceName: String
-    @ObservationIgnored private var enabled = false
-    @ObservationIgnored private var generation = 0
-    @ObservationIgnored private var child: (any SoloistChild)?
+    @ObservationIgnored var enabled = false
+    @ObservationIgnored var generation = 0
+    @ObservationIgnored var child: (any SoloistChild)?
     @ObservationIgnored private var childRun: UUID?
     @ObservationIgnored private var retiring: [UUID: any SoloistChild] = [:]
     @ObservationIgnored private var restartWhenStopped = false
     @ObservationIgnored private var startedAt: TimeInterval?
     @ObservationIgnored private var failures = 0
     @ObservationIgnored private var expiryFailures = 0
-    @ObservationIgnored private var rejectedBuilds: Set<URL> = []
+    @ObservationIgnored var rejectedBuilds: Set<URL> = []
     @ObservationIgnored private var pending: SoloistCancellation?
     @ObservationIgnored private var expiryCheck: SoloistCancellation?
     @ObservationIgnored private var peerWatches: [SoloistCancellation] = []
     @ObservationIgnored private var launchChecks: [SoloistCancellation] = []
     @ObservationIgnored private var events: SoloistCancellation?
     @ObservationIgnored private(set) var preparing: Task<Void, Never>?
-    @ObservationIgnored private(set) var installing: Task<Bool, Never>?
+    @ObservationIgnored var installing: Task<Bool, Never>?
     @ObservationIgnored private(set) var checking: Task<Void, Never>?
 
     init(key: SoloistKey, files: SoloistFiles = SoloistFiles(), builds: any SoloistBuildSource,
@@ -81,52 +81,6 @@ final class SoloistSpeaker {
         begin()
     }
 
-    func installBuild() {
-        guard installing == nil else { return }
-        cancelWork()
-        installFailure = nil
-        state = .downloading
-        let token = generation
-        let builds = builds
-        installing = Task { [weak self] in
-            do {
-                let build = try await builds.install()
-                guard !Task.isCancelled, let self, token == self.generation else { return false }
-                self.installing = nil
-                self.rejectedBuilds.remove(build.executable)
-                self.build = build
-                if self.enabled {
-                    self.stopChild()
-                    self.begin()
-                } else { self.state = .off }
-                return true
-            } catch {
-                guard !Task.isCancelled, let self, token == self.generation else { return false }
-                self.installing = nil
-                self.installFailure = (error as? SoloistFailure) ?? .download
-                if self.child != nil {
-                    self.state = .starting
-                    self.checkPort(until: self.schedule.now() + 10)
-                } else if self.enabled { self.begin() } else { self.state = .off }
-                return false
-            }
-        }
-    }
-
-    func refreshInstalledBuild() async {
-        let token = generation
-        do {
-            let installed = try await builds.installed(excluding: rejectedBuilds)
-            guard !Task.isCancelled, token == generation, installing == nil else { return }
-            build = installed
-        } catch is CancellationError {
-            return
-        } catch {
-            guard !Task.isCancelled, token == generation, installing == nil else { return }
-            installFailure = (error as? SoloistFailure) ?? .filesystem
-        }
-    }
-
     func recheckAfterWake() {
         guard enabled, installing == nil else { return }
         lookForOthers()
@@ -164,7 +118,7 @@ final class SoloistSpeaker {
         begin()
     }
 
-    private func begin() {
+    func begin() {
         guard enabled, child == nil, installing == nil else { return }
         pending = nil
         peerWatches = []
@@ -220,7 +174,7 @@ final class SoloistSpeaker {
         checkPort(until: schedule.now() + 10)
     }
 
-    private func checkPort(until deadline: TimeInterval) {
+    func checkPort(until deadline: TimeInterval) {
         guard enabled, child != nil, installing == nil else { return }
         if let port = files.readPort() {
             self.port = port
@@ -321,7 +275,7 @@ final class SoloistSpeaker {
         }
     }
 
-    private func stopChild() {
+    func stopChild() {
         guard let child, let run = childRun else { return }
         self.child = nil
         childRun = nil
@@ -344,7 +298,7 @@ final class SoloistSpeaker {
         onPort?(nil)
     }
 
-    private func cancelWork() {
+    func cancelWork() {
         generation += 1
         preparing?.cancel()
         preparing = nil

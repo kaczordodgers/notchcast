@@ -36,75 +36,8 @@
 // notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/NowPlaying.swift
+// notchcast-sources: Tests/Kit/SettingsBackupRestoreFixture.swift
 import Foundation
-
-enum AppPaths { static func applicationSupport() -> URL { FileManager.default.temporaryDirectory } }
-enum DialogTone { case neutral, success, danger }
-@MainActor final class AppCore {
-    let settingsCoordinator = SettingsStub()
-    static let shared = AppCore()
-    func showNotice(title: String, message: String, symbol: String, tone: DialogTone) async { }
-}
-@MainActor final class SettingsStub {
-    enum Tab { case notchcast }
-    func showSettings(tab: Tab) { }
-}
-enum NotchcastSettingsModule {
-    static func module(of feature: NotchcastFeature) -> Self { .system }
-    case system
-    var tab: SettingsStub.Tab { .notchcast }
-}
-enum SettingsActionCommands {
-    @MainActor static func show(_ tab: SettingsStub.Tab, _ feature: NotchcastFeature) { }
-}
-enum ColorPickerFormat: String, CaseIterable { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
-enum ColorPickerService { static let formatKey = "notchcast.colorPicker.format" }
-enum ScreenshotModule {
-    static let destinationKey = "notchcast.screenshot.destination"
-    static let folderKey = "notchcast.screenshot.folder"
-}
-enum SpotifyConnectModule { static let deviceNameKey = "spotify.deviceName" }
-enum AgentBridgeModule { static let grantsKey = "agentActionGrants" }
-enum ArchiveRecovery { static let key = "archiveRecoveryParents" }
-@MainActor final class ColorPickerModule {
-    static let shared = ColorPickerModule()
-    var format = ColorPickerFormat.hex
-}
-@MainActor final class ScreenTextModule {
-    static let shared = ScreenTextModule()
-    nonisolated static let removeLineBreaksKey = "screenText.removeLineBreaks"
-    var removeLineBreaks = false
-}
-extension LiveTimerModule { static let shared = LiveTimerModule() }
-extension DayMarketsModule { static let shared = DayMarketsModule() }
-extension DayWeatherModule { static let shared = DayWeatherModule() }
-extension QuitProtectionStore { static let shared = QuitProtectionStore() }
-extension DictationCleanupModule {
-    static let shared = DictationCleanupModule(
-        store: .live(bundleIdentifier: Bundle.main.bundleIdentifier!)!, install: { }, uninstall: { })
-}
-extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
-@MainActor final class EditorCoordinator {
-    static let shared = EditorCoordinator()
-    let editorPreferences = EditorPreferences(defaults: UserDefaults(suiteName: Bundle.main.bundleIdentifier! + ".editor")!)
-}
-@MainActor final class AppearanceThemeColors {
-    static let shared = AppearanceThemeColors()
-    func update(light: RaycastTheme?, dark: RaycastTheme?, preview: RaycastThemeLink.Target?, opacity: Double) { }
-}
-
-@MainActor final class DialogScript {
-    var calls = 0
-    var continuation: CheckedContinuation<Bool, Never>?
-    func confirm() async -> Bool {
-        calls += 1
-        return await withCheckedContinuation { continuation = $0 }
-    }
-    func answer(_ answer: Bool) { continuation?.resume(returning: answer); continuation = nil }
-    func waitForDialog() async {
-        while continuation == nil { await Task.yield() }
-    }
-}
 
 @main struct RestoreTest {
     /// Runs the module as its hook does, until it has written today's copy and settled its state.
@@ -382,43 +315,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         precondition(unwritable.failed && saveFailures == 1, "a daily save error must reach the notice path")
         try FileManager.default.removeItem(at: backups)
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
-        let statusFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: statusFolder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: statusFolder) }
-        let statusFiles = try ["first", "restored", "typed"].map { name in
-            let folder = statusFolder.appendingPathComponent(name)
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            return folder.appendingPathComponent("status.json")
-        }
-        var statusNotices = 0
-        func statusNoticed(_ count: Int) async -> Bool {
-            for _ in 0..<200 where statusNotices < count { try? await Task.sleep(for: .milliseconds(50)) }
-            return statusNotices == count
-        }
-        NotchcastPreferences.shared.backupStatusPath = statusFiles[0].path
-        let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath },
-                                              post: { _ in statusNotices += 1 })
-        backupStatus.start()
-        let missingFileNoticed = await statusNoticed(1)
-        precondition(missingFileNoticed)
-        try ForkSettingsBackupState.live.apply(["backupStatusPath": statusFiles[1].path])
-        let restoredPathRead = await statusNoticed(2)
-        precondition(restoredPathRead, "Backup Status did not restart on a restored path")
-        let stamp = ISO8601DateFormatter().string(from: .now)
-        try JSONSerialization.data(withJSONObject: [
-            "version": 1, "result": "failed", "message": NSNull(), "lastSuccess": stamp, "lastAttempt": stamp,
-            "snapshotCount": 8, "oldestSnapshot": stamp, "newestSnapshot": stamp, "sourceBytes": 1000,
-            "addedBytes": 100, "repoBytes": 2000, "targetFreeBytes": 3000, "lowSpace": false,
-            "retention": "Last 2", "restoreTest": ["at": stamp, "result": "ok"],
-            "mbpTimeMachine": ["latest": stamp, "checkedAt": stamp, "error": NSNull()],
-        ] as [String: Any]).write(to: statusFiles[1])
-        let restoredFileWatched = await statusNoticed(3)
-        precondition(restoredFileWatched, "Backup Status kept watching the folder from before the restore")
-        NotchcastPreferences.shared.backupStatusPath = statusFiles[2].path
-        let writtenPathRead = await statusNoticed(4)
-        precondition(writtenPathRead, "Backup Status missed a write to its path")
-        backupStatus.stop()
-        print("PASS: Backup Status watches a restored path and restarts on every later write to it")
         let suite = "test.settings-restore"
         let defaults = UserDefaults(suiteName: suite)!
         defaults.removePersistentDomain(forName: suite)

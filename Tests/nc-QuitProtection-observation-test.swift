@@ -49,4 +49,4 @@ enum ASCIIKeyboardLayout {
     }
 }
 
-enum DialogTone {}
+enum DialogTone { case neutral }

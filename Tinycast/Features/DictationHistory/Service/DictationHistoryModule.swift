@@ -68,6 +68,10 @@ final class DictationHistoryModule: NotchcastModule {
         try await perform { try $0.recent(limit: limit) }
     }
 
+    func hasQuarantine() async throws -> Bool {
+        try await perform { $0.hasQuarantine() }
+    }
+
     func deleteAll() async throws {
         try await perform { try $0.deleteAll() }
         revision += 1
