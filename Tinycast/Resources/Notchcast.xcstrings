@@ -53,6 +53,58 @@
         }
       }
     },
+    "Charge to 100%, unplug to 10%, recharge to 100%, then unplug to the limit and reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf 100 % laden, bis 10 % trennen, wieder auf 100 % laden, dann bis zum Ladelimit trennen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargar al 100 %, desconectar hasta el 10 %, recargar al 100 %, luego desconectar hasta el límite y reconectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charger à 100 %, débrancher jusqu’à 10 %, recharger à 100 %, puis débrancher jusqu’à la limite et rebrancher."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%まで充電し、電源を抜いて10%まで放電し、再び100%まで充電後、電源を抜いて上限まで放電し再接続します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%까지 충전하고 분리하여 10%까지 방전한 후 다시 100%까지 충전하고, 다시 분리하여 한도까지 방전한 후 연결합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carregar até 100%, desligar até 10%, recarregar até 100%, depois desligar até ao limite e voltar a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зарядить до 100 %, отключить до 10 %, снова зарядить до 100 %, затем отключить до предела и подключить снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充至100%，拔下电源放电至10%，重新充至100%，再拔下放电至上限后重新连接。"
+          }
+        }
+      }
+    },
     "Step 1 of 4: connect power and charge to 100%." : {
       "localizations" : {
         "de" : {
@@ -36533,58 +36585,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "运行主机命令"
-          }
-        }
-      }
-    },
-    "Manual cycle: charge to 100%, unplug to 10%, reconnect to 100%, then unplug to the charge limit and reconnect." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manueller Zyklus: auf 100 % laden, bis 10 % trennen, wieder auf 100 % laden, dann bis zum Ladelimit trennen und wieder anschließen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ciclo manual: cargar al 100 %, desconectar hasta el 10 %, reconectar hasta el 100 %, luego desconectar hasta el límite y reconectar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cycle manuel : charger à 100 %, débrancher jusqu’à 10 %, rebrancher jusqu’à 100 %, puis débrancher jusqu’à la limite et rebrancher."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "手動サイクル：100%まで充電し、電源を抜いて10%まで放電し、再接続して100%まで充電後、再び抜いて充電上限まで放電し再接続します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "수동 주기: 100%까지 충전하고 분리하여 10%까지 방전한 후 다시 연결하여 100%까지 충전하고, 다시 분리하여 충전 한도까지 방전한 후 연결합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ciclo manual: carregar até 100%, desligar até 10%, ligar até 100%, depois desligar até ao limite de carga e voltar a ligar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ручной цикл: зарядить до 100 %, отключить до 10 %, подключить до 100 %, затем отключить до предела заряда и подключить снова."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "手动循环：充至100%，拔下电源放电至10%，重新连接充至100%，再拔下放电至充电上限后重新连接。"
           }
         }
       }
