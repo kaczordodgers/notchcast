@@ -1,6 +1,58 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Dictation cleanup failed; pasted the original transcript" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diktat-Bereinigung fehlgeschlagen; das ursprüngliche Transkript wurde eingefügt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falló la limpieza del dictado; se pegó la transcripción original"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nettoyage de la dictée a échoué ; la transcription originale a été collée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声入力の整形に失敗したため、元の文字起こしを貼り付けました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "받아쓰기 정리에 실패하여 원본 텍스트를 붙여 넣었습니다"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A limpeza do ditado falhou; a transcrição original foi colada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось обработать диктовку; вставлена исходная расшифровка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "听写整理失败，已粘贴原始转录文本"
+          }
+        }
+      }
+    },
     "Set a Voice Ask destination in Settings." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Lege in den Einstellungen ein Voice Ask-Ziel fest."}},"es":{"stringUnit":{"state":"translated","value":"Configura un destino de Voice Ask en Ajustes."}},"fr":{"stringUnit":{"state":"translated","value":"Définissez une destination Voice Ask dans les réglages."}},"ja":{"stringUnit":{"state":"translated","value":"設定でVoice Askの送信先を設定してください。"}},"ko":{"stringUnit":{"state":"translated","value":"설정에서 Voice Ask 대상을 지정하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Defina um destino do Voice Ask nos Ajustes."}},"ru":{"stringUnit":{"state":"translated","value":"Укажите назначение Voice Ask в настройках."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"请在设置中指定 Voice Ask 目标。"}}}},
     "No speech detected." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Sprache erkannt."}},"es":{"stringUnit":{"state":"translated","value":"No se detectó voz."}},"fr":{"stringUnit":{"state":"translated","value":"Aucune parole détectée."}},"ja":{"stringUnit":{"state":"translated","value":"音声が検出されませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"음성이 감지되지 않았습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Nenhuma fala detectada."}},"ru":{"stringUnit":{"state":"translated","value":"Речь не обнаружена."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未检测到语音。"}}}},
     "Magpie isn't running" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Magpie läuft nicht"}},"es":{"stringUnit":{"state":"translated","value":"Magpie no está en ejecución"}},"fr":{"stringUnit":{"state":"translated","value":"Magpie n’est pas en cours d’exécution"}},"ja":{"stringUnit":{"state":"translated","value":"Magpieは起動していません"}},"ko":{"stringUnit":{"state":"translated","value":"Magpie가 실행 중이 아닙니다"}},"pt":{"stringUnit":{"state":"translated","value":"O Magpie não está em execução"}},"ru":{"stringUnit":{"state":"translated","value":"Magpie не запущен"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Magpie 未运行"}}}},
