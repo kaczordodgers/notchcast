@@ -289,8 +289,11 @@ harnesses() {
     done | sort -u > "$scratch/selected"
     [ -s "$scratch/selected" ] || refuse 'no harness selected for the merged tree'
     names=$(< "$scratch/selected")
-    # A green PR build of exactly this tree (ci.py tested-key) ran every harness the hosted runner can.
-    if [ "$check" -eq 0 ] && proof=$(python3 "$(dirname "$selector")/ci.py" tested-run HEAD) && [ -n "$proof" ]; then
+    # A covered train run tested this exact tree on GitHub; only the harnesses its hosted runner skips are left.
+    if [ -n "$covered" ]; then
+        echo "harnesses: covered by train ${train_run:0:8} (tree identical); running only what its runner skips"
+        names=$(grep -xF -f <(tr ' ' '\n' <<< "$CI_SKIP_TESTS") "$scratch/selected" || true)
+    elif [ "$check" -eq 0 ] && proof=$(python3 "$(dirname "$selector")/ci.py" tested-run HEAD) && [ -n "$proof" ]; then
         echo "harnesses: $proof built and tested this tree; running only what its runner skips"
         names=$(grep -xF -f <(tr ' ' '\n' <<< "$CI_SKIP_TESTS") "$scratch/selected" || true)
     fi

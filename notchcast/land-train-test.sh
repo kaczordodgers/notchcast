@@ -92,6 +92,7 @@ for name in notchcast-core b c clipboard-text; do
     echo '// fixture' > "$seed/Tests/$name-test.swift"
 done
 echo 'red-with: src/a.txt src/b.txt' > "$seed/Tests/a-test.swift"
+echo 'red-with: src/e.txt' > "$seed/Tests/clipboard-text-test.swift"
 echo 'red-with: src/d.txt' > "$seed/Tests/d-test.swift"
 echo base > "$seed/src/shared.txt"
 echo '# fixture' > "$seed/.gitattributes"
@@ -397,15 +398,27 @@ RED_PRS=2 DISPATCH_FAILS=train/3 train 1 2 3
 [ -z "$(origin for-each-ref refs/heads/train/)" ] && untouched || fail "a failed dispatch left '$(origin for-each-ref refs/heads/train/)'"
 echo 'PASS: a split round that stops after pushing deletes every half it pushed'
 
-# a-test is red only with both src/a.txt and src/b.txt: the train run is green, the merged-tree pass is not.
+# clipboard-text-test, which the hosted runner skips, is red with src/e.txt; a-test with src/a.txt and src/b.txt.
 fixture
 open_pr 1 pr-a 'Add A' src/a.txt
-open_pr 2 pr-b 'Add B' src/b.txt
+open_pr 2 pr-b 'Add B' src/b.txt src/clipboard-text.txt
 train 1 2
 echo "$train_sha" > "$FIXTURE/green"
 land --train-run "$train_sha" 1 2
-[ "$status" -eq 1 ] && grep -q "^REFUSED: train ${train_sha:0:8}: #2 a-test failed; nothing lands on that run" "$FIXTURE/output" && untouched \
-    || fail 'a red merged-tree pass on a train run dropped a PR and landed the rest'
+[ "$status" -eq 0 ] && grep -q "^harnesses: covered by train ${train_sha:0:8} (tree identical)" "$FIXTURE/output" \
+    || fail 'a covered train did not report its harnesses as covered'
+[ "$(paste -sd'|' "$PASSES")" = clipboard-text-test ] || fail "a covered train ran '$(paste -sd'|' "$PASSES")'"
+[ "$(landed)" = 'Notchcast: Add A (#1)|Notchcast: Add B (#2)' ] || fail "a covered train landed '$(landed)'"
+echo 'PASS: a covered train runs only the harnesses its hosted runner skips, not the ones the train run passed'
+
+fixture
+open_pr 1 pr-a 'Add A' src/a.txt
+open_pr 2 pr-e 'Add E' src/clipboard-text.txt src/e.txt
+train 1 2
+echo "$train_sha" > "$FIXTURE/green"
+land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q "^REFUSED: train ${train_sha:0:8}: #2 clipboard-text-test failed; nothing lands on that run" "$FIXTURE/output" && untouched \
+    || fail 'a red runner-skipped harness on a train run dropped a PR and landed the rest'
 [ -n "$(origin rev-parse --verify -q refs/heads/train/1-2)" ] || fail 'a refused train lost its branch'
 echo 'PASS: a red pass on a train run bisects to its breaking PR and lands no part of the train'
 
