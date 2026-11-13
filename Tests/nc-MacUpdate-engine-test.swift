@@ -104,8 +104,30 @@ struct MacUpdateTests {
         let ordered = FakeRunner()
         let events = await collect(service(ordered))
         assert(events.filter { $0.state == .running }.map(\.step) == MacUpdateStep.allCases)
-        assert(ordered.commands.map(\.arguments) == [["update"], ["upgrade"], ["update"], ["upgrade"]])
-        assert(ordered.commands.map(\.kind) == [.homebrew, .homebrewUpgrade, .tool, .tool])
+        precondition(ordered.commands.map(\.path) == ["brew", "brew", "claude", "codex", "mas"].map { "/fixture/bin/" + $0 },
+                     "A standalone codex updates itself like claude")
+        assert(ordered.commands.map(\.arguments) == [["update"], ["upgrade"], ["update"], ["update"], ["upgrade"]])
+        assert(ordered.commands.map(\.kind) == [.homebrew, .homebrewUpgrade, .tool, .tool, .tool])
+        let lookupStarted = Date()
+        let hanging = MacUpdateService(runner: FakeRunner(), appRoot: root.path, exists: { _ in true },
+            resolve: { $0 }, locked: { false },
+            locate: { _ in await Task.detached { try? await Task.sleep(for: .seconds(20)) }.value; return nil })
+        let lookupStream = hanging.run()!
+        try await Task.sleep(for: .milliseconds(50))
+        hanging.cancel()
+        var lookupEvents: [MacUpdateService.State] = []
+        for await event in lookupStream { lookupEvents.append(event.state) }
+        precondition(Date().timeIntervalSince(lookupStarted) < 5 && lookupEvents == [.cancelled],
+                     "Cancel during tool lookup ends the run at once")
+        precondition(!MacUpdateLock.isHeld(at: lock.path), "No lock file is not held")
+        try Data().write(to: lock)
+        precondition(!MacUpdateLock.isHeld(at: lock.path), "An unlocked file is not held")
+        let holder = open(lock.path, O_RDONLY)
+        precondition(holder >= 0 && flock(holder, LOCK_EX | LOCK_NB) == 0)
+        precondition(MacUpdateLock.isHeld(at: lock.path), "A file another opener locked is held")
+        close(holder)
+        precondition(!MacUpdateLock.isHeld(at: lock.path), "Closing the holder releases the lock")
+        try FileManager.default.removeItem(at: lock)
         let renamed = FakeRunner()
         let byKind = await collect(MacUpdateService(
             runner: renamed, appRoot: root.path, exists: { _ in true }, resolve: { $0 }, locked: { true },
@@ -134,7 +156,7 @@ struct MacUpdateTests {
         var checks = 0
         let released = FakeRunner()
         _ = await collect(service(released, locked: { checks += 1; return checks < 2 }))
-        assert(released.commands.count == 4 && checks >= 2)
+        assert(released.commands.count == 5 && checks >= 2)
         let cancelling = FakeRunner()
         cancelling.blocks = true
         let active = service(cancelling)
@@ -157,6 +179,6 @@ struct MacUpdateTests {
         assert(cleaned.count == 1)
         assert(cleaned[0].arguments == ["-dr", "com.apple.quarantine", app.path])
         assert(cleaned.allSatisfy { $0.arguments.last!.hasPrefix(root.path + "/") })
-        print("PASS order, skips, reference failure stop, lock wait/release/timeout, cancel reap, scoped cleanup")
+        print("PASS order, codex fallback, lookup cancel, lock probe, skips, failure stop, lock wait, cancel reap, cleanup")
     }
 }
