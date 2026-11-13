@@ -36,10 +36,9 @@ final class ThemedSurface: NSView {
     }
 
     private func updateFill() {
-        guard style != .glass else { return }
         let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let fill: NSColor = style == .black ? .black : (dark ? .black.withAlphaComponent(0.42)
-            : .white.withAlphaComponent(0.68))
+        guard let spec = style.fill(dark: dark) else { return }
+        let fill = NSColor(white: spec.white, alpha: spec.alpha)
         let fillView = style == .matte ? surface.subviews.first : surface
         fillView?.layer?.backgroundColor = fill.cgColor
     }
