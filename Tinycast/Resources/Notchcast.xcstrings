@@ -40,12 +40,55 @@
     "Sent %lld of %lld files to Other Mac" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld von %lld Dateien an den anderen Mac gesendet" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se enviaron %lld de %lld archivos al otro Mac" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld fichiers sur %lld envoyés à l’autre Mac" } },
+        "es" : {
+          "stringUnit" : { "state" : "translated", "value" : "%1$#@sent@" },
+          "substitutions" : { "sent" : { "argNum" : 1, "formatSpecifier" : "lld",
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "Se envió %1$lld de %2$lld archivos al otro Mac" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "Se enviaron %1$lld de %2$lld archivos al otro Mac" } }
+            }
+          } } }
+        },
+        "fr" : {
+          "stringUnit" : { "state" : "translated", "value" : "%1$#@sent@" },
+          "substitutions" : { "sent" : { "argNum" : 1, "formatSpecifier" : "lld",
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld fichier sur %2$lld envoyé à l’autre Mac" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld fichiers sur %2$lld envoyés à l’autre Mac" } }
+            }
+          } } }
+        },
         "ja" : { "stringUnit" : { "state" : "translated", "value" : "%2$lld個中%1$lld個のファイルを別のMacに送信しました" } },
         "ko" : { "stringUnit" : { "state" : "translated", "value" : "%2$lld개 중 %1$lld개의 파일을 다른 Mac으로 보냈습니다" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "%lld de %lld arquivos enviados para o outro Mac" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отправлено %lld из %lld файлов на другой Mac" } },
+        "pt" : {
+          "stringUnit" : { "state" : "translated", "value" : "%1$#@sent@" },
+          "substitutions" : { "sent" : { "argNum" : 1, "formatSpecifier" : "lld",
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld de %2$lld arquivos enviado para o outro Mac" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld de %2$lld arquivos enviados para o outro Mac" } }
+            }
+          } } }
+        },
+        "ru" : {
+          "stringUnit" : { "state" : "translated", "value" : "Отправлено %1$lld из %2$#@total@ на другой Mac" },
+          "substitutions" : {
+            "total" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld файла" } },
+                  "few" : { "stringUnit" : { "state" : "translated", "value" : "%lld файлов" } },
+                  "many" : { "stringUnit" : { "state" : "translated", "value" : "%lld файлов" } },
+                  "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld файлов" } }
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已向另一台Mac发送%2$lld个文件中的%1$lld个" } }
       }
     },
