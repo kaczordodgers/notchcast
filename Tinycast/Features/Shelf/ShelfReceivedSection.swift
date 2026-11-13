@@ -65,8 +65,9 @@ struct ShelfReceivedSection: View {
                     try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
                                                      openWithBundleID: nil, inNewWindow: false)
                 } catch {
-                    let title = String(localized: "Could Not Open Shelf Item", table: "Notchcast")
-                    core.showMessage(title + "\n" + error.localizedDescription, tone: .danger)
+                    await core.showNotice(
+                        title: String(localized: "Could Not Open Shelf Item", table: "Notchcast"),
+                        message: error.localizedDescription, symbol: "tray", tone: .danger)
                 }
             }
         case .save:
