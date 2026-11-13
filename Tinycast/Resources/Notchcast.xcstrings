@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Other Mac: Agent Threads is off." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderer Mac: Agent Threads ist aus." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Otro Mac: Agent Threads está desactivado." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autre Mac : Agent Threads est désactivé." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "他のMac：Agent Threadsはオフです。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac: Agent Threads가 꺼져 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Outro Mac: Agent Threads está desativado." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другой Mac: Agent Threads выключен." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "另一台 Mac：Agent Threads 已关闭。" } }
+      }
+    },
+    "Preview and apply supported setup tweaks from a profile." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unterstützte Einstellungen aus einem Profil prüfen und anwenden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Previsualiza y aplica los ajustes compatibles de un perfil." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prévisualisez et appliquez les réglages pris en charge d’un profil." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロファイル内の対応する設定をプレビューして適用します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로필에서 지원되는 설정을 미리 보고 적용합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Visualize e aplique os ajustes compatíveis de um perfil." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотр и применение поддерживаемых настроек из профиля." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "预览并应用配置文件中支持的设置调整。" } }
+      }
+    },
     "Dictation cleanup failed; pasted the original transcript" : {
       "localizations" : {
         "de" : {
@@ -8531,110 +8555,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请选择本地文件。"
-          }
-        }
-      }
-    },
-    "Choose macOS privacy restrictions." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS-Datenschutzbeschränkungen auswählen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige restricciones de privacidad de macOS."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir les restrictions de confidentialité macOS."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOSのプライバシー制限を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS 개인정보 보호 제한을 선택합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha restrições de privacidade do macOS."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор ограничений конфиденциальности macOS."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择 macOS 隐私限制。"
-          }
-        }
-      }
-    },
-    "Choose which Apple intelligence features to disable." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auswählen, welche Apple-Intelligence-Funktionen deaktiviert werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige qué funciones de inteligencia de Apple desactivar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir les fonctions d’intelligence Apple à désactiver."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無効にするAppleのインテリジェンス機能を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비활성화할 Apple 지능형 기능을 선택합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha quais recursos de inteligência da Apple desativar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор отключаемых интеллектуальных функций Apple."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择要禁用的 Apple 智能功能。"
           }
         }
       }
@@ -28750,58 +28670,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "纯文本文件"
-          }
-        }
-      }
-    },
-    "Plan portable setup imports and exports." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import und Export portabler Einstellungen planen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifica la importación y exportación de ajustes portátiles."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifiez les imports et exports de réglages portables."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ポータブル設定の読み込みと書き出しを計画します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이동 가능한 설정 가져오기와 내보내기를 계획합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planeje a importação e exportação de ajustes portáteis."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Планируйте импорт и экспорт переносимых настроек."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规划可移植设置的导入和导出。"
           }
         }
       }

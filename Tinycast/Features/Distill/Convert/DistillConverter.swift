@@ -91,7 +91,9 @@ nonisolated struct DistillConverter: Sendable {
                 try saveReceipts(receipts, to: manifest, root: root)
             }
             try Task.checkCancellation()
-            if receipt.retainSource { return .init(source: source, output: output, status: .retained) }
+            if receipt.retainSource || DistillSourceKind(source) == .text {
+                return .init(source: source, output: output, status: .retained)
+            }
             guard try DistillFileAccess.snapshot(source, in: root) == original else {
                 throw DistillConversion.Failure.sourceChanged
             }

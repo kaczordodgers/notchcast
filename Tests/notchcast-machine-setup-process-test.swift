@@ -55,9 +55,10 @@ struct MachineSetupProcessTests {
         do { try restartFailed.apply(plan); fatalError("Expected restart failure") } catch {}
         precondition(restartCalls == [
             ["read", "com.apple.dock", "autohide"],
-            ["write", "com.apple.dock", "autohide", "-bool", "true"], ["Dock"]
+            ["write", "com.apple.dock", "autohide", "-bool", "true"], ["Dock"],
+            ["write", "com.apple.dock", "autohide", "-bool", "false"], ["Dock"]
         ])
-        precondition(restartFailed.report.map(\.status) == [.failed, .notRun])
+        precondition(restartFailed.report.map(\.status) == [.failed, .failed, .notRun])
         var failed = MachineSetupProfileProcessExecutor(process: { _, _ in
             .init(status: 2, output: "private output")
         }, isRoot: { false })
@@ -98,6 +99,10 @@ struct MachineSetupProcessTests {
         var available = true
         let preview = MachineSetupProfileCoordinator.Outcome(
             steps: [.init(id: "dock.autohide", status: .planned)], succeeded: true)
+        precondition(!preview.complete)
+        precondition(!MachineSetupProfileCoordinator.Outcome(steps: executor.report, succeeded: true).complete)
+        precondition(MachineSetupProfileCoordinator.Outcome(
+            steps: [.init(id: "dock.autohide", status: .applied)], succeeded: true).complete)
         await MachineSetupProfileCoordinator.run(enabled: { available }, preview: { preview },
             confirm: { _ in confirmed += 1; return false },
             apply: { applied += 1; return preview }, present: { _ in presented += 1 })
@@ -128,3 +133,4 @@ enum BackupActions {
 }
 
 enum DialogTone { case success, danger }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

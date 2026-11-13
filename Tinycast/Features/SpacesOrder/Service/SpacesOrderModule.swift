@@ -2,28 +2,51 @@ import AppKit
 
 @MainActor
 final class SpacesOrderModule: NotchcastModule {
-    private let defaults = NotchcastIdentity.current.defaults
+    private let defaults: UserDefaults
     nonisolated static let backupKey = "spacesOrderOriginal"
-    private let domain = "com.apple.dock" as CFString
+    private let domain: CFString
+    private let sleep: () async -> Void
+    private let restart: () -> Bool
     private let key = "mru-spaces" as CFString
     private var task: Task<Void, Never>?
     private var restartPending = false
+    private var enabled = false
     var onFailure: (() -> Void)?
 
+    init(defaults: UserDefaults = NotchcastIdentity.current.defaults, domain: String = "com.apple.dock",
+         sleep: @escaping () async -> Void = { try? await Task.sleep(for: .seconds(30)) },
+         restart: @escaping () -> Bool = {
+             NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").allSatisfy { $0.terminate() }
+         }) {
+        self.defaults = defaults
+        self.domain = domain as CFString
+        self.sleep = sleep
+        self.restart = restart
+    }
+
     func start() {
-        guard task == nil else { return }
-        task = Task { [weak self] in
-            while !Task.isCancelled {
-                self?.apply(enabled: true)
-                do { try await Task.sleep(for: .seconds(30)) } catch { return }
-            }
-        }
+        enabled = true
+        apply(enabled: true)
+        keepApplying()
     }
 
     func stop() {
-        task?.cancel()
-        task = nil
+        enabled = false
         apply(enabled: false)
+        keepApplying()
+    }
+
+    private func keepApplying() {
+        guard task == nil, enabled || restartPending else { return }
+        let sleep = sleep
+        task = Task { [weak self] in
+            while true {
+                await sleep()
+                guard let self else { return }
+                guard enabled || restartPending else { task = nil; return }
+                apply(enabled: enabled)
+            }
+        }
     }
 
     func restoreIfDisabled() {
@@ -53,8 +76,7 @@ final class SpacesOrderModule: NotchcastModule {
             restartPending = true
         }
         if restartPending {
-            let docks = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock")
-            guard docks.allSatisfy({ $0.terminate() }) else {
+            guard restart() else {
                 onFailure?()
                 return
             }

@@ -72,7 +72,13 @@ def literals(source):
             index += 1
 
 
+# A file that matches another app's own UI labels carries this marker and is left alone.
+FOREIGN = '// notchcast-foreign-strings:'
+
+
 def rewrite(source, keys):
+    if FOREIGN in source:
+        return source, 0
     edits = []
     count = 0
     static = {json.dumps(key.replace('%%', '%'), ensure_ascii=False) for key in keys}

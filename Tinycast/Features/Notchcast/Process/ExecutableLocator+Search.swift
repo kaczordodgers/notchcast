@@ -1,6 +1,22 @@
 import Foundation
 
 extension ExecutableLocator {
+    nonisolated static func toolEnvironment(
+        directories: [URL]? = nil,
+        home: URL = FileManager.default.homeDirectoryForCurrentUser,
+        inherited: [String: String] = ProcessInfo.processInfo.environment
+    ) -> [String: String] {
+        let folders = directories ?? searchDirectories(home: home, path: inherited["PATH"] ?? "/usr/bin:/bin")
+        var environment = ["PATH": folders.map(\.path).joined(separator: ":"),
+            "HOME": home.path, "LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8"]
+        for key in ["TMPDIR", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+                    "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+                    "SSL_CERT_FILE", "SSL_CERT_DIR", "USER", "LOGNAME"] {
+            environment[key] = inherited[key]
+        }
+        return environment
+    }
+
     /// Homebrew leads so a brewed tool beats the system's copy of the same name.
     nonisolated static func searchDirectories(
         home: URL = FileManager.default.homeDirectoryForCurrentUser,

@@ -95,7 +95,7 @@ struct GalleryPage {
 @MainActor
 enum GalleryPages {
     static func all(_ core: AppCore) -> [GalleryPage] {
-        island(core) + aiUsage(core) + launcher(core) + notchcastSettings(core) + settings(core)
+        island(core) + aiUsage(core) + launcher(core) + surface(core) + notchcastSettings(core) + settings(core)
     }
 
     static func window(_ view: some View, size: CGSize, dark: Bool) -> NSWindow {
@@ -106,7 +106,9 @@ enum GalleryPages {
         window.hasShadow = false
         window.backgroundColor = .windowBackgroundColor
         window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
-        let hosting = NSHostingView(rootView: view.environment(\.colorScheme, dark ? .dark : .light))
+        let root = SurfaceSchemeKeeper.pinsDark
+            ? AnyView(view) : AnyView(view.environment(\.colorScheme, dark ? .dark : .light))
+        let hosting = NSHostingView(rootView: root)
         hosting.sizingOptions = []
         window.contentView = hosting
         hosting.frame = CGRect(origin: .zero, size: size)

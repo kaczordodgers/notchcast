@@ -48,8 +48,16 @@ extension IslandController {
         ]
     }
 
-    /// Hover and click must not open an island under the launcher.
     var launcherIsUp: Bool { NSApp.windows.contains { $0 is PalettePanel && $0.isVisible } }
+
+    /// Hover and click must not open an island the launcher sits on; an island on another display still opens.
+    func launcherCovers(_ panel: IslandPanel?) -> Bool {
+        guard let panel else { return false }
+        let frames = NSApp.windows.filter { $0 is PalettePanel && $0.isVisible }.map(\.frame)
+        return NotchcastLauncherPlacement.blocks(panel, launchers: frames)
+    }
+
+    var pointerPanel: IslandPanel? { panels.first { $0.isVisible && $0.containsPointer } }
 
     func restoreAfterLauncher() {
         guard !launcherIsUp else { return }
