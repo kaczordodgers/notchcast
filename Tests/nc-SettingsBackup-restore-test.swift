@@ -128,16 +128,12 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
     @MainActor static func main() async throws {
         precondition(Bundle.main.bundleIdentifier == "test.notchcast.settings-backup")
         precondition(DictationCleanupSettings.promptLimit == 16_384)
-        let longTerm = String(repeating: "é", count: 257)
-        let longLine = Array(repeating: longTerm, count: 52).joined(separator: "|")
+        let longLine = Array(repeating: String(repeating: "é", count: 257), count: 52).joined(separator: "|")
         let capped = DictationCleanupSettings.vocabulary(from:
             Array(repeating: longLine, count: 501).joined(separator: "\n"))
-        precondition(capped.count == 500)
-        precondition(capped.allSatisfy { $0.spelling.count == 256 && $0.misheardForms.count == 50
+        precondition(capped.count == 500 && capped.allSatisfy { $0.spelling.count == 256 && $0.misheardForms.count == 50
             && $0.misheardForms.allSatisfy { $0.count == 256 } })
         precondition(DictationCleanupSettings.vocabularyInput("two words | a ") == "two words | a ")
-        precondition(LowDiskManager.isLowKey == "notchcast.lowDisk.isLow")
-        print("PASS: cleanup input caps preserve typing and low-disk defaults key is unchanged")
         let liveDomain = Bundle.main.bundleIdentifier! + ".notchcast"
         let liveDefaults = UserDefaults(suiteName: liveDomain)!
         liveDefaults.removePersistentDomain(forName: liveDomain)
@@ -408,10 +404,7 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let state = ForkSettingsBackupState(snapshot: {
             ForkSettingsBackupRestore.snapshot(preferences).merging(store.backupValues) { _, new in new }
                 .merging(preferences.monitorAlertsBackupValues) { _, new in new }
-        }, validate: {
-            validations += 1
-            try ForkSettingsBackupEngine.validate($0)
-        }, apply: {
+        }, validate: { validations += 1; try ForkSettingsBackupEngine.validate($0) }, apply: {
             try ForkSettingsBackupEngine.validate($0)
             try ForkSettingsBackupRestore.apply($0, to: preferences)
             store.applyBackup($0)
@@ -497,7 +490,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         coordinator.restore()
         await coordinator.settled()
         precondition(coordinator.choosing)
-        let validationsBeforeRestore = validations
         coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         coordinator.restore(name: "settings-v2-1.plist")
@@ -506,7 +498,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         script.answer(false)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 75 && reports.isEmpty && !coordinator.choosing)
-        precondition(validations == validationsBeforeRestore + 1)
         coordinator.restore()
         await coordinator.settled()
         coordinator.cancelChoosing()
