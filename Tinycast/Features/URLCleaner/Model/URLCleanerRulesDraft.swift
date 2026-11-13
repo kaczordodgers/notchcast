@@ -18,7 +18,7 @@ struct URLCleanerRulesDraft {
         var perSite: [String: [String]] = [:]
         for row in sites.split(separator: ";") {
             let parts = row.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
-            if parts.count == 2 { perSite[String(parts[0]).lowercased()] = Self.list(String(parts[1])) }
+            perSite[String(parts[0]).lowercased()] = parts.count == 2 ? Self.list(String(parts[1])) : []
         }
         return URLCleanerPolicy.Rules(custom: Self.list(custom), perSite: perSite, disabled: Self.list(disabled))
     }
