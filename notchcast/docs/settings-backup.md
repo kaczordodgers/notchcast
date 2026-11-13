@@ -16,7 +16,7 @@ remain excluded, as do AgentGrantStore grants, credentials, tokens and API keys.
 Format 2 uses `settings-v2-<day>.plist`. Selection ignores old `settings-<day>.plist` files;
 there is no format-1 compatibility path. Format 3 is refused. The selected file must be a regular file
 of at most 1 MiB before reading; FIFOs and symbolic links are refused without blocking.
-Restore validates every value before confirmation and again before writing. Any unknown key,
+Restore validates every value before confirmation. Any unknown key,
 including a root or nested JSON key, wrong type, unsupported choice or out-of-range value refuses
 the whole file and leaves memory and defaults unchanged. Plist booleans are distinct from numbers.
 Missing keys stay untouched. Restore opens a list ordered by creation date, newest first, with sizes.
@@ -88,6 +88,7 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | monitorMemory | Int, 0...1 | Threshold mode |
 | monitorDisk | Int, 1...50 | Threshold |
 | monitorBattery | Int, 1...50 | Threshold |
+| monitorBatteryTemperature | Int, 30...60 | Threshold |
 | islandHoverDelay | 0.1, 0.3, 0.5, 1 | Known delays |
 | notchcast.liveTimer.defaultDuration | 300, 600, 900, 1500, 1800, 3600 | Default duration |
 | notchcast.liveTimer.playSound | Bool | Sound preference |
@@ -128,6 +129,8 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | music.lastPlayer | Runtime remembered player, not configuration |
 | spotify.deviceName | Configuration of a credential-backed network speaker; retained locally |
 | remoteMacAddress | Device-specific address of another Mac, like fanMode; stays on this Mac |
+| remoteTerminalDirectory | Device-specific terminal directory; stays on this Mac |
+| remoteUpdatePath | Device-specific update path; stays on this Mac |
 | microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
 | archiveHandlersClaimed | OS association ownership state |
 | archiveRecoveryParents | Runtime archive recovery journal locations |

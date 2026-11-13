@@ -127,6 +127,27 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
 
     @MainActor static func main() async throws {
         precondition(Bundle.main.bundleIdentifier == "test.notchcast.settings-backup")
+        precondition(DictationCleanupSettings.promptLimit == 16_384)
+        precondition(DictationCleanupSettings.vocabularyLimit == 500)
+        precondition(DictationCleanupSettings.misheardFormsLimit == 50)
+        precondition(DictationCleanupSettings.termLimit == 256)
+        let longTerm = String(repeating: "é", count: 257)
+        let longLine = Array(repeating: longTerm, count: 52).joined(separator: "|")
+        let capped = DictationCleanupSettings.vocabulary(from:
+            Array(repeating: longLine, count: 501).joined(separator: "\n"))
+        precondition(capped.count == 500)
+        precondition(capped.allSatisfy { $0.spelling.count == 256 && $0.misheardForms.count == 50
+            && $0.misheardForms.allSatisfy { $0.count == 256 } })
+        precondition(DictationCleanupSettings.vocabularyInput("two words | a ") == "two words | a ")
+        precondition(LowDiskManager.isLowKey == "notchcast.lowDisk.isLow")
+        let cleanupShape = ForkSettingsBackupSchema.allowed["notchcast.dictationCleanup.settings"]!
+        let promptAtLimit = String(String(repeating: "🫖", count: 16_385).prefix(DictationCleanupSettings.promptLimit))
+        let cleanupJSON = try JSONSerialization.data(withJSONObject: [
+            "effort": "low", "promptAddition": promptAtLimit, "vocabulary": [],
+        ])
+        precondition(promptAtLimit.count == 16_384)
+        precondition(cleanupShape.accepts(String(decoding: cleanupJSON, as: UTF8.self)))
+        print("PASS: cleanup input caps preserve typing and low-disk defaults key is unchanged")
         let liveDomain = Bundle.main.bundleIdentifier! + ".notchcast"
         let liveDefaults = UserDefaults(suiteName: liveDomain)!
         liveDefaults.removePersistentDomain(forName: liveDomain)
@@ -393,10 +414,14 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         let store = QuitProtectionStore(defaults: defaults)
+        var validations = 0
         let state = ForkSettingsBackupState(snapshot: {
             ForkSettingsBackupRestore.snapshot(preferences).merging(store.backupValues) { _, new in new }
                 .merging(preferences.monitorAlertsBackupValues) { _, new in new }
-        }, validate: ForkSettingsBackupEngine.validate, apply: {
+        }, validate: {
+            validations += 1
+            try ForkSettingsBackupEngine.validate($0)
+        }, apply: {
             try ForkSettingsBackupEngine.validate($0)
             try ForkSettingsBackupRestore.apply($0, to: preferences)
             store.applyBackup($0)
@@ -482,6 +507,7 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         coordinator.restore()
         await coordinator.settled()
         precondition(coordinator.choosing)
+        let validationsBeforeRestore = validations
         coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         coordinator.restore(name: "settings-v2-1.plist")
@@ -490,6 +516,7 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         script.answer(false)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 75 && reports.isEmpty && !coordinator.choosing)
+        precondition(validations == validationsBeforeRestore + 1)
         coordinator.restore()
         await coordinator.settled()
         coordinator.cancelChoosing()
@@ -505,11 +532,13 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         coordinator.restore()
         await coordinator.settled()
         precondition(coordinator.choosing)
+        let validationsBeforeConfirmation = validations
         coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         script.answer(true)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 90 && reports == [true] && !coordinator.choosing)
+        precondition(validations == validationsBeforeConfirmation + 1)
         precondition(preferences.fanMode == "manual" && preferences.batteryChargePercent == 90)
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.excluded.contains(feature.rawValue) {
             precondition(!preferences.isOn(feature))

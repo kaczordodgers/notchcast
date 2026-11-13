@@ -87,7 +87,6 @@ import Observation
                 let confirmed = await confirm()
                 try Task.checkCancellation()
                 guard confirmed else { return }
-                try state.validate(values)
                 try state.apply(values)
                 report(true)
             } catch {
