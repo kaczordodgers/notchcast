@@ -24,7 +24,6 @@ final class VoiceAskRecording {
     func finish() async throws -> String {
         let samples = await capture.stop()
         try Task.checkCancellation()
-        guard !samples.isEmpty else { return "" }
         return try await core.dictationModels.transcribe(
             samples, model: core.settings.dictationModel, language: core.settings.dictationLanguage)
     }
