@@ -56,7 +56,8 @@ nonisolated enum KatanaLegacyFormats {
         var blocks = blocks
         guard let pattern = blocks[chainBlock]?[0], Int(pattern) < chainValues.count else { return nil }
         blocks[chainBlock]?[0] = UInt8(chainValues[Int(pattern)])
-        blocks[.status]?[1] = blocks[.patch0]?[18] ?? 50
+        let gain = blocks[.patch0]?[18] ?? 50
+        blocks[.status]?[1] = gain
         return KatanaLegacyPatch(blocks: blocks, comment: comment)
     }
 
