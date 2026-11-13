@@ -7,7 +7,7 @@ import Foundation
 struct RootVerbsTest {
     static func main() {
         let wire = [
-            "version", "ping", "clean-system-list", "clean-system-trash",
+            "version", "ping",
             "charge-limit-60", "charge-limit-70", "charge-limit-80", "charge-limit-90",
             "charge-limit-off", "charge-limit-read", "spotlight-off", "spotlight-on",
             "sudo-touchid-on", "sudo-touchid-off", "fans-auto", "fans-medium", "fans-max",
@@ -24,7 +24,6 @@ struct RootVerbsTest {
         precondition(RootContract.Reply(command: .ping, output: "pong\n") == .pong)
         precondition(RootContract.Reply(command: .chargeLimitRead, output: "off\n") == .chargeLimit(nil))
         precondition(RootContract.Reply(command: .chargeLimitRead, output: "80\n") == .chargeLimit(80))
-        precondition(Data(RootContract.Command.cleanSystemTrash.output.utf8) == Data("ok\n".utf8))
         for (percent, verb) in [(nil, "charge-limit-off"), (60, "charge-limit-60"), (70, "charge-limit-70"),
                                 (80, "charge-limit-80"), (90, "charge-limit-90")] as [(Int?, String)] {
             precondition(RootContract.Command(chargeLimit: percent)?.rawValue == verb, "limit \(String(describing: percent))")

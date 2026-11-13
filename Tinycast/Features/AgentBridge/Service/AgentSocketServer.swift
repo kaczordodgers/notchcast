@@ -199,7 +199,7 @@ final class AgentSocketServer: Sendable {
             let reply: AgentReply
             do {
                 let line = try AgentSocketIO.readLine(descriptor, timeout: keepAlive ? .seconds(86400) : readTimeout)
-                let request: AgentRequest
+                var request: AgentRequest
                 do {
                     request = try JSONDecoder().decode(AgentRequest.self, from: line)
                 } catch {
@@ -214,14 +214,15 @@ final class AgentSocketServer: Sendable {
                         return true
                     }
                     guard admitted else { throw AgentReply.Code.failed }
-                    session = request.id
+                    session = id.uuidString
+                    request.id = session
                 }
                 let answer = Mutex<AgentReply?>(nil)
                 let done = connection.done
                 let handler = handler
                 connection.state.withLock { state in
                     guard !state.cancelled else { return }
-                    state.task = Task {
+                    state.task = Task { [request] in
                         let reply = await handler(request)
                         answer.withLock { $0 = reply }
                         done.signal()
@@ -255,6 +256,6 @@ final class AgentSocketServer: Sendable {
             let received = recv(descriptor, &byte, 1, MSG_PEEK | MSG_DONTWAIT)
             guard received < 0, errno == EAGAIN || errno == EINTR else { throw AgentReply.Code.failed }
         }
-        throw AgentReply.Code.failed
+        throw AgentReply.Code.timedOutUnknown
     }
 }

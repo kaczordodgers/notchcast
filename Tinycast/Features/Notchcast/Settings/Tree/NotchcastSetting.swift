@@ -38,16 +38,9 @@ enum NotchcastSetting: String, CaseIterable, Sendable {
     case twoMacsConnection
     case twoMacsRemotePaths
     case backupsStatusPath
-    case cleanAndUpdatesJunk
-    case cleanAndUpdatesHistory
-    case cleanAndUpdatesAIData
-    case cleanAndUpdatesDisk
-    case cleanAndUpdatesPurge
-    case cleanAndUpdatesOptimize
-    case cleanAndUpdatesSystem
-    case cleanAndUpdatesAppUpdates
-    case cleanAndUpdatesMacUpdate
-    case cleanAndUpdatesCleaningMode
+    case updatesAppUpdates
+    case updatesMacUpdate
+    case updatesCleaningMode
     case tweaksTyping
     case tweaksFinder
     case tweaksDock
