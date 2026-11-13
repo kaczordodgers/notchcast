@@ -1,5 +1,5 @@
 // notchcast-kit: host
-// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Platform/SystemLanguages+Bundle.swift
+// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Features/Notchcast/Core/SystemLanguages+Bundle.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ClearNotifications/Model/*.swift Tinycast/Features/ClearNotifications/Service/*.swift Tinycast/Features/ClearNotifications/ClearNotificationsModule*.swift

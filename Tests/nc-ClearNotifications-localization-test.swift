@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Platform/SystemLanguages+Bundle.swift
+// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Features/Notchcast/Core/SystemLanguages+Bundle.swift
 // notchcast-sources: Tinycast/Features/ClearNotifications/Service/ClearNotificationsScript.swift
 // notchcast-sources: Tinycast/Features/SystemTools/Model/NotificationCleanupPolicy.swift
 import AppKit
