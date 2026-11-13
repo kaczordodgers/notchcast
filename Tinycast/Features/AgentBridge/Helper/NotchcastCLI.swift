@@ -1,6 +1,8 @@
 import Foundation
 
+#if !NOTCHCAST_CLI_TEST
 @main
+#endif
 enum NotchcastCLI {
     static func main() {
         do {

@@ -38,6 +38,8 @@ struct AgentSessionTests {
         try streamed(temporary.appendingPathComponent("streamed"))
         try exclusion(temporary.appendingPathComponent("exclusion"))
         try await lifecycle(temporary.appendingPathComponent("lifecycle"))
+        try unreadableDatabase(temporary.appendingPathComponent("unreadable"))
+        try await badConfig(temporary.appendingPathComponent("bad-config"))
         let entries = AgentSessionsModule.register()
         expect(entries.count == 1 && entries[0].requires == [.agentSessions] && entries[0].requiresAny.isEmpty,
                "Agent Sessions registers one entry behind its switch")
@@ -47,6 +49,40 @@ struct AgentSessionTests {
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
         guard condition() else { fatalError(message) }
+    }
+
+    static func unreadableDatabase(_ root: URL) throws {
+        let file = root.appendingPathComponent("opencode.db")
+        try append(Data("not a SQLite database".utf8), to: file)
+        var index = AgentSessionIndex()
+        let snapshot = try index.refresh(roots: [.init(provider: .opencode, url: file)])
+        expect(snapshot.sessions.isEmpty, "Unreadable database contributes no sessions")
+        expect(snapshot.issues.count == 1 && snapshot.issues[0].url == file,
+               "Unreadable database reports its source")
+        expect(!snapshot.issues[0].reason.isEmpty, "Database issue includes a reason")
+    }
+
+    @MainActor
+    static func badConfig(_ root: URL) async throws {
+        let file = root.appendingPathComponent("session.jsonl")
+        let config = root.appendingPathComponent("private.env")
+        try append(["type": "user", "timestamp": timestamp], to: file)
+        let module = AgentSessionsModule(roots: [.init(provider: .claude, url: root)], privateConfigURL: config)
+        module.start()
+        defer { module.stop() }
+        module.refresh()
+        await module.waitUntilIdle()
+        let previous = module.snapshot.sessions
+        expect(previous.count == 1, "Valid scan publishes a snapshot")
+        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE=$(invalid)".utf8).write(to: config)
+        try FileManager.default.removeItem(at: file)
+        module.refresh()
+        await module.waitUntilIdle()
+        expect(module.snapshot.sessions == previous, "Invalid exclusions keep the last good snapshot")
+        try Data().write(to: config)
+        module.refresh()
+        await module.waitUntilIdle()
+        expect(module.snapshot.sessions.isEmpty, "Repairing exclusions resumes scans")
     }
 
     static func sharedIdentity(_ root: URL) throws {

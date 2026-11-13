@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/AgentBridge/Helper/*.swift -DNOTCHCAST_CLI_TEST
 import Foundation
 
 @main
@@ -6,6 +7,9 @@ struct AgentCLITests {
     static func check(_ value: Bool, _ message: String = "check failed") { precondition(value, message) }
 
     static func main() throws {
+        let entry: () -> Void = NotchcastCLI.main
+        let mcp: (String) -> Void = AgentCLIMCP.run
+        _ = (entry, mcp)
         for verb in ["status", "list", "audit"] {
             let parsed = try AgentRequest.parse([verb, "--json"])
             check(parsed.json && parsed.request.verb.rawValue == verb && parsed.request.isValid)
