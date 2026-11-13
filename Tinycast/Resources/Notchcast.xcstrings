@@ -3,10 +3,10 @@
   "strings" : {
     "Other Mac: Agent Threads is off." : {
       "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderer Mac: Agent Threads ist deaktiviert." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderer Mac: Agent Threads ist aus." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Otro Mac: Agent Threads está desactivado." } },
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autre Mac : Agent Threads est désactivé." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ほかのMac：Agent Threadsがオフです。" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "他のMac：Agent Threadsはオフです。" } },
         "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac: Agent Threads가 꺼져 있습니다." } },
         "pt" : { "stringUnit" : { "state" : "translated", "value" : "Outro Mac: Agent Threads está desativado." } },
         "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другой Mac: Agent Threads выключен." } },
@@ -31136,58 +31136,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "纯文本文件"
-          }
-        }
-      }
-    },
-    "Plan portable setup imports and exports." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import und Export portabler Einstellungen planen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifica la importación y exportación de ajustes portátiles."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifiez les imports et exports de réglages portables."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ポータブル設定の読み込みと書き出しを計画します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이동 가능한 설정 가져오기와 내보내기를 계획합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planeje a importação e exportação de ajustes portáteis."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Планируйте импорт и экспорт переносимых настроек."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规划可移植设置的导入和导出。"
           }
         }
       }

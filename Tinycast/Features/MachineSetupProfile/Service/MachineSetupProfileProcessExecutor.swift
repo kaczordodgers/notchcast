@@ -67,11 +67,11 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
                     report.append(Step(id: id, status: .planned))
                 } else {
                     guard !isRoot() else { throw Failure.rootExecution }
-                    dockRestore = current.status == 1 ? ["delete", "com.apple.dock", "autohide"]
-                        : ["write", "com.apple.dock", "autohide", "-bool", "false"]
                     let result = try process("/usr/bin/defaults",
                                              ["write", "com.apple.dock", "autohide", "-bool", "true"])
                     guard result.status == 0 else { throw Failure.stepFailed }
+                    dockRestore = current.status == 1 ? ["delete", "com.apple.dock", "autohide"]
+                        : ["write", "com.apple.dock", "autohide", "-bool", "false"]
                     let restarted = try process("/usr/bin/killall", ["Dock"])
                     guard restarted.status == 0 else { throw Failure.stepFailed }
                     let verified = try process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
