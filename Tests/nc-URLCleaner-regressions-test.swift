@@ -65,7 +65,7 @@ import AppKit
             let items = (0..<count).map { _ in
                 let item = NSPasteboardItem()
                 item.setString(raw, forType: .string)
-                for type in types { item.setData(Data(), forType: type) }
+                for type in types { item.setString(raw, forType: type) }
                 return item
             }
             assert(board.writeObjects(items))
@@ -79,7 +79,7 @@ import AppKit
         put([], count: 2)
         assert(adapter.isProtected && !adapter.write("replacement"))
         put([.URL, .init("public.url-name")])
-        assert(!adapter.isProtected)
+        assert(!adapter.isProtected, "types=\(board.types ?? []), items=\(board.pasteboardItems?.count ?? -1)")
         module.clipboardDidChange(adapter)
         let historyText = board.string(forType: .string)
         assert(historyText == "https://example.com/?keep=1")
