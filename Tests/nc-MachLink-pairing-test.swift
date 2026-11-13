@@ -8,7 +8,7 @@ import Observation
 
 @MainActor protocol NotchcastModule {}
 
-enum NotchcastIdentity {
+struct NotchcastIdentity {
     static let current = Self()
     func suiteName(suffix: String) -> String { "test" + suffix }
 }
