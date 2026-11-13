@@ -44,6 +44,7 @@ struct AgentMCPIndexBackend: AgentMCPBackend {
         case .badRequest: throw AgentMCPFailure(code: -32602, message: "Invalid action or arguments")
         case .notRunning: throw AgentMCPFailure(code: -32000, message: "Agent actions stopped")
         case .failed: throw AgentMCPFailure(code: -32603, message: "Action failed")
+        case .timedOutUnknown: throw AgentMCPFailure(code: -32002, message: "Action outcome unknown")
         }
     }
 }
