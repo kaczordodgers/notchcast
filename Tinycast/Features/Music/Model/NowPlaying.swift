@@ -52,25 +52,14 @@ enum RepeatMode: String, Equatable, Sendable {
     case one
 }
 
-struct MusicQueueItem: Equatable, Sendable {
-    var title: String?
-    var artist: String?
-    var uri: String?
-}
-
 /// Where what is playing comes from. `watch` is event-driven: the source calls back after a change,
 /// and nothing here polls. A source that cannot be read throws and the model retries with a growing
 /// wait.
 @MainActor
 protocol NowPlayingSource: AnyObject {
-    var queue: [MusicQueueItem]? { get }
     func watch(_ onChange: @escaping @MainActor () -> Void)
     func unwatch()
     /// The current track, nil while nothing plays.
     func read() async throws -> NowPlaying?
     func send(_ command: PlayerCommand)
-}
-
-extension NowPlayingSource {
-    var queue: [MusicQueueItem]? { nil }
 }

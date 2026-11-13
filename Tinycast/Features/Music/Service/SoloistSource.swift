@@ -10,7 +10,6 @@ final class SoloistSource: NowPlayingSource {
     private(set) var failure: Failure?
     private(set) var isConnected = false
     var isReady: Bool { isConnected && authState?.loggedIn == true }
-    private(set) var queue: [MusicQueueItem]?
     private var state: NowPlaying?
     private var onChange: (@MainActor () -> Void)?
     private var port: Int?
@@ -54,7 +53,6 @@ final class SoloistSource: NowPlayingSource {
         isConnected = false
         authState = nil
         state = nil
-        queue = nil
         coverURL = nil
         failure = nil
         onChange?()
@@ -67,7 +65,6 @@ final class SoloistSource: NowPlayingSource {
                 do {
                     try await socket.send(.string(SoloistProtocol.getAuthState))
                     try await socket.send(.string(SoloistProtocol.getState))
-                    try await socket.send(.string(SoloistProtocol.getQueue))
                     while !Task.isCancelled {
                         let message = try await socket.receive()
                         guard let owner = self, owner.socket === socket, !Task.isCancelled else { return }
@@ -87,7 +84,6 @@ final class SoloistSource: NowPlayingSource {
                     self?.refresh = SoloistRefreshState()
                     self?.authState = nil
                     self?.state = nil
-                    self?.queue = nil
                     self?.failure = .connection
                     self?.onChange?()
                 }
@@ -114,16 +110,13 @@ final class SoloistSource: NowPlayingSource {
             case .auth(let auth):
                 let paired = auth.loggedIn && authState?.loggedIn == false
                 authState = auth
-                if !auth.loggedIn { queue = nil }
-                if paired { requestRefresh(queue: true) }
+                if paired { requestRefresh() }
             case .failure(let message): failure = .command(message)
-            case .changed(let queue): requestRefresh(queue: queue)
+            case .changed: requestRefresh()
             case .options(let shuffle, let repeatMode):
                 if let shuffle { state?.shuffle = shuffle }
                 if let repeatMode { state?.repeatMode = repeatMode }
-                requestRefresh(queue: true)
-            case .queue(let items):
-                queue = items
+                requestRefresh()
             case .state(let track, let cover):
                 state = track
                 state?.artwork = cover.flatMap { covers[$0] }
@@ -134,8 +127,8 @@ final class SoloistSource: NowPlayingSource {
         onChange?()
     }
 
-    private func requestRefresh(queue: Bool) {
-        refresh.event(queue: queue, now: ProcessInfo.processInfo.systemUptime).forEach(enqueue)
+    private func requestRefresh() {
+        refresh.event(now: ProcessInfo.processInfo.systemUptime).forEach(enqueue)
         scheduleRefresh()
     }
 
