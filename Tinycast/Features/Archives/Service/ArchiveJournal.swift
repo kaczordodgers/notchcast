@@ -5,6 +5,7 @@ nonisolated struct ArchiveJournal {
     let recovery: ArchiveJob.Recovery
     let mode: ArchiveJob.Mode
     let outputPath: String
+    let archivePath: String
 
     static func read(_ archive: URL) throws -> ArchiveJournal? {
         let archive = ArchiveFiles.resolvedParent(archive)
@@ -21,9 +22,8 @@ nonisolated struct ArchiveJournal {
               let saved = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let path = saved["output"] as? String, let total = saved["total_size"] as? Int64, total >= 0,
               let parts = saved["parts"] as? [[Any]],
-              parts.contains(where: {
-                  guard let path = $0.first as? String else { return false }
-                  return ArchiveFiles.samePath(URL(fileURLWithPath: path), archive)
+              let archivePath = parts.compactMap({ $0.first as? String }).first(where: {
+                  ArchiveFiles.samePath(URL(fileURLWithPath: $0), archive)
               }) else {
             throw ArchiveFailure.existingProgress
         }
@@ -41,13 +41,13 @@ nonisolated struct ArchiveJournal {
         let mode: ArchiveJob.Mode = saved["keep"] as? Bool == true ? .keepArchive : .inPlace
         let warning = try ArchiveFiles.quarantine(ArchiveFiles.exists(archive) ? archive : staging)
         return ArchiveJournal(recovery: ArchiveJob.Recovery(staging: staging, totalBytes: total, quarantine: warning),
-                              mode: mode, outputPath: path)
+                              mode: mode, outputPath: path, archivePath: archivePath)
     }
 
     static func validateStaging(_ staging: URL, archive: URL) throws {
         let staging = ArchiveFiles.resolvedParent(staging)
         let archive = ArchiveFiles.resolvedParent(archive)
-        let prefix = ".notchcast-extract-"
+        let prefix = ArchiveFiles.stagingPrefix
         guard ArchiveFiles.samePath(staging.deletingLastPathComponent(), archive.deletingLastPathComponent()),
               staging.lastPathComponent.hasPrefix(prefix),
               UUID(uuidString: String(staging.lastPathComponent.dropFirst(prefix.count))) != nil else {

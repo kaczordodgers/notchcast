@@ -60,10 +60,17 @@ struct ShelfReceivedSection: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(String(data: entry.item.data, encoding: .utf8) ?? "", forType: .string)
         case .open:
-            Task { await update {
-                try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
-                                                 openWithBundleID: nil, inNewWindow: false)
-            } }
+            Task {
+                guard !busy else { return }
+                busy = true
+                defer { busy = false }
+                do {
+                    try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
+                                                     openWithBundleID: nil, inNewWindow: false)
+                } catch {
+                    core.showMessage(error.localizedDescription, tone: .danger)
+                }
+            }
         case .save:
             Task { await update {
                 _ = try await store.save(entry, to: .downloadsDirectory)

@@ -9,7 +9,6 @@ extension NotchcastCore {
     static let cleaning = CleaningModeModule(engine: CleaningModeEngine(hub: eventTapHub), granted: { Permissions.isAccessibilityTrusted() })
     static let appUpdates = AppUpdatesModule.live()
     static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: MacUpdateLock.path(for: $0)) }))
-    static let clean = CleanModule()
     static let macLink = AIUsageLinkModule()
     static let tasksSync = TodoLinkCoordinator.live(channel: macLink.channel, preferences: .shared)
     static let github = GitHubModule()
@@ -66,7 +65,6 @@ extension NotchcastCore {
             .init(requires: [.cleaningMode], module: cleaning),
             .init(requires: [.appUpdates], module: appUpdates),
             .init(requires: [.macUpdate], module: macUpdate),
-            .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.githubSearch], module: github),
             .init(requires: [.launcherAnswers], module: answers),

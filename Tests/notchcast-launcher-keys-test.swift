@@ -6,7 +6,7 @@ import Foundation
 @main
 struct LauncherKeysTest {
     static func main() {
-        for query in ["", "a", " "] {
+        for query in ["", "a", " ", "  \n"] {
             for enabled in [false, true] {
                 for hasLeadCard in [false, true] {
                     for count in [0, 3, 9, 12] {
@@ -14,7 +14,7 @@ struct LauncherKeysTest {
                         for index in 0..<count {
                             let slot = LauncherNumberKeys.badgeSlot(
                                 entryIndex: index, query: query, enabled: enabled)
-                            if enabled && !query.isEmpty && index < 9 {
+                            if enabled && query == "a" && index < 9 {
                                 precondition(slot == Character(String(index + 1)))
                                 let launched = LauncherNumberKeys.rowIndex(
                                     digit: Int(String(slot!))!, query: query, entryRows: entryRows,
@@ -29,6 +29,25 @@ struct LauncherKeysTest {
             }
         }
         precondition(LauncherNumberKeys.badgeSlot(entryIndex: -1, query: "a", enabled: true) == nil)
+        for query in ["", " ", "  \n"] {
+            for enabled in [false, true] {
+                for digit in 1...10 {
+                    precondition(LauncherNumberKeys.badgeSlot(
+                        entryIndex: digit - 1, query: query, enabled: enabled) == nil)
+                    precondition(LauncherNumberKeys.entryIndex(
+                        digit: digit, query: query, entryCount: 12, enabled: enabled) == nil)
+                    for favoriteCount in [0, 3, 10] {
+                        for hasLeadCard in [false, true] {
+                            let row = LauncherNumberKeys.rowIndex(
+                                digit: digit, query: query, entryRows: [2, 5, 9],
+                                favoriteCount: favoriteCount, hasLeadCard: hasLeadCard, enabled: enabled)
+                            let expected = digit <= favoriteCount ? digit - 1 + (hasLeadCard ? 1 : 0) : nil
+                            precondition(row == expected)
+                        }
+                    }
+                }
+            }
+        }
         for digit in 1...9 {
             precondition(LauncherNumberKeys.entryIndex(digit: digit, query: "a", entryCount: 12, enabled: true) == digit - 1)
             precondition(LauncherNumberKeys.entryIndex(digit: digit, query: "", entryCount: 12, enabled: true) == nil)

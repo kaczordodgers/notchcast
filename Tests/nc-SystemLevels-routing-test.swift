@@ -157,12 +157,15 @@ struct SystemLevelRoutingTests {
         hub.send(.mute)
         await eventually { keys.latest?.muted == true }
         check(hardware.state.withLock { $0.muted }, "Mute key reaches audio hardware")
+        levels.announce(LevelNotice(kind: .volume, level: 0.25))
+        check(keys.latest?.percent == 25 && center.current?.progress == 0.25 && center.activities.count == 1,
+              "A Set Volume command notice reaches the island presenter")
         hub.send(.brightnessUp, fine: true)
         await eventually { keys.latest?.kind == .brightness }
         check(keys.latest?.percent == 52, "Brightness state publishes the applied fine step")
         let step = brightness.controller.steps.first!
         check(step.0 && step.1 && step.2.rawValue == 2, "Brightness targets the display under the event pointer")
-        check(keys.revision == 4, "Every applied press publishes a revision for island presentation")
+        check(keys.revision == 5, "Every applied press publishes a revision for island presentation")
         hub.send(.brightnessDown, location: .init(x: 500, y: 500))
         try? await Task.sleep(for: .milliseconds(50))
         check(replays.count == 1 && replays.last?.key == .brightnessDown,
@@ -176,14 +179,14 @@ struct SystemLevelRoutingTests {
         hub.send(.brightnessDown)
         await eventually { brightness.controller.steps.count == 3 }
         for _ in 0..<20 { await Task.yield() }
-        check(keys.revision == 4, "A disconnected or reused display cannot publish stale brightness")
+        check(keys.revision == 5, "A disconnected or reused display cannot publish stale brightness")
         check(replays.count == 2, "A step already applied is never replayed to the native key")
         BrightnessDisplayService.available = true
         brightness.controller.cancelStep = true
         hub.send(.brightnessUp)
         await eventually { brightness.controller.steps.count == 4 }
         for _ in 0..<20 { await Task.yield() }
-        check(keys.revision == 4, "Superseded brightness operations neither publish nor replay native keys")
+        check(keys.revision == 5, "Superseded brightness operations neither publish nor replay native keys")
         check(replays.count == 2, "Superseded brightness step stays cancelled")
         hub.send(.brightnessDown, location: .init(x: 500, y: 500))
         preferences.set(.displayBrightness, false)
@@ -212,6 +215,8 @@ struct SystemLevelRoutingTests {
         brightness.controller.cancelStep = false
         hub.send(.brightnessUp)
         await eventually { keys.latest?.kind == .brightness }
+        levels.announce(LevelNotice(kind: .volume, level: 0.75))
+        check(keys.latest?.kind == .brightness, "Volume off in the island ignores command notices")
         center.hasPresenter = false
         for _ in 0..<20 { await Task.yield() }
         check(hub.synchronousHandlers.count == 1, "Removing the presenter keeps brightness registered")

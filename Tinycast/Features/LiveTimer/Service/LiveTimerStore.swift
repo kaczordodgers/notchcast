@@ -62,6 +62,7 @@ final class LiveTimerStore {
                 timers = try JSONDecoder().decode([LiveTimerEntry].self, from: data)
             } catch {
                 defaults.set(data, forKey: Self.entriesKey + ".corrupt.\(UUID().uuidString)")
+                defaults.removeObject(forKey: Self.entriesKey)
                 Self.logger.error("Failed to load timers: \(error)")
             }
         }
