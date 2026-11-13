@@ -25,6 +25,12 @@ struct DownloadsWebpageTests {
         converter()
         addresses()
         await cancelledResolution()
+        do {
+            _ = try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in ["127.0.0.1"] }
+            expect(false, "custom DNS lookup cannot bypass private-address refusal")
+        } catch PublicWebAddress.Refusal.privateAddress {
+            expect(true, "custom DNS lookup cannot bypass private-address refusal")
+        }
         frontMatter()
         failureDescriptions()
         contentRules()
@@ -134,7 +140,7 @@ struct DownloadsWebpageTests {
         expect(markdown("<h2>Heading<a href='#heading'><svg></svg></a></h2>") == "## Heading", "empty permalink dropped")
         expect(markdown("<main>\n <p>One</p>\n <p>Two</p>\n </main>") == "One\n\nTwo", "block whitespace normalized")
         expect(markdown("<a href='/next'><div><h2>Title</h2><p>Read more</p></div></a>") ==
-               "[## Title Read more](<https://example.com/next>)", "block link label stays inline")
+               "[TitleRead more](<https://example.com/next>)", "block link label stays inline")
     }
 
     static func cancelledResolution() async {

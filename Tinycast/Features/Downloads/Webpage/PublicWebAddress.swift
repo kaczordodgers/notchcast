@@ -67,7 +67,7 @@ nonisolated enum PublicWebAddress {
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
         try validate(URL(string: "http://\(name.contains(":") ? "[\(name)]" : name):\(port)/") ?? URL(filePath: "/"))
         let resolution = Resolution()
-        return try await withTaskCancellationHandler {
+        let addresses = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 guard resolution.install(continuation) else { return }
                 DispatchQueue.global(qos: .utility).async {
@@ -77,6 +77,9 @@ nonisolated enum PublicWebAddress {
         } onCancel: {
             resolution.finish(.failure(CancellationError()))
         }
+        guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
+        guard addresses.allSatisfy(isPublicIP) else { throw Refusal.privateAddress }
+        return addresses
     }
 
     nonisolated private static func lookup(_ name: String, _ port: UInt16) throws -> [String] {
@@ -96,7 +99,6 @@ nonisolated enum PublicWebAddress {
             }
             guard let address = String(bytes: buffer.prefix(while: { $0 != 0 }).map({ UInt8(bitPattern: $0) }),
                                        encoding: .utf8) else { throw Refusal.resolutionFailed }
-            guard isPublicIP(address) else { throw Refusal.privateAddress }
             if !addresses.contains(address) { addresses.append(address) }
             current = entry.pointee.ai_next
         }
