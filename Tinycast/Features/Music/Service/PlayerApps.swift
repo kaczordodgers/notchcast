@@ -78,15 +78,23 @@ struct PlayerApps {
         return status == -600 || status == -609
     }
 
-    @concurrent
     private static func sendPlay(bundleID: String, bundleURL: URL) async throws {
         try Task.checkCancellation()
+        try await withCheckedThrowingContinuation { (done: CheckedContinuation<Void, any Error>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                done.resume(with: Result { try sendPlayBlocking(bundleID: bundleID, bundleURL: bundleURL) })
+            }
+        }
+        // A sent Apple event cannot be recalled; a cancelled resume only stops acting on its reply.
+        try Task.checkCancellation()
+    }
+
+    private nonisolated static func sendPlayBlocking(bundleID: String, bundleURL: URL) throws {
         let code = try playCode(bundleURL: bundleURL)
         let target = NSAppleEventDescriptor(bundleIdentifier: bundleID)
         let event = NSAppleEventDescriptor(
             eventClass: code.eventClass, eventID: code.eventID, targetDescriptor: target,
             returnID: AEReturnID(kAutoGenerateReturnID), transactionID: AETransactionID(kAnyTransactionID))
-        try Task.checkCancellation()
         let reply = try event.sendEvent(options: [.waitForReply, .neverInteract, .dontRecord], timeout: 2)
         let status = reply.paramDescriptor(forKeyword: keyErrorNumber)?.int32Value ?? 0
         if status != 0 { throw Failure.automation(Int(status)) }

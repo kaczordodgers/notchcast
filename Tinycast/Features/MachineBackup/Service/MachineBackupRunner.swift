@@ -3,6 +3,7 @@ import Foundation
 
 struct MachineBackupRunner: MachineBackupTooling {
     private static let outputLimit = 16 * 1024 * 1024
+    var timeout: Duration = .seconds(300)
 
     @concurrent
     func run(_ request: MachineBackupRequest) async throws -> Data {
@@ -15,10 +16,10 @@ struct MachineBackupRunner: MachineBackupTooling {
             executable: request.executable, arguments: request.arguments,
             environment: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", "LANG": "en_US.UTF-8"]
                 .merging(request.environment) { _, value in value },
-            timeout: .seconds(300), outputLimit: Self.outputLimit, stopLadder: .terminating(SIGINT))
+            timeout: timeout, outputLimit: Self.outputLimit, stopLadder: .terminating(SIGINT))
         let output: ProcessRunner.Output
         do { output = try await ProcessRunner.run(run) } catch ProcessRunner.Failure.timedOut {
-            throw CancellationError()
+            throw MachineBackupFailure.timedOut
         } catch ProcessRunner.Failure.outputLimit {
             throw MachineBackupFailure.outputLimit
         }

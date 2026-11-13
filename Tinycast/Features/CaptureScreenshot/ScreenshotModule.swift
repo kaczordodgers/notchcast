@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import Observation
 
 @MainActor
@@ -32,6 +32,7 @@ final class ScreenshotModule: NotchcastModule {
     private var captureTask: Task<URL?, Error>?
     var commandTask: Task<Void, Never>?
     @ObservationIgnored var openInEditor: (URL?, Bool) throws -> Void = { _, _ in }
+    @ObservationIgnored var didCapture: (NSImage) -> Void = { _ in }
     nonisolated static let destinationKey = "notchcast.screenshot.destination"
     nonisolated static let folderKey = "notchcast.screenshot.folder"
 

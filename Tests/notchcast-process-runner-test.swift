@@ -1,6 +1,9 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/ExecutableLocator.swift
 
+import AppKit
 import Darwin
 import Foundation
 import Synchronization
@@ -32,6 +35,8 @@ struct ProcessRunnerTest {
     }
 
     @MainActor static func main() async throws {
+        let signaled = try await ProcessRunner.run(request("/bin/sh", ["-c", "kill -TERM $$"]))
+        check(signaled.signaled && signaled.status == SIGTERM && signaled.exitCode == 128 + SIGTERM)
         let release = Mutex(false)
         var backpressure = request("/usr/bin/perl", ["-e", #"$|=1; print "x" x 2000000;"#])
         backpressure.onData = { _ in
@@ -45,6 +50,7 @@ struct ProcessRunnerTest {
         let bytes = Mutex(Data())
         let consuming = Mutex(false)
         var binary = request("/usr/bin/perl", ["-e", #"print pack("C*", 0..255) x 4096"#])
+        binary.groupCleanup = .drainThenKill
         binary.onData = { chunk in
             check(!consuming.withLock { let old = $0; $0 = true; return old })
             try await Task.sleep(for: .milliseconds(1))
@@ -54,6 +60,18 @@ struct ProcessRunnerTest {
         let binaryOutput = try await ProcessRunner.run(binary)
         check(binaryOutput.stdout.isEmpty)
         check(bytes.withLock { $0 } == Data((0..<(256 * 4096)).map { UInt8($0 % 256) }))
+        let backgroundBytes = Mutex(Data())
+        var background = request("/bin/sh", ["-c", "sleep 5 & echo $!"])
+        background.stopsGroup = true
+        background.groupCleanup = .keepAfterExit
+        background.onData = { chunk in backgroundBytes.withLock { $0.append(chunk) } }
+        let backgroundStarted = ContinuousClock.now
+        _ = try await ProcessRunner.run(background)
+        let backgroundPID = Int32(String(bytes: backgroundBytes.withLock { $0 }, encoding: .utf8)!
+            .trimmingCharacters(in: .whitespacesAndNewlines))!
+        let backgroundAlive = kill(backgroundPID, 0) == 0
+        kill(backgroundPID, SIGKILL)
+        check(backgroundAlive && backgroundStarted.duration(to: .now) < .seconds(2))
         final class ConsumerError: Error {}
         let consumerError = ConsumerError()
         let callbacks = Mutex(0)
@@ -97,6 +115,20 @@ struct ProcessRunnerTest {
         let echo = try await ProcessRunner.run(request("/bin/echo", ["hello"]))
         check(echo.status == 0 && echo.stdout == Data("hello\n".utf8) && echo.stderr.isEmpty)
         check((try await ProcessRunner.run(request("/usr/bin/true"))).status == 0)
+
+        var quit = request("/bin/sleep", ["30"])
+        let kept = try ProcessRunner.start(quit)
+        quit.killsOnQuit = true
+        quit.timeout = .seconds(1)
+        let stopped = try ProcessRunner.start(quit)
+        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+        let quitError = await failure { try await stopped.output() }
+        let keptRunning = kept.isRunning
+        kept.cancel()
+        _ = await failure { try await kept.output() }
+        check(quitError is CancellationError)
+        check(keptRunning)
+        print("PASS: shared quit supervision is opt-in and reaps the child")
 
         var failing = request("/bin/sh", ["-c", "echo out; echo err >&2; exit 3"])
         failing.stderr = .capture(limit: .max)

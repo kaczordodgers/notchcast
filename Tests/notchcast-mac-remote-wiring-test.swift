@@ -110,3 +110,4 @@ struct MacRemoteWiringTest {
         precondition(results == ["sent", "updated"])
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

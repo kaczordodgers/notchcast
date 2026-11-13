@@ -3,7 +3,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         fallbacks, clipboard, snippets, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         dictation, ai, quickActions, extensions, permissions, backup, about
     case notchcast
-    case notchcastLauncher, notchcastMusicAndSound, notchcastDayAndTasks, notchcastMonitorAndFans, notchcastBattery, notchcastWindowsAndDisplay, notchcastDownloads, notchcastFilesAndClipboard, notchcastCapture, notchcastDictation, notchcastAIAndAgents, notchcastTwoMacs, notchcastBackups, notchcastCleanAndUpdates, notchcastTweaks, notchcastPrivacyAndStartup
+    case notchcastLauncher, notchcastMusicAndSound, notchcastDayAndTasks, notchcastMonitorAndFans, notchcastBattery, notchcastWindowsAndDisplay, notchcastDownloads, notchcastFilesAndClipboard, notchcastCapture, notchcastDictation, notchcastAIAndAgents, notchcastTwoMacs, notchcastBackups, notchcastUpdates, notchcastTweaks, notchcastPrivacyAndStartup
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 

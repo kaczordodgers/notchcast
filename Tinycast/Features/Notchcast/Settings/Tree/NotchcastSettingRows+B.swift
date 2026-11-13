@@ -19,11 +19,11 @@ struct NotchcastSettingRowsB: View {
             NotchcastAwakeDurationSettingRow()
         case .batteryAccessoryReadings:
             NotchcastAccessoryReadingsSettingRow()
-        case .cleanAndUpdatesAppUpdates:
+        case .updatesAppUpdates:
             NotchcastAppUpdatesSettingRow()
-        case .cleanAndUpdatesMacUpdate:
+        case .updatesMacUpdate:
             NotchcastMacUpdateSettingRow()
-        case .cleanAndUpdatesCleaningMode:
+        case .updatesCleaningMode:
             NotchcastCleaningModeSettingRow()
         case .tweaksTyping:
             NotchcastKeyRepeatSpeedSettingRow()
@@ -39,20 +39,6 @@ struct NotchcastSettingRowsB: View {
         case .privacyAndStartupIPhoneBackup:
             NotchcastAutomaticBackupsSettingRow()
             NotchcastIPhoneBackupFolderSettingRow()
-        case .cleanAndUpdatesJunk:
-            NotchcastCleanActionsSettingRow(feature: .cleanJunk)
-        case .cleanAndUpdatesHistory:
-            NotchcastCleanActionsSettingRow(feature: .cleanHistory)
-        case .cleanAndUpdatesAIData:
-            NotchcastCleanActionsSettingRow(feature: .cleanAIData)
-        case .cleanAndUpdatesDisk:
-            NotchcastCleanActionsSettingRow(feature: .cleanDisk)
-        case .cleanAndUpdatesPurge:
-            NotchcastCleanActionsSettingRow(feature: .cleanPurge)
-        case .cleanAndUpdatesOptimize:
-            NotchcastCleanActionsSettingRow(feature: .cleanOptimize)
-        case .cleanAndUpdatesSystem:
-            NotchcastCleanActionsSettingRow(feature: .cleanSystem)
         default:
             EmptyView()
         }
