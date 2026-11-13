@@ -385,6 +385,51 @@ class Gates(unittest.TestCase):
         self.assertNotIn('GATE-THRESHOLD', result.stdout)
         self.assertNotIn('Counter |', result.stdout)
 
+    def test_new_threshold_breach_fails(self):
+        write(self.root, 'Tinycast/Features/Todo/Near.swift', '\n' * 360)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('threshold breach new or grown: file-lines:Tinycast/Features/Todo/Near.swift 360 > 349 (main: none)',
+                      result.stdout.splitlines())
+
+    def test_grown_known_breach_fails(self):
+        write(self.root, LARGE, LARGE_SOURCE + 'let grown = 1\n')
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(f'threshold breach new or grown: file-lines:{LARGE} {LARGE_LINES + 1} > 349 (main: {LARGE_LINES})',
+                      result.stdout.splitlines())
+
+    def test_shrunk_known_breach_passes(self):
+        write(self.root, LARGE, LARGE_SOURCE.removesuffix(f'let fixtureValue{LARGE_LINES - 1} = {LARGE_LINES - 1}\n'))
+        baseline = self.baseline()
+        baseline['file-size'][LARGE] -= 1
+        baseline['dead'][f'{LARGE}:fixtureValue{LARGE_LINES - 1}'] -= 1
+        self.save_baseline(baseline)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(f'GATE-THRESHOLD file-lines:{LARGE} {LARGE_LINES - 1} 349 known', result.stdout.splitlines())
+
+    def test_missing_origin_main_warns_without_blocking(self):
+        git(self.root, 'update-ref', '-d', 'refs/remotes/origin/main')
+        write(self.root, 'Tinycast/Features/Todo/Near.swift', '\n' * 360)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('WARN: origin/main counters unavailable', result.stdout)
+
+    def test_report_skips_tasks_when_disabled(self):
+        baseline = self.baseline()
+        baseline['alerts']['file-lines'] = 20
+        self.save_baseline(baseline)
+        home = Path(self.work.name) / 'home'
+        write(home, '.config/notchcast/private.env', 'notchcast_task() { printf "%s\\n" "$1" >> "$HOME/calls"; }\n')
+        cache = home / 'Library/Caches/notchcast/drift-alerts.json'
+        env = dict(os.environ, HOME=str(home), NOTCHCAST_NO_TASKS='1')
+        result = self.run_check('1,2,3', '--report', env=env)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('tasks disabled (NOTCHCAST_NO_TASKS)', result.stdout)
+        self.assertFalse((home / 'calls').exists())
+        self.assertFalse(cache.exists())
+
     def test_report_without_hook(self):
         home = Path(self.work.name) / 'home'
         env = dict(os.environ, HOME=str(home))
