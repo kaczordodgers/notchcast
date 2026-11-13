@@ -16,7 +16,7 @@ enum MachLinkMessage {
 @MainActor final class MachLinkChannel {
     var response = true
     var failure = false
-    func request(_ value: Bool, method: String, timeout: Duration, as: Bool.Type) async throws -> Bool {
+    func request(_ value: Bool, method: String, timeout: Duration, as type: Bool.Type) async throws -> Bool {
         precondition(value && method == "linkHealth" && timeout == .seconds(2))
         if failure { throw MachLinkMessage.Failure.disconnected }
         return response
