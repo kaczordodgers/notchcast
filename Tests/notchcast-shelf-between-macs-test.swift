@@ -40,6 +40,18 @@ struct ShelfTest {
         }
         let entries = try FileManager.default.contentsOfDirectory(atPath: directory.path)
         precondition(entries.count == 64, "Stored \(entries.count) items")
+        let oldest = ShelfItem(kind: .text, name: "item", data: Data("receive 0".utf8))
+        let newest = ShelfItem(kind: .text, name: "item", data: Data("receive 64".utf8))
+        precondition(!entries.contains(oldest.fingerprint + ".json") && entries.contains(newest.fingerprint + ".json"))
+        async let first = module.receive(ShelfItem(kind: .text, name: "first", data: Data("first".utf8)))
+        async let second = module.receive(ShelfItem(kind: .text, name: "second", data: Data("second".utf8)))
+        let pair = try await [first, second]
+        precondition(pair.allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
+        let committed = Task { @MainActor in try await module.receive(text) }
+        await Task.yield()
+        committed.cancel()
+        let committedURL = try await committed.value
+        precondition(FileManager.default.fileExists(atPath: committedURL.path))
         let received = try await module.receive(text)
         let duplicate = try await module.receive(text)
         precondition(received == duplicate)
