@@ -60,6 +60,11 @@ struct AgentSessionTests {
         expect(snapshot.issues.count == 1 && snapshot.issues[0].url == file,
                "Unreadable database reports its source")
         expect(!snapshot.issues[0].reason.isEmpty, "Database issue includes a reason")
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: file.path)
+        defer { precondition(chmod(file.path, 0o600) == 0) }
+        let inaccessible = try index.refresh(roots: [.init(provider: .opencode, url: file)])
+        expect(inaccessible.sessions.isEmpty && inaccessible.issues.count == 1
+               && inaccessible.issues[0].url == file, "Permission-denied database reports its source")
     }
 
     @MainActor
