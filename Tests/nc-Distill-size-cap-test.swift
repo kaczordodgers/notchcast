@@ -8,9 +8,10 @@ import Foundation
 @main
 struct DistillSizeCapTest {
     static func main() throws {
-        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: root) }
+        let base = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: base) }
+        let root = base.standardizedFileURL.resolvingSymlinksInPath()
         let source = root.appendingPathComponent("large.txt")
         precondition(FileManager.default.createFile(atPath: source.path, contents: nil))
         let file = try FileHandle(forWritingTo: source)
