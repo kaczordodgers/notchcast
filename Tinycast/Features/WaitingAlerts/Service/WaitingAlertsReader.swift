@@ -36,7 +36,7 @@ struct WaitingAlertsReader: WaitingAlertsReading {
             switch sqlite3_step(statement) {
             case SQLITE_ROW:
                 guard let id = sqlite3_column_text(statement, 0),
-                      let title = sqlite3_column_text(statement, 1) else { throw WaitingAlertsFailure.unavailable }
+                      let title = sqlite3_column_text(statement, 1) else { continue }
                 waiting.append(WaitingAlert(id: String(cString: id), title: String(cString: title),
                                             kind: sqlite3_column_int(statement, 2) > 0 ? .approval : .question))
             case SQLITE_DONE: return waiting

@@ -177,13 +177,15 @@ enum DialogTone { case neutral }
                 ('approval', 'Approval', NULL, NULL), ('question', 'Question', NULL, NULL),
                 ('both', 'Both', NULL, NULL), ('resolved', 'Resolved', NULL, NULL),
                 ('archived', 'Archived', 'date', NULL), ('deleted', 'Deleted', NULL, 'date'),
-                ('future', 'Future', NULL, NULL);
+                ('future', 'Future', NULL, NULL), ('untitled', NULL, NULL, NULL),
+                (NULL, 'No identity', NULL, NULL);
             INSERT INTO orchestration_v2_projection_runtime_requests VALUES
                 ('approval', 'command', NULL), ('approval', 'command', NULL),
                 ('question', 'user_input', NULL), ('both', 'user_input', NULL), ('both', 'command', NULL),
                 ('resolved', 'command', 'date'), ('resolved', 'user_input', 'date'),
                 ('archived', 'command', NULL), ('deleted', 'user_input', NULL),
-                ('orphan', 'command', NULL), ('future', 'future_kind', NULL);
+                ('orphan', 'command', NULL), ('future', 'future_kind', NULL),
+                ('untitled', 'command', NULL), (NULL, 'command', NULL);
             """
         precondition(sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK)
         sqlite3_close(database)
