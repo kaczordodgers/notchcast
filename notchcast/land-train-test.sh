@@ -146,7 +146,6 @@ grep -q "^1 Landed on main as $(origin rev-parse main~1) .* onto $base\.$" "$FIX
 [ ! -e "$FIXTURE/hold" ] || fail 'the train left its hold behind'
 echo 'PASS: a 2-PR train lands one squash per PR after one harness pass over the union of their selections'
 
-
 fixture
 open_pr 1 pr-one 'Add one' src/shared.txt
 open_pr 2 pr-two 'Add two' src/shared.txt
@@ -258,7 +257,8 @@ for signal in TERM HUP; do
     : > "$FIXTURE/slow"
     bash notchcast/land.sh 1 > "$FIXTURE/output" 2>&1 &
     lander=$!
-    for _ in $(seq 100); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+    for _ in $(seq 600); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+    [ -s "$FIXTURE/started" ] || fail "the $signal lander never reached its harnesses"
     [ -s "$FIXTURE/hold" ] || fail "no hold while the harnesses ran"
     kill -"$signal" "$lander"
     status=0
@@ -271,7 +271,8 @@ open_pr 1 pr-b 'Add B' src/b.txt
 : > "$FIXTURE/slow"
 bash notchcast/land.sh 1 > "$FIXTURE/output" 2>&1 &
 lander=$!
-for _ in $(seq 100); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+for _ in $(seq 600); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+[ -s "$FIXTURE/started" ] || fail 'the lander never reached its harnesses'
 kill -KILL "$lander" "$(cat "$FIXTURE/started")"  # the harness too, or it writes into the next fixture
 wait "$lander" || true
 [ -s "$FIXTURE/hold" ] || fail 'a SIGKILL ran the EXIT trap'

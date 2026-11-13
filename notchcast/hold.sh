@@ -22,7 +22,7 @@ hold_read() {
 
 hold_time() { date -r "$1" '+%H:%M %Z'; }
 
-# Splits a hold into owner, until, auto and lander (set by land.sh itself, "<host>:<pid>"); fails on anything else.
+# Splits a hold into owner, until, auto and lander ("<host>:<pid>"); fails on anything else.
 hold_parse() {
     auto= lander=
     [[ "$1" =~ ^([A-Za-z0-9._-]+)\ ([1-9][0-9]*)(\ auto(\ ([A-Za-z0-9-]+:[0-9]+))?)?$ ]] \
@@ -31,10 +31,13 @@ hold_parse() {
 
 hold_lander() { echo "$(hostname -s | tr -c 'A-Za-z0-9\n' -):$$"; }
 
-# An auto hold whose lander ran on this Mac and is gone: a SIGKILL skips the EXIT trap that releases it.
-hold_orphaned() { [ -n "$lander" ] && [ "${lander%:*}" = "$(hold_lander | cut -d: -f1)" ] && ! ps -p "${lander##*:}" > /dev/null; }
+# A SIGKILL skips the EXIT trap; only a certain "No such process" frees it, never a denied check.
+hold_orphaned() {
+    [ -n "$lander" ] && [ "${lander%:*}" = "$(hold_lander | cut -d: -f1)" ] \
+        && [[ $(kill -0 "${lander##*:}" 2>&1) == *'No such process'* ]]
+}
 
-# Sets the caller's owner, until and auto from the live hold; fails when there is none or it has expired.
+# Sets owner, until, auto and lander from the live hold; fails when none, expired or orphaned.
 hold_live() {
     local hold
     hold=$(hold_read) || refuse 'cannot read the landing hold (gh variable get LANDING_HOLD); try again'
@@ -136,7 +139,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             [[ "$2" =~ ^[A-Za-z0-9._-]+$ && "$3" =~ ^[0-9]+$ ]] || usage
             if [ -z "$handover" ]; then
                 hold=$(hold_read) || refuse 'cannot read the landing hold (gh variable get LANDING_HOLD); try again'
-                if hold_parse "$hold" && [ "$until" -gt "$(date +%s)" ] && [ "$owner" != "$2" ]; then
+                if hold_parse "$hold" && [ "$until" -gt "$(date +%s)" ] && ! hold_orphaned && [ "$owner" != "$2" ]; then
                     refuse "landing is held for $owner until $(hold_time "$until"); it expires by itself, or take it over: notchcast/hold.sh set --handover $2 $3"
                 fi
             fi
