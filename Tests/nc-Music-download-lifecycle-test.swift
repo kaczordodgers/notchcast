@@ -3,7 +3,29 @@
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
 // notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/Music/Settings/SpotifySettingsCoordinator.swift
+// notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
 import Foundation
+
+@MainActor
+final class AppCore {
+    enum Tone { case danger }
+    var messages: [String] = []
+    func showMessage(_ text: String, tone: Tone? = nil) { messages.append(text) }
+    func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { false }
+    func reportFailure(title: String, message: String, symbol: String, recovery: String?) async {}
+}
+
+@MainActor
+final class SpotifyConnectModule {
+    let speaker: SoloistSpeaker
+    let key: SoloistKey
+    var isEnabled = true
+    init(speaker: SoloistSpeaker, key: SoloistKey) {
+        self.speaker = speaker
+        self.key = key
+    }
+}
 
 @MainActor
 private final class Builds: SoloistBuildSource {
@@ -65,7 +87,11 @@ struct DownloadLifecycleTest {
         try Data("127.0.0.1".utf8).write(to: files.addressFile)
         callbacks.removeFirst()()
         precondition(speaker.port == 51234)
-        speaker.installBuild()
+        let core = AppCore()
+        let module = SpotifyConnectModule(speaker: speaker, key: key)
+        let coordinator = SpotifySettingsCoordinator(module: module, core: core)
+        coordinator.installBuild()
+        let feedback = coordinator.download
         let installation = speaker.installing
         while builds.installation == nil { await Task.yield() }
         speaker.recheckAfterWake()
@@ -75,8 +101,10 @@ struct DownloadLifecycleTest {
         speaker.setEnabled(false)
         builds.installation?.resume(returning: builds.build)
         let installed = await installation?.value
+        await feedback?.value
         precondition(installed == false && speaker.build == builds.build,
                      "Cancelled download must not report success just because an old build exists")
+        precondition(core.messages.isEmpty, "Cancelled download must not show a success HUD")
         print("PASS: wake preserves the download; cancelled installation reports no success")
     }
 }

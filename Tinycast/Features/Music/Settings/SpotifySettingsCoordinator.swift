@@ -9,7 +9,7 @@ final class SpotifySettingsCoordinator {
     private(set) var hasKey = false
     @ObservationIgnored private weak var core: AppCore?
     @ObservationIgnored private var action: Task<Void, Never>?
-    @ObservationIgnored private var download: Task<Void, Never>?
+    @ObservationIgnored private(set) var download: Task<Void, Never>?
     @ObservationIgnored private var panel: NSOpenPanel?
 
     init(module: SpotifyConnectModule, core: AppCore) {
