@@ -45,10 +45,11 @@ enum WebRules {
         withObservationTracking { _ = channel.peer } onChange: { endpointChanged = true }
         channel.endpoint = .hostPort(host: "localhost", port: 12345)
         precondition(endpointChanged, "Peer status did not observe endpoint changes")
-        nonisolated(unsafe) var peersChanged = false
-        withObservationTracking { _ = channel.manager.peers } onChange: { peersChanged = true }
+        nonisolated(unsafe) var managerChanged = false
+        withObservationTracking { _ = channel.manager.listener } onChange: { managerChanged = true }
+        try channel.manager.start(pairing: .create(), name: "observation-test-" + UUID().uuidString)
         channel.manager.stop()
-        precondition(peersChanged, "Peer discovery state is not observable")
+        precondition(managerChanged, "Discovery manager state is not observable")
         print("PASS pairing rejection, round trip, unpair and peer observation")
     }
 }
