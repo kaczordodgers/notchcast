@@ -46,7 +46,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             let flags = plan.mode == .inPlace ? ["-y", "-q", "--keep-free", "2GB"] : ["--keep-archive", "-q"]
             let initial = update
             let extraction = try await ArchiveProcess.run(
-                tool: tool, arguments: ["extract"] + flags + ["-o", plan.outputPath, archive.path]
+                tool: tool, arguments: ["extract"] + flags + ["-o", plan.outputPath, plan.archivePath]
             ) {
                 await Self.reportBytes(initial, progress: progress)
             }
@@ -71,6 +71,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         let mode: ArchiveJob.Mode
         let fallback: ArchiveJob.Fallback?
         let outputPath: String
+        let archivePath: String
     }
 
     private func plan(
@@ -88,7 +89,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             if let previous, previous.staging.path == recovery.staging.path { recovery = previous }
             return Plan(recovery: recovery, mode: journal.mode,
                         fallback: journal.mode == .keepArchive ? .resumingKeepArchive : nil,
-                        outputPath: journal.outputPath)
+                        outputPath: journal.outputPath, archivePath: journal.archivePath)
         }
         let attributes = try ArchiveFiles.fresh(archive)
         let listingResult = try await ArchiveProcess.run(tool: tool, arguments: ["list", archive.path], captureListing: true)
@@ -120,7 +121,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         try Task.checkCancellation()
         let (staging, warning) = try ArchiveFiles.stage(beside: archive)
         return Plan(recovery: ArchiveJob.Recovery(staging: staging, totalBytes: total, quarantine: warning),
-                    mode: effective, fallback: fallback, outputPath: staging.path)
+                    mode: effective, fallback: fallback, outputPath: staging.path, archivePath: archive.path)
     }
 
     private func finishInPlace(_ recovery: ArchiveJob.Recovery, archive: URL) async throws -> URL {

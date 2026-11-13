@@ -499,7 +499,9 @@ struct ArchivesEngineTest {
     }
 
     @MainActor static func realResume(_ root: URL, runner: ArchiveExtractionRunner, tool: URL) async throws {
-        let archive = root.appending(path: "real-resume.zip")
+        let alias = root.appending(path: "resume-parent")
+        try FileManager.default.createSymbolicLink(atPath: alias.path, withDestinationPath: root.path)
+        let archive = alias.appending(path: "real-resume.zip")
         let staging = root.appending(path: "\(ArchiveFiles.stagingPrefix)\(UUID().uuidString)")
         let script = #"""
         import pathlib, signal, subprocess, sys, time, zipfile
@@ -509,29 +511,28 @@ struct ArchivesEngineTest {
             for index in range(2000): file.writestr(f'resumed/{index:04}.bin', b'x' * 32768)
         pathlib.Path(output).mkdir(mode=0o700)
         child = subprocess.Popen([tool, 'extract', '-y', '-q', '--keep-free', '2GB', '-o', output, source],
-                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         journal = pathlib.Path(source + '.hatchzip')
         while child.poll() is None:
             if journal.exists():
                 child.send_signal(signal.SIGKILL)
                 break
             time.sleep(.001)
-        status = child.wait()
-        assert status == -9 and journal.exists(), 'real extraction was not killed'
+        stderr = child.communicate()[1]
+        status = child.returncode
+        assert status == -9 and journal.exists(), f'hatchzip status={status}, journal={journal.exists()}, stderr={stderr!r}'
         """#
-        let pause = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/usr/bin/python3"),
-                                               arguments: ["-c", script, tool.path, archive.path, staging.path])
-        try ArchiveProcess.validate(pause.status)
+        var request = ProcessRunner.Request(executable: URL(fileURLWithPath: "/usr/bin/python3"),
+                                            arguments: ["-c", script, tool.path, archive.path, staging.path])
+        request.stderr = .capture(limit: 65536)
+        let pause = try await ProcessRunner.run(request)
+        expect(pause.status == 0, "real resume setup: \(String(decoding: pause.stderr, as: UTF8.self))")
         let parsed = try ArchiveJournal.read(archive)
         expect(parsed?.mode == .inPlace, "real journal parsed")
+        expect(parsed?.archivePath == archive.path, "real journal preserves archive spelling")
         expect(parsed?.recovery.staging == ArchiveFiles.resolvedParent(staging), "real journal destination")
         let output = try await runner.extract(archive, mode: .inPlace)
-        if output.lastPathComponent != "resumed" {
-            let manager = FileManager.default
-            let published = (try? manager.contentsOfDirectory(atPath: output.path).filter { $0 != "resumed" }) ?? []
-            let rootItems = (try? manager.contentsOfDirectory(atPath: root.path)) ?? []
-            fatalError("real resume published \(output.lastPathComponent); extra: \(published); root: \(rootItems)")
-        }
+        expect(output.lastPathComponent == "resumed", "real resume publishes the extracted folder")
         let file = output.appending(path: "0000.bin")
         expect(try Data(contentsOf: file) == Data(repeating: 120, count: 32768), "real resumed bytes")
         expect(try FileManager.default.contentsOfDirectory(atPath: output.path).count == 2000, "all resumed entries")
