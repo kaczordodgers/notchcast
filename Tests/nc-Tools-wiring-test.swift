@@ -107,10 +107,10 @@ struct ToolsWiringTests {
         mac.start()
         mac.run { true }
         while mac.running { await Task.yield() }
-        precondition(runner.calls == 4 && mac.progress.count == 4)
+        precondition(runner.calls == 5 && mac.progress.count == 4)
         runner.blocks = true
         mac.run { true }
-        while runner.calls == 4 { await Task.yield() }
+        while runner.calls == 5 { await Task.yield() }
         await mac.stopForTermination()
         precondition(runner.reaped)
         print("PASS defaults off; denied Start; stop unregisters; fake results; stale results dropped; confirmation")
