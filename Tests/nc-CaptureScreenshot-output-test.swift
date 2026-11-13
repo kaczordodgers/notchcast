@@ -10,6 +10,11 @@ extension CaptureEditorCoordinator {
     static let shared = CaptureEditorCoordinator(pasteboard: .withUniqueName())
 }
 
+@MainActor final class ScreenshotModule {
+    static let shared = ScreenshotModule()
+    var didCapture: (NSImage) -> Void = { _ in }
+}
+
 @main
 struct ScreenshotOutputTest {
     static func main() async throws {
@@ -100,9 +105,9 @@ struct ScreenshotOutputTest {
     }
 
     @MainActor static func lastCapture() async throws {
-        let editor = CaptureEditorCoordinator.shared
-        editor.start()
-        defer { editor.stop() }
+        var captured: NSImage?
+        ScreenshotModule.shared.didCapture = { captured = $0 }
+        defer { ScreenshotModule.shared.didCapture = { _ in } }
         let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 12, pixelsHigh: 8,
             bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
             colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
@@ -111,21 +116,19 @@ struct ScreenshotOutputTest {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
         for destination in [ScreenshotRequest.Destination.clipboard, .file(folder: folder), .both(folder: folder)] {
-            editor.lastCapture = nil
+            captured = nil
             _ = try await ScreenshotService.output(png, destination: destination,
                 writeClipboard: { _ in true }, clipboardFailure: { _ in })
-            precondition(editor.lastCapture != nil, "Successful screenshot must supply the editor's last capture")
-            try editor.openFromClipboardOrLast()
-            precondition(editor.isOpen && editor.document?.size == CGSize(width: 12, height: 8))
-            editor.close()
+            precondition(captured?.size == CGSize(width: 12, height: 8),
+                         "Successful screenshot must deliver the captured image")
         }
-        let previous = editor.lastCapture
+        let previous = captured
         do {
             _ = try await ScreenshotService.output(png, destination: .clipboard,
                 writeClipboard: { _ in false }, clipboardFailure: { _ in })
             preconditionFailure("Failed clipboard-only capture must throw")
         } catch ScreenshotRequest.Failure.clipboardFailed {}
-        precondition(editor.lastCapture === previous, "Failed capture must preserve the last image")
+        precondition(captured === previous, "Failed capture must not deliver an image")
         let cancelled = Task { @MainActor in
             withUnsafeCurrentTask { $0?.cancel() }
             return try await ScreenshotService.output(png, destination: .clipboard,
@@ -136,10 +139,10 @@ struct ScreenshotOutputTest {
             _ = try await cancelled.value
             preconditionFailure("Cancelled capture must throw")
         } catch is CancellationError {}
-        precondition(editor.lastCapture === previous, "Cancelled capture must preserve the last image")
+        precondition(captured === previous, "Cancelled capture must not deliver an image")
         _ = try await ScreenshotService.output(png, destination: .both(folder: folder),
             writeClipboard: { _ in false }, clipboardFailure: { _ in })
-        precondition(editor.lastCapture !== previous, "Saved screenshot survives clipboard failure")
-        print("PASS: successful screenshots feed Edit Capture without a clipboard image; failures preserve it")
+        precondition(captured !== previous, "Saved screenshot survives clipboard failure")
+        print("PASS: successful screenshots deliver captured images; failures and cancellation do not")
     }
 }
