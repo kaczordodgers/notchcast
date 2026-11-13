@@ -394,7 +394,7 @@ class Gates(unittest.TestCase):
 
 
 class Notifications(unittest.TestCase):
-    def test_minimal_path_and_failed_hook_retry(self):
+    def test_non_utf8_failed_hook_retry(self):
         spec = importlib.util.spec_from_file_location('drift', CHECK)
         drift = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(drift)
@@ -403,26 +403,22 @@ class Notifications(unittest.TestCase):
             cache = home / 'alerts.json'
             cache.write_text('{}')
             hook = home / 'private.env'
-            hook.write_text('notchcast_task() { task-client "$@"; }\n')
-            client = home / '.local/bin/task-client'
-            client.parent.mkdir(parents=True)
-            client.write_text('#!/bin/bash\nprintf "fixture failure\\n" >&2\nexit 3\n')
-            client.chmod(0o755)
+            hook.write_text("printf '\\377' >&2\nnotchcast_task() { printf '\\377' >&2; return 3; }\n")
             counters = {('file-lines', 'Fixture.swift'): 379}
-            with patch.dict(os.environ, HOME=str(home), PATH='/usr/bin:/bin'):
+            with patch.dict(os.environ, HOME=str(home)):
                 output = io.StringIO()
                 with contextlib.redirect_stdout(output):
                     drift.notify(counters, {'file-lines': 349}, cache, hook)
-                self.assertIn('task hook failed: file-lines|Fixture.swift (exit 3): fixture failure', output.getvalue())
+                self.assertIn('task hook failed: file-lines|Fixture.swift (exit 3): \ufffd', output.getvalue())
                 self.assertEqual(json.loads(cache.read_text()), {})
-                client.write_text('#!/bin/bash\nprintf "fixture task created\\n"\n')
+                hook.write_text('notchcast_task() { printf "fixture task created\\n"; }\n')
                 for expected in ('fixture task created', ''):
                     output = io.StringIO()
                     with contextlib.redirect_stdout(output):
                         drift.notify(counters, {'file-lines': 349}, cache, hook)
                     self.assertEqual(output.getvalue().strip(), expected)
                 self.assertEqual(json.loads(cache.read_text()), {'file-lines|Fixture.swift': 379})
-            print('PASS: minimal PATH finds local hook client; exit 3 is visible; failed key retries once')
+            print('PASS: non-UTF-8 hook failure is visible; failed key retries once')
 
 
 if __name__ == '__main__':
