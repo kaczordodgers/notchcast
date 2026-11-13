@@ -40,7 +40,7 @@ import Foundation
         var request = ProcessRunner.Request(executable: executable,
             arguments: Self.arguments(port: port, secret: secret, stateDirectory: stateDirectory,
                                       extraArguments: extraArguments),
-            environment: ExecutableLocator.environment(running: executable),
+            environment: ProcessInfo.processInfo.environment,
             directory: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
         request.outputTail = 0
         request.stopLadder = .interrupting(kill: .seconds(2))

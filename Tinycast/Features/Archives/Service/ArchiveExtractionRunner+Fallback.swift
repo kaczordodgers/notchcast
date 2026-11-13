@@ -108,7 +108,8 @@ extension ArchiveExtractionRunner {
         output: URL? = nil, maximum: Int64? = nil,
         progress: @escaping @Sendable () async -> Void = {}
     ) async throws -> ArchiveProcess.Result {
-        let environment = ExecutableLocator.environment(running: tool, adding: ["LC_ALL": "en_US.UTF-8"])
+        var environment = ProcessInfo.processInfo.environment
+        environment["LC_ALL"] = "en_US.UTF-8"
         let result = try await ArchiveProcess.run(tool: tool, arguments: arguments, captureOutput: capture,
                                                 outputFile: output, maximumOutputBytes: maximum,
                                                 environment: environment, progress: progress)

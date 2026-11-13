@@ -73,4 +73,3 @@ nonisolated final class ProcessOutputStream: Sendable {
         while let first = data.first, first & 0xC0 == 0x80 { data.removeFirst() }
     }
 }
-

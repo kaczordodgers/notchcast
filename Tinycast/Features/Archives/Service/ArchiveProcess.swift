@@ -12,7 +12,7 @@ nonisolated enum ArchiveProcess {
     @concurrent static func run(
         tool: URL, arguments: [String], captureListing: Bool = false, captureOutput: Bool = false,
         outputFile: URL? = nil, maximumOutputBytes: Int64? = nil,
-        environment: [String: String]? = nil,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
         progress: @escaping @Sendable () async -> Void = {}
     ) async throws -> Result {
         try Task.checkCancellation()
@@ -26,7 +26,7 @@ nonisolated enum ArchiveProcess {
         defer { try? destination?.close() }
         let result = Mutex(Result(listing: captureListing ? ArchiveListing() : nil))
         var request = ProcessRunner.Request(executable: tool, arguments: arguments,
-            environment: environment ?? ExecutableLocator.environment(running: tool))
+            environment: environment)
         request.stopsGroup = true
         request.groupCleanup = .drainThenKill
         request.stopLadder = .interrupting(kill: .seconds(3))

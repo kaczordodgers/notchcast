@@ -13,11 +13,11 @@ final class ChildProcess: Sendable {
 
     init(
         executable: URL, arguments: [String],
-        environment: [String: String]? = nil,
+        environment: [String: String],
         workingDirectory: URL? = nil
     ) {
         request = ProcessRunner.Request(executable: executable, arguments: arguments,
-            environment: environment ?? DownloadToolLookup().environment(running: executable),
+            environment: environment,
             directory: workingDirectory, stderr: .capture(limit: 65_536),
             stopLadder: .terminating(grace: .milliseconds(250)), stopsGroup: true,
             outputTail: 65_536, groupCleanup: .killBeforeDrain, killsOnQuit: true)

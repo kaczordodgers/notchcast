@@ -6,7 +6,7 @@ extension DownloadToolLookup: DownloadToolHost {
         onLine: @escaping @Sendable (String) -> Void
     ) async throws -> DownloadProcessResult {
         try await ChildProcess(
-            executable: executable, arguments: arguments, environment: environment(running: executable),
+            executable: executable, arguments: arguments, environment: environment,
             workingDirectory: workingDirectory).run(onLine: onLine)
     }
 }

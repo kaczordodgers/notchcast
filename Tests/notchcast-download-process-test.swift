@@ -28,7 +28,7 @@ import Synchronization
         for quit in [false, true] {
             let pidFile = root.appending(path: "pid")
             let child = ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c",
-                #"trap '' TERM; sleep 30 & echo $! > "$1"; echo ready; wait"#, "test", pidFile.path])
+                #"trap '' TERM; sleep 30 & echo $! > "$1"; echo ready; wait"#, "test", pidFile.path], environment: [:])
             let ready = Mutex(false)
             let task = Task { try await child.run { _ in ready.withLock { $0 = true } } }
             try await waitFor { ready.withLock { $0 } }
@@ -43,7 +43,7 @@ import Synchronization
         }
         let pidFile = root.appending(path: "orphan")
         let orphaning = ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c",
-            #"sh -c 'trap "" TERM; sleep 30 & echo $! > "$1"; wait' test "$1" & while [ ! -s "$1" ]; do sleep .01; done; exit 0"#, "test", pidFile.path])
+            #"sh -c 'trap "" TERM; sleep 30 & echo $! > "$1"; wait' test "$1" & while [ ! -s "$1" ]; do sleep .01; done; exit 0"#, "test", pidFile.path], environment: [:])
         let exited = try await orphaning.run()
         precondition(exited.status == 0)
         let orphan = Int32(try String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
@@ -53,7 +53,7 @@ import Synchronization
             + "print F $$; close F; sleep 30; exit; } "
             + "while (!-s $ARGV[0]) { select undef,undef,undef,.01; }"
         let escaped = ChildProcess(executable: URL(filePath: "/usr/bin/perl"), arguments: ["-e",
-            detaching, escapedFile.path])
+            detaching, escapedFile.path], environment: [:])
         let started = ContinuousClock.now
         _ = try await escaped.run()
         let escapedPID = Int32(try String(contentsOf: escapedFile, encoding: .utf8))!
@@ -62,7 +62,7 @@ import Synchronization
         precondition(kill(escapedPID, 0) == 0)
         kill(escapedPID, SIGKILL)
         try await waitFor { kill(escapedPID, 0) == -1 && errno == ESRCH }
-        let signaled = try await ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c", "kill -TERM $$"]).run()
+        let signaled = try await ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c", "kill -TERM $$"], environment: [:]).run()
         precondition(signaled.status == 128 + SIGTERM)
         let progress = Mutex<MediaOutput.Progress?>(nil)
         let result = try await ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c",
@@ -73,7 +73,7 @@ import Synchronization
         precondition(result.status == 7 && result.output.contains("exact:/") && result.output.contains(root.lastPathComponent))
         precondition(progress.withLock { $0?.fraction } == 0.5)
         precondition(result.errors.contains("oops"))
-        let cancelled = ChildProcess(executable: URL(filePath: "/bin/echo"), arguments: ["never"])
+        let cancelled = ChildProcess(executable: URL(filePath: "/bin/echo"), arguments: ["never"], environment: [:])
         cancelled.cancel()
         do { _ = try await cancelled.run(); preconditionFailure("pre-cancel") } catch is CancellationError {}
         print("PASS: cancellation, app quit, descendant cleanup after leader exit, progress, environment, cwd, exit, pre-cancel")

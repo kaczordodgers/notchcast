@@ -14,7 +14,7 @@ struct DownloadToolLookup: Sendable {
     }
 
     let directories: [URL]
-    private let inheritedEnvironment: [String: String]
+    let environment: [String: String]
 
     init(
         directories: [URL]? = nil,
@@ -24,21 +24,7 @@ struct DownloadToolLookup: Sendable {
         let folders = directories
             ?? ExecutableLocator.searchDirectories(home: home, path: parent["PATH"] ?? "/usr/bin:/bin")
         self.directories = folders
-        var environment = [
-            "PATH": folders.map(\.path).joined(separator: ":"),
-            "HOME": home.path
-        ]
-        for key in ["TMPDIR", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
-                    "http_proxy", "https_proxy", "all_proxy", "no_proxy",
-                    "SSL_CERT_FILE", "SSL_CERT_DIR", "USER", "LOGNAME"] {
-            environment[key] = parent[key]
-        }
-        inheritedEnvironment = environment
-    }
-
-    func environment(running executable: URL) -> [String: String] {
-        ExecutableLocator.environment(running: executable,
-            adding: ["LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8"], inherited: inheritedEnvironment)
+        environment = ExecutableLocator.toolEnvironment(directories: folders, home: home, inherited: parent)
     }
 
     func find(_ tool: DownloadTool) -> URL? { ExecutableLocator.find(tool.name, in: directories) }
@@ -50,7 +36,7 @@ struct DownloadToolLookup: Sendable {
         let version = try await withThrowingTaskGroup(of: String?.self) { group in
             group.addTask {
                 let result = try await ChildProcess(
-                    executable: path, arguments: tool.versionArguments, environment: environment(running: path)).run()
+                    executable: path, arguments: tool.versionArguments, environment: environment).run()
                 let output = result.output.isEmpty ? result.errors : result.output
                 return output.trimmingCharacters(in: .whitespacesAndNewlines)
             }

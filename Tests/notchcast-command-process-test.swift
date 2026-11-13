@@ -4,10 +4,6 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Jobs/DownloadTool.swift
 // notchcast-kit: platform
 import AppKit
 import Darwin
@@ -39,7 +35,7 @@ import Foundation
             executable: "/usr/bin/env", arguments: ["sh", "-c", "echo $PATH; echo LANG=$LANG; echo LC_ALL=$LC_ALL"],
             workingDirectory: nil))
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
-            .hasPrefix("/usr/bin:/opt/homebrew/bin:/usr/local/bin:") == true, "Commands use the shared executable environment")
+            .hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true, "env finds Homebrew tools before /usr/bin")
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
             .hasSuffix("\nLANG=en_US.UTF-8\nLC_ALL=en_US.UTF-8\n") == true, "Commands preserve the UTF-8 locale")
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
