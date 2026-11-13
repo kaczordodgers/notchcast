@@ -5,6 +5,10 @@
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
+enum ASCIIKeyboardLayout {
+    @MainActor static var commandCharacters = [46: "m", 43: ","]
+    @MainActor static func character(for code: Int, modifiers: UInt32) -> String? { commandCharacters[code] }
+}
 
 @main @MainActor
 struct HideCommandMTests {
@@ -38,6 +42,13 @@ struct HideCommandMTests {
         module.stop()
         module.stop()
         precondition(hub.consumerCount == 0 && hub.handler == nil)
+        ASCIIKeyboardLayout.commandCharacters = [41: "m", 46: ","]
+        precondition(HideCommandMModule.layoutKeyCode() == 41, "AZERTY's M key is the layout's ⌘M")
+        module.start()
+        precondition(send(code: 46) == .pass, "AZERTY ⌘, reaches Settings instead of hiding")
+        precondition((send(code: 41) == .swallow) == hides, "AZERTY ⌘M hides")
+        precondition(send(false, code: 41) == (hides ? .swallow : .pass))
+        module.stop()
         for pid: Int32 in [0, 1, 2] {
             for finder in [false, true] {
                 for windows in [false, true] {

@@ -13,10 +13,10 @@ final class MiddleClickModule: NotchcastModule {
     init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
 
     func start() {
-        refresh()
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in self?.refresh() }
         }
+        refresh()
         let center = NSWorkspace.shared.notificationCenter
         // Sleep invalidates the multitouch devices, and the device list is only read at start.
         wakeObserver = NotificationToken(center.addObserver(
@@ -48,6 +48,8 @@ final class MiddleClickModule: NotchcastModule {
     }
 
     private func refresh() {
+        // A refresh the timer queued before stop() must not re-arm the input.
+        guard permissionTimer != nil else { return }
         state.refreshDragPreference()
         guard AXIsProcessTrusted() else { stopInput(); return }
         guard !tap.isActive else { return }

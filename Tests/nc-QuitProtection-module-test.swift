@@ -19,10 +19,14 @@ enum ASCIIKeyboardLayout {
         let store = QuitProtectionStore(defaults: defaults)
         store.configuration.mode = .doublePress
         var targetReads = 0
-        let module = QuitProtectionModule(store: store, hub: hub) {
+        var frontmost = QuitProtectionEngine.Target(processIdentifier: 42, bundleIdentifier: "test.app", name: "Test")
+        var messages: [String] = []
+        var posts: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
+        let module = QuitProtectionModule(store: store, hub: hub, frontmostTarget: {
             targetReads += 1
-            return .init(processIdentifier: 42, bundleIdentifier: "test.app", name: "Test")
-        }
+            return frontmost
+        }, post: { pid, code in posts.append("\(pid):\(code)") })
         module.start()
         module.start()
         precondition(hub.consumerCount == 1)
@@ -43,9 +47,28 @@ enum ASCIIKeyboardLayout {
         }
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
         precondition(module.notice != nil)
+        precondition(messages == [module.notice!.text], "The first swallowed press shows its hint once: \(messages)")
         CFRunLoopAddCommonMode(CFRunLoopGetMain(), CFRunLoopMode(RunLoop.Mode.eventTracking.rawValue as CFString))
         RunLoop.main.run(mode: .eventTracking, before: Date(timeIntervalSinceNow: 0.8))
         precondition(module.notice == nil, "Deadline must fire in tracking mode")
+        func press(_ down: Bool) -> EventTapHub.Verdict? {
+            let key = CGEvent(keyboardEventSource: nil, virtualKey: 12, keyDown: down)!
+            key.flags = .maskCommand
+            key.setIntegerValueField(.keyboardEventAutorepeat, value: 0)
+            return hub.handler?(down ? .keyDown : .keyUp, key)
+        }
+        func doublePress() {
+            precondition(press(true) == .swallow && press(false) == .swallow && press(true) == .swallow)
+        }
+        doublePress()
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+        precondition(posts == ["42:12"], "A confirmed double press posts Cmd+Q to the target once: \(posts)")
+        _ = press(false)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.7))
+        doublePress()
+        frontmost = .init(processIdentifier: 43, bundleIdentifier: "other.app", name: "Other")
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+        precondition(posts == ["42:12"], "A confirm whose target lost focus posts nothing: \(posts)")
         module.stop()
         module.stop()
         precondition(hub.consumerCount == 0 && module.notice == nil)
@@ -53,4 +76,4 @@ enum ASCIIKeyboardLayout {
     }
 }
 
-enum DialogTone {}
+enum DialogTone { case neutral }

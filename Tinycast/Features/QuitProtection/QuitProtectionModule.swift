@@ -9,6 +9,7 @@ final class QuitProtectionModule: NotchcastModule {
     private let store: QuitProtectionStore
     private let tap: EventTapSubscription
     private let frontmostTarget: @MainActor () -> QuitProtectionEngine.Target?
+    private let post: @MainActor (_ pid: pid_t, _ keyCode: UInt16) -> Void
     private let state = SharedSession()
     private var timer: Timer?
     private var layoutSource: String?
@@ -41,10 +42,21 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     init(store: QuitProtectionStore, hub: EventTapHub,
-         frontmostTarget: @escaping @MainActor () -> QuitProtectionEngine.Target? = QuitProtectionModule.currentTarget) {
+         frontmostTarget: @escaping @MainActor () -> QuitProtectionEngine.Target? = QuitProtectionModule.currentTarget,
+         post: @escaping @MainActor (_ pid: pid_t, _ keyCode: UInt16) -> Void = QuitProtectionModule.postCommand) {
         self.store = store
         tap = EventTapSubscription(hub: hub)
         self.frontmostTarget = frontmostTarget
+        self.post = post
+    }
+
+    private static func postCommand(to pid: pid_t, keyCode: UInt16) {
+        for down in [true, false] {
+            guard let event = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: down) else { continue }
+            event.flags = .maskCommand
+            event.markSynthetic()
+            event.postToPid(pid)
+        }
     }
 
     func start() {
@@ -153,6 +165,7 @@ final class QuitProtectionModule: NotchcastModule {
             session.actions.removeAll()
             return (session.notice, actions, session.engine.deadline)
         }
+        if let shown = result.0, shown != notice { NotchcastHost.current.showMessage(shown.text, .neutral) }
         notice = result.0
         if let deadline = result.2 {
             let timer = Timer(timeInterval: max(0.001, deadline - ProcessInfo.processInfo.systemUptime),
@@ -164,12 +177,7 @@ final class QuitProtectionModule: NotchcastModule {
         }
         for (destination, code) in result.1 {
             guard destination == frontmostTarget() else { continue }
-            for down in [true, false] {
-                guard let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down) else { continue }
-                event.flags = .maskCommand
-                event.markSynthetic()
-                event.postToPid(destination.processIdentifier)
-            }
+            post(destination.processIdentifier, code)
         }
     }
 }
