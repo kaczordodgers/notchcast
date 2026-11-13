@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
 // notchcast-kit: platform input host
+// notchcast-sources: Tinycast/Platform/KeyboardInputSourceObserver.swift
 // notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Observation

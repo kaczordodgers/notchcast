@@ -28,13 +28,7 @@ final class HideCommandMModule: NotchcastModule {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }, center: center)
-        let inputCenter = DistributedNotificationCenter.default()
-        inputSourceChange = NotificationToken(inputCenter.addObserver(
-            forName: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
-            object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.relayout() }
-        }, center: inputCenter)
+        inputSourceChange = KeyboardInputSourceObserver.observe { [weak self] in self?.relayout() }
     }
 
     /// The key whose Command character is "m" in the current layout: on AZERTY 46 is ⌘, (Settings).
