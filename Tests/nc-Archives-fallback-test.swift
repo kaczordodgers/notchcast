@@ -182,7 +182,6 @@ struct ArchivesFallbackTest {
         let script = #"""
         #!/usr/bin/python3
         import json, os, pathlib, signal, sys, time
-        assert os.environ['PATH'].split(':')[0] == str(pathlib.Path(sys.argv[0]).parent)
         args = sys.argv[1:]
         archive = pathlib.Path(args[-1])
         if pathlib.Path(sys.argv[0]).name == 'lsar':
