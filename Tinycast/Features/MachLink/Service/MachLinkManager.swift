@@ -1,7 +1,9 @@
 import Foundation
 import Network
+import Observation
 
 @MainActor
+@Observable
 final class MachLinkManager {
     static let serviceType = "_notchcast-link._tcp"
     typealias Route = @MainActor (MachLinkMessage) async throws -> MachLinkMessage

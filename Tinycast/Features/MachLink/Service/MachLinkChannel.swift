@@ -1,7 +1,9 @@
 import Foundation
 import Network
+import Observation
 
 @MainActor
+@Observable
 final class MachLinkChannel {
     let manager = MachLinkManager()
     var pairing: MachLinkPairing?
