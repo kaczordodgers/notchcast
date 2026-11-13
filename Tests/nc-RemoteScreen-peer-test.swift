@@ -20,12 +20,14 @@ import Foundation
         coordinator.start()
         try await coordinator.show(.init(host: "unused.local"), preferredClientInstalled: false)
         precondition(opened.map(\.absoluteString) == ["vnc://real-peer.local"])
+        try await coordinator.show(.init(host: "unused.local"), preferredClientInstalled: false)
+        precondition(opened.count == 2 && coordinator.state == .opened)
         address = { .init(screenSharingEnabled: false) }
         do {
             try await coordinator.show(.init(host: "unused.local"), preferredClientInstalled: false)
             fatalError("Sharing off accepted")
         } catch RemoteScreenRequest.Failure.sharingDisabled {}
-        precondition(opened.count == 1)
+        precondition(opened.count == 2)
         enabled = false
         address = { fatalError("Disabled peer queried sharing") }
         do {
