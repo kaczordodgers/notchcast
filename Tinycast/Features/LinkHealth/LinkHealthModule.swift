@@ -27,10 +27,11 @@ final class LinkHealthModule: NotchcastModule {
         guard !isRunning else { return }
         isRunning = true
         let current = generation
+        let pause = pause
         polling = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh(generation: current)
-                do { try await self?.pause() } catch { return }
+                do { try await pause() } catch { return }
             }
         }
     }
