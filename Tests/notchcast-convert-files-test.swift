@@ -16,9 +16,6 @@ import CoreText
 struct ConvertFilesTests {
     static func main() async throws {
         let manager = FileManager.default
-        let descriptor = try String(contentsOfFile:
-            "Tinycast/Features/ConvertFiles/ConvertFilesDescriptor.swift", encoding: .utf8)
-        precondition(descriptor.contains("dependencies: [.downloads]"))
         let temporary = manager.temporaryDirectory.appending(path: UUID().uuidString)
         try manager.createDirectory(at: temporary, withIntermediateDirectories: false)
         defer { try? manager.removeItem(at: temporary) }

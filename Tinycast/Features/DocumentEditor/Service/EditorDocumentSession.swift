@@ -217,6 +217,7 @@ final class EditorDocumentSession {
             Task { @MainActor [weak self] in
                 guard let self, self.isEnabled, self.watchID == identity else { return }
                 self.url = location.standardizedFileURL
+                self.rendersMarkdown = (try? EditorDocumentRepository.kind(of: self.url)) ?? false
                 self.requestRefresh()
             }
         }

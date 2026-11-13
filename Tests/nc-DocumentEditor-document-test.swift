@@ -100,6 +100,17 @@ struct EditorDocumentTests {
         try check(try Data(contentsOf: hardLink) == Data("short".utf8))
         try check(try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber == inode)
         let shortSnapshot = try await EditorDocumentRepository.load(url)
+        do {
+            _ = try await EditorDocumentRepository.save("partial replacement", to: url, expecting: shortSnapshot) { file, bytes in
+                try file.write(contentsOf: bytes.prefix(2))
+                throw CocoaError(.fileWriteOutOfSpace)
+            }
+            preconditionFailure("Injected partial write must fail")
+        } catch let error as CocoaError {
+            precondition(error.code == .fileWriteOutOfSpace)
+        }
+        try check(try Data(contentsOf: hardLink) == shortSnapshot.bytes)
+        try check(try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber == inode)
         var limits = rlimit()
         precondition(getrlimit(RLIMIT_FSIZE, &limits) == 0)
         let oldSignal = signal(SIGXFSZ, SIG_IGN)
@@ -108,11 +119,11 @@ struct EditorDocumentTests {
                 precondition(setrlimit(RLIMIT_FSIZE, &limits) == 0)
                 signal(SIGXFSZ, oldSignal)
             }
-            var restricted = rlimit(rlim_cur: 2, rlim_max: limits.rlim_max)
+            var restricted = rlimit(rlim_cur: 6, rlim_max: limits.rlim_max)
             precondition(setrlimit(RLIMIT_FSIZE, &restricted) == 0)
             do {
                 _ = try await EditorDocumentRepository.save("cannot fit", to: url, expecting: shortSnapshot)
-                preconditionFailure("A failed staged write must fail the save")
+                preconditionFailure("A failed in-place write must fail the save")
             } catch {}
         }
         try check(try Data(contentsOf: hardLink) == shortSnapshot.bytes)
@@ -214,7 +225,7 @@ struct EditorDocumentTests {
             }
             precondition(document.source == external && !document.isDirty)
         }
-        let renamed = directory.appendingPathComponent("renamed.txt")
+        let renamed = directory.appendingPathComponent("renamed.md")
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var moveError: NSError?
         coordinator.coordinate(writingItemAt: copy, options: .forMoving,
@@ -229,6 +240,7 @@ struct EditorDocumentTests {
             try await Task.sleep(for: .milliseconds(50))
         }
         precondition(document.url == renamed)
+        precondition(document.rendersMarkdown)
         try await document.refresh()
         precondition(document.failure == nil)
         document.brainDump = false
