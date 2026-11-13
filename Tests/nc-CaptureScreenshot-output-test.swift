@@ -1,14 +1,8 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/Date+CaptureFileName.swift
-// notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
-// notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
 // notchcast-kit: core
 import AppKit
-
-extension CaptureEditorCoordinator {
-    static let shared = CaptureEditorCoordinator(pasteboard: .withUniqueName())
-}
 
 @MainActor final class ScreenshotModule {
     static let shared = ScreenshotModule()

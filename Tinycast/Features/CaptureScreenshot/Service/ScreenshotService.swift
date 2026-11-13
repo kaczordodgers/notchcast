@@ -55,7 +55,7 @@ enum ScreenshotService {
             break
         }
         if let image = NSImage(data: data) {
-            CaptureEditorCoordinator.shared.lastCapture = image
+            ScreenshotModule.shared.didCapture(image)
         }
         return url
     }

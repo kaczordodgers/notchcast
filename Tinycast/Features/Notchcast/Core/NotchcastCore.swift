@@ -62,6 +62,7 @@ enum NotchcastCore {
             return (macLink.isRunning && macLink.isPaired, reachability)
         }
         ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
+        ScreenshotModule.shared.didCapture = { CaptureEditorCoordinator.shared.lastCapture = $0 }
         agents.devicesReady = { KatanaModule.shared.configure(index: $0); TreadmillCoordinator.shared.configure(index: $0) }
         FleetPanelModule.shared.transport = FleetMachLinkTransport(channel: macLink.channel)
         IslandController.shared.configurePages(core)
