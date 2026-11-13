@@ -38,7 +38,7 @@ final class SoloistSpeaker {
     @ObservationIgnored private var launchChecks: [SoloistCancellation] = []
     @ObservationIgnored private var events: SoloistCancellation?
     @ObservationIgnored private(set) var preparing: Task<Void, Never>?
-    @ObservationIgnored private(set) var installing: Task<Void, Never>?
+    @ObservationIgnored private(set) var installing: Task<Bool, Never>?
     @ObservationIgnored private(set) var checking: Task<Void, Never>?
 
     init(key: SoloistKey, files: SoloistFiles = SoloistFiles(), builds: any SoloistBuildSource,
@@ -91,7 +91,7 @@ final class SoloistSpeaker {
         installing = Task { [weak self] in
             do {
                 let build = try await builds.install()
-                guard !Task.isCancelled, let self, token == self.generation else { return }
+                guard !Task.isCancelled, let self, token == self.generation else { return false }
                 self.installing = nil
                 self.rejectedBuilds.remove(build.executable)
                 self.build = build
@@ -99,14 +99,16 @@ final class SoloistSpeaker {
                     self.stopChild()
                     self.begin()
                 } else { self.state = .off }
+                return true
             } catch {
-                guard !Task.isCancelled, let self, token == self.generation else { return }
+                guard !Task.isCancelled, let self, token == self.generation else { return false }
                 self.installing = nil
                 self.installFailure = (error as? SoloistFailure) ?? .download
                 if self.child != nil {
                     self.state = .starting
                     self.checkPort(until: self.schedule.now() + 10)
                 } else if self.enabled { self.begin() } else { self.state = .off }
+                return false
             }
         }
     }
@@ -117,11 +119,16 @@ final class SoloistSpeaker {
             let installed = try await builds.installed(excluding: rejectedBuilds)
             guard !Task.isCancelled, token == generation, installing == nil else { return }
             build = installed
-        } catch { installFailure = (error as? SoloistFailure) ?? .filesystem }
+        } catch is CancellationError {
+            return
+        } catch {
+            guard !Task.isCancelled, token == generation, installing == nil else { return }
+            installFailure = (error as? SoloistFailure) ?? .filesystem
+        }
     }
 
     func recheckAfterWake() {
-        guard enabled else { return }
+        guard enabled, installing == nil else { return }
         lookForOthers()
         guard let run = childRun, let port else {
             if child == nil, pending == nil, preparing == nil, installing == nil, !hasFailed { begin() }

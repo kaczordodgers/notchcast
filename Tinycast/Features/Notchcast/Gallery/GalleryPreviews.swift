@@ -59,4 +59,6 @@ private func settle(_ window: NSWindow, _ duration: Duration) {
 #Preview("settings-notchcast-music-and-sound-light") { galleryPreview("settings-notchcast-music-and-sound-light") }
 #Preview("settings-notchcast-privacy-and-startup-dark") { galleryPreview("settings-notchcast-privacy-and-startup-dark") }
 #Preview("settings-notchcast-privacy-and-startup-light") { galleryPreview("settings-notchcast-privacy-and-startup-light") }
+#Preview("island-closed-second-card-mba") { galleryPreview("island-closed-second-card-mba") }
+#Preview("island-closed-second-card-ext") { galleryPreview("island-closed-second-card-ext") }
 #endif
