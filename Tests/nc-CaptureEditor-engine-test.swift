@@ -34,6 +34,7 @@ struct CaptureEditorEngineTest {
         try await rendering()
         try await sessions()
         try await staleCopies()
+        try await staleCopyFeedback()
         try await keyboardCopies()
         let released = CaptureEditorCoordinator()
         released.start()
@@ -369,6 +370,40 @@ struct CaptureEditorEngineTest {
             } catch is CancellationError {}
             precondition(board.changeCount == count)
         }
+    }
+
+    @MainActor
+    static func staleCopyFeedback() async throws {
+        let board = NSPasteboard(name: .init("capture-editor-feedback-\(UUID())"))
+        defer { board.releaseGlobally() }
+        let source = image()
+        for mutation in 0..<3 {
+            let gate = RenderGate()
+            var failures = 0
+            let editor = CaptureEditorCoordinator(pasteboard: board, render: { _, _ in await gate.render() },
+                reportFailure: { _ in failures += 1 })
+            editor.start()
+            try editor.open(image: NSImage(cgImage: source.pixels, size: source.points))
+            editor.requestCopy()
+            for _ in 0..<1000 where gate.continuation == nil { await Task.yield() }
+            precondition(gate.continuation != nil)
+            switch mutation {
+            case 0: draw(editor.document!, .arrow)
+            case 1:
+                board.clearContents()
+                precondition(board.setString("Keep this", forType: .string))
+            default: editor.close()
+            }
+            let count = board.changeCount
+            gate.finish(Data([1, 2, 3]))
+            for _ in 0..<1000 { await Task.yield() }
+            precondition(board.changeCount == count)
+            precondition(failures == (mutation == 2 ? 0 : 1), "Stale copy must report failure")
+            precondition((editor.copyFailure != nil) == (mutation != 2))
+            precondition(editor.isOpen == (mutation != 2))
+            editor.stop()
+        }
+        print("PASS: stale copy reports failure without overwriting clipboard; close cancels silently")
     }
 
     @MainActor
