@@ -25,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
-- Archives is removed: Notchcast no longer unpacks or compresses archives, and Finder, the launcher and Convert Files no longer offer it. If Finder still opens ZIP or other archives with Notchcast, select one, choose File > Get Info, set Open with to Archive Utility and click Change All. [#662](https://github.com/kaczordodgers/notchcast/pull/662)
+- Archives is removed: Notchcast no longer unpacks or compresses archives, and Finder, the launcher and Convert Files no longer offer it. If Finder still opens an archive type with Notchcast, select such a file, choose File > Get Info, set Open with to Archive Utility (or, for RAR and split .001 files, another installed app that opens them) and click Change All; repeat for each type. [#662](https://github.com/kaczordodgers/notchcast/pull/662)
 
 ### Fixed
 
