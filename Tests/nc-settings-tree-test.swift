@@ -10,6 +10,9 @@ struct NotchcastSettingsTreeTests {
     static func main() throws {
         precondition(!NotchcastFeature.machineSetupProfile.isWired, "Settings and search exclude unwired features")
         let modules = NotchcastSettingsModule.allCases
+        let microphone = NotchcastSettingsModule.musicAndSound.groups.flatMap(\.items)
+            .first { $0.feature == .microphoneMute }
+        precondition(microphone?.settings.contains(.musicAndSoundInUseFailures) == true)
         precondition(modules.count == 17, "Expected 17 modules")
         var featureCounts: [NotchcastFeature: Int] = [:]
         var settingCounts: [NotchcastSetting: Int] = [:]

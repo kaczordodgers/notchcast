@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
 // notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/Notchcast/Settings/Rows/MacUpdateService+Settings.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 import Darwin
@@ -26,6 +27,13 @@ final class FakeRunner: MacUpdateProcessRunning {
 struct MacUpdateTests {
     @MainActor
     static func main() async throws {
+        precondition(MacUpdateService.State.running.reason == nil)
+        precondition(MacUpdateService.State.failed("disk full").reason == "disk full")
+        for reason in ["missing-homebrew", "missing-mas", "missing-or-unsupported-cli-install",
+                       "homebrew-lock-timeout", "timeout", "quarantine-cleanup-failed"] {
+            precondition(MacUpdateService.State.failed(reason).reason != reason)
+            precondition(MacUpdateService.State.skipped(reason).reason != reason)
+        }
         let privatePipe = Pipe()
         let privateDescriptor = privatePipe.fileHandleForWriting.fileDescriptor
         precondition(fcntl(privateDescriptor, F_SETFD, 0) == 0)

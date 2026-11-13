@@ -11,43 +11,6 @@ struct NotchcastAutomaticBackupsSettingRow: View {
     }
 }
 
-struct NotchcastAppleRestrictionSettingRow: View {
-    let restriction: AppleAppsPolicy.Restriction
-    let title: LocalizedStringResource
-
-    var body: some View {
-        EmptyView()
-    }
-}
-
-struct NotchcastGameCenterSettingRow: View {
-
-    var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .gameCenter, title: LocalizedStringResource("Restrict gaming", table: "Notchcast"))
-    }
-}
-
-struct NotchcastIPhoneMirroringSettingRow: View {
-
-    var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .iPhoneMirroring, title: LocalizedStringResource("Restrict iPhone mirroring", table: "Notchcast"))
-    }
-}
-
-struct NotchcastMusicServiceSettingRow: View {
-
-    var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .musicService, title: LocalizedStringResource("Restrict music service", table: "Notchcast"))
-    }
-}
-
-struct NotchcastBookstoreSettingRow: View {
-
-    var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .bookstore, title: LocalizedStringResource("Restrict book store", table: "Notchcast"))
-    }
-}
-
 struct NotchcastIPhoneBackupFolderSettingRow: View {
 
     var body: some View {

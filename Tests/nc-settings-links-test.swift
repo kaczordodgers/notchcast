@@ -17,6 +17,10 @@ struct NotchcastSettingsLinksTests {
             precondition(NotchcastSettingsModule(tab: module.tab) == module)
         }
         precondition(SettingsTab(slug: "notchcast") == NotchcastSettingsModule.island.tab)
+        for title in ["Show hidden files", "Battery temperature threshold"] {
+            let entry = SettingsSearchCatalog.notchcast.first { $0.keywords.contains(title) }!
+            guard case .row = entry.target else { fatalError("Search must reveal the row: \(title)") }
+        }
         precondition(SettingsSearchCatalog.results(for: "caps lock").first?.tab == .general)
         for entry in SettingsSearchCatalog.notchcast where entry.target == nil {
             precondition(!SettingsTab.allCases.contains {

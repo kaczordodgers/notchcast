@@ -78,6 +78,7 @@ struct NotchcastAppUpdatesSettingRow: View {
                 if let newer = result.isNewer {
                     Text(newer ? String(localized: "Update available", table: "Notchcast") : String(localized: "Up to date", table: "Notchcast"))
                     if let latest = result.latest { Text(latest) }
+                    if let link = result.link { Link(destination: link) { Text("Open", tableName: "Notchcast") } }
                 } else {
                     Text("Unknown", tableName: "Notchcast")
                 }
@@ -92,7 +93,10 @@ struct NotchcastMacUpdateSettingRow: View {
     var body: some View {
         ForEach(MacUpdateStep.allCases, id: \.self) { step in
             if let event = NotchcastCore.macUpdate.progress.first(where: { $0.step == step }) {
-                LabeledContent(step.title, value: event.state.title)
+                LabeledContent(step.title) {
+                    Text(event.state.title)
+                    if let reason = event.state.reason { Text(reason).textSelection(.enabled) }
+                }
             }
         }
 

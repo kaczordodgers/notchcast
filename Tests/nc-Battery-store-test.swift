@@ -15,6 +15,7 @@ import Foundation
 struct BatteryStoreTests {
     static func main() async {
         let entries = BatteryModule.register()
+        precondition(!BatteryModule.shared.nativeLimitAvailable, "Charge limit stays unavailable before helper verification")
         precondition(entries.count == 1 && entries[0].requires.isEmpty && entries[0].module === BatteryModule.shared)
         precondition(entries[0].requiresAny == [.batteryChargeLimit, .batterySailing, .batteryHeatProtection,
                                                 .batteryCalibration, .keepAwake, .lidClosedAwake])

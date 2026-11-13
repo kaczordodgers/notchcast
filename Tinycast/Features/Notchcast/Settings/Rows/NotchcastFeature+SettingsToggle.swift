@@ -36,6 +36,8 @@ extension NotchcastFeature {
 
     @MainActor var settingsAvailable: Bool {
         switch self {
+        case .batteryChargeLimit:
+            BatteryModule.shared.nativeLimitAvailable
         case _ where NotchcastFeature.batteryChargingControl.contains(self):
             NotchcastPreferences.shared.isOn(self) || !BatteryModule.shared.chargingUnsupported
         case .fanControl, .monitorAlerts, .accessoryBatteries:

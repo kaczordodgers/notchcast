@@ -51,4 +51,12 @@ private func settle(_ window: NSWindow, _ duration: Duration) {
 #Preview("launcher-root-light") { galleryPreview("launcher-root-light") }
 #Preview("island-usage-dark") { galleryPreview("island-usage-dark") }
 #Preview("island-usage-light") { galleryPreview("island-usage-light") }
+#Preview("settings-notchcast-clean-and-updates-dark") { galleryPreview("settings-notchcast-clean-and-updates-dark") }
+#Preview("settings-notchcast-clean-and-updates-light") { galleryPreview("settings-notchcast-clean-and-updates-light") }
+#Preview("settings-notchcast-battery-dark") { galleryPreview("settings-notchcast-battery-dark") }
+#Preview("settings-notchcast-battery-light") { galleryPreview("settings-notchcast-battery-light") }
+#Preview("settings-notchcast-music-and-sound-dark") { galleryPreview("settings-notchcast-music-and-sound-dark") }
+#Preview("settings-notchcast-music-and-sound-light") { galleryPreview("settings-notchcast-music-and-sound-light") }
+#Preview("settings-notchcast-privacy-and-startup-dark") { galleryPreview("settings-notchcast-privacy-and-startup-dark") }
+#Preview("settings-notchcast-privacy-and-startup-light") { galleryPreview("settings-notchcast-privacy-and-startup-light") }
 #endif
