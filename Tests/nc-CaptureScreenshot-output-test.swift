@@ -1,11 +1,19 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/Date+CaptureFileName.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
+// notchcast-kit: core
 import AppKit
+
+extension CaptureEditorCoordinator {
+    static let shared = CaptureEditorCoordinator(pasteboard: .withUniqueName())
+}
 
 @main
 struct ScreenshotOutputTest {
     static func main() async throws {
+        try await lastCapture()
         let zone = TimeZone(secondsFromGMT: 0)!
         let date = Date(timeIntervalSince1970: 0)
         let stem = "Screenshot 1970-01-01 at 00.00.00"
@@ -89,5 +97,49 @@ struct ScreenshotOutputTest {
             preconditionFailure("Cancelled save must report cancellation")
         }
         print("PASS: cancellation during save preserves clipboard")
+    }
+
+    @MainActor static func lastCapture() async throws {
+        let editor = CaptureEditorCoordinator.shared
+        editor.start()
+        defer { editor.stop() }
+        let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 12, pixelsHigh: 8,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+        let png = bitmap.representation(using: .png, properties: [:])!
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        for destination in [ScreenshotRequest.Destination.clipboard, .file(folder: folder), .both(folder: folder)] {
+            editor.lastCapture = nil
+            _ = try await ScreenshotService.output(png, destination: destination,
+                writeClipboard: { _ in true }, clipboardFailure: { _ in })
+            precondition(editor.lastCapture != nil, "Successful screenshot must supply the editor's last capture")
+            try editor.openFromClipboardOrLast()
+            precondition(editor.isOpen && editor.document?.size == CGSize(width: 12, height: 8))
+            editor.close()
+        }
+        let previous = editor.lastCapture
+        do {
+            _ = try await ScreenshotService.output(png, destination: .clipboard,
+                writeClipboard: { _ in false }, clipboardFailure: { _ in })
+            preconditionFailure("Failed clipboard-only capture must throw")
+        } catch ScreenshotRequest.Failure.clipboardFailed {}
+        precondition(editor.lastCapture === previous, "Failed capture must preserve the last image")
+        let cancelled = Task { @MainActor in
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await ScreenshotService.output(png, destination: .clipboard,
+                writeClipboard: { _ in preconditionFailure("Cancelled capture wrote clipboard") },
+                clipboardFailure: { _ in })
+        }
+        do {
+            _ = try await cancelled.value
+            preconditionFailure("Cancelled capture must throw")
+        } catch is CancellationError {}
+        precondition(editor.lastCapture === previous, "Cancelled capture must preserve the last image")
+        _ = try await ScreenshotService.output(png, destination: .both(folder: folder),
+            writeClipboard: { _ in false }, clipboardFailure: { _ in })
+        precondition(editor.lastCapture !== previous, "Saved screenshot survives clipboard failure")
+        print("PASS: successful screenshots feed Edit Capture without a clipboard image; failures preserve it")
     }
 }
