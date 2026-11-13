@@ -106,7 +106,8 @@ final class IslandPanel: NSPanel {
     override func sendEvent(_ event: NSEvent) {
         if event.type == .keyDown, onKey?(event) == true { return }
         if event.type == .leftMouseDown, containsPointer {
-            if !open, !hasCard { onOpen?(); return }
+            let point = surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)
+            if closedClickOpens(at: point) { onOpen?(); return }
             if open { makeKey() }
         }
         super.sendEvent(event)
@@ -117,10 +118,8 @@ final class IslandPanel: NSPanel {
         return super.performKeyEquivalent(with: event)
     }
 
-    /// A card's button takes the click; the rest of a card still opens the island.
-    private var hasCard: Bool {
-        let point = surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)
-        return cardTakesClick(at: point)
+    func closedClickOpens(at point: CGPoint) -> Bool {
+        !open && !cardTakesClick(at: point)
     }
 
     func cardTakesClick(at point: CGPoint) -> Bool {

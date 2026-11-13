@@ -54,6 +54,12 @@ struct IslandGeometryTests {
         expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: screens, pinned: true) == 1,
                "a pinned island keeps its display when the frame survives")
         let resized = screens[1].insetBy(dx: 20, dy: 20)
+        expect(IslandGeometry.restoredScreenIndex(
+            previous: screens[1], visibleFrames: [screens[0], resized], pinned: true) == 1,
+               "a resized external display keeps its pinned island with both displays connected")
+        expect(IslandGeometry.restoredScreenIndex(
+            previous: screens[1], visibleFrames: [screens[0]], pinned: true) == 0,
+               "a removed external display falls back to the remaining display")
         expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: [resized], pinned: true) == 0,
                "a pinned island survives a display frame change")
         expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: [], pinned: true) == nil,
