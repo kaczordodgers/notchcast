@@ -13,7 +13,6 @@ extension SettingsAnchor {
     }
 
     static let notchcastAppearance = Self.notchcast(feature: .appearance)
-    static let notchcastClean = Self.notchcast(feature: .cleanJunk)
     static let notchcastCleaning = Self.notchcast(feature: .cleaningMode)
     static let notchcastAppUpdates = Self.notchcast(feature: .appUpdates)
     static let notchcastMacUpdate = Self.notchcast(feature: .macUpdate)
@@ -79,12 +78,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastBackupExport, "Export Backup"),
         .init(.notchcastBackupImport, "Backup File"),
         .init(group: .notchcast(feature: .audioPriority), LocalizedStringResource("Audio device priority", table: "Notchcast"), keywords: ["sound", "outputs", "microphones"]),
-        .init(group: .notchcast(feature: .cleanJunk), LocalizedStringResource("Junk", table: "Notchcast"), keywords: ["trash", "cache"]),
-        .init(group: .notchcast(feature: .cleanHistory), LocalizedStringResource("Clean history", table: "Notchcast"), keywords: ["restore", "runs"]),
-        .init(group: .notchcast(feature: .cleanAIData), LocalizedStringResource("AI data", table: "Notchcast"), keywords: ["claude", "codex", "opencode"]),
-        .init(group: .notchcast(feature: .cleanDisk), LocalizedStringResource("Disk analyzer", table: "Notchcast"), keywords: ["folder", "size"]),
-        .init(group: .notchcast(feature: .cleanPurge), LocalizedStringResource("Project purge", table: "Notchcast"), keywords: ["projects", "build", "artifacts"]),
-        .init(group: .notchcast(feature: .cleanOptimize), LocalizedStringResource("Optimize", table: "Notchcast"), keywords: ["quick look", "download history", "open with"]),
         .init(group: .notchcast(feature: .cleaningMode), LocalizedStringResource("Cleaning mode", table: "Notchcast")),
         .init(group: .notchcast(feature: .appUpdates), LocalizedStringResource("App updates", table: "Notchcast")),
         .init(group: .notchcast(feature: .macUpdate), LocalizedStringResource("Update this Mac", table: "Notchcast")),
