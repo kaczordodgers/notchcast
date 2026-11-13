@@ -29,7 +29,6 @@
     "Features/CaptureRecording -> Features/CaptureArea": 1,
     "Features/CaptureScreenshot -> Features/CaptureArea": 1,
     "Features/CaptureScrolling -> Features/CaptureArea": 1,
-    "Features/Clean -> notchcast/root": 0,
     "Features/CommandRunner -> Features/Downloads": 1,
     "Features/ConvertFiles -> Features/Downloads": 1,
     "Features/DictationEnglish -> Features/DictationCleanup": 2,
@@ -75,7 +74,6 @@
     "Features/Torrents -> Features/NetMerge": 1,
     "Features/Treadmill -> Features/AgentBridge": 2,
     "Features/Tweaks -> Features/SystemTools": 0,
-    "notchcast/root -> Features/Clean": 1,
     "notchcast/root -> Features/SystemTools": 1
   },
   "clones": {
@@ -90,7 +88,6 @@
   "constants": {
     "app.notchcast": 0,
     "app.notchcast.dev": 0,
-    "com.apple.": 2,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
     "com.apple.quarantine": 3,
@@ -103,7 +100,6 @@
   },
   "core-lookups": {},
   "dead": {
-    "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
     "Tinycast/Features/DisplayBrightness/Service/KeyboardBrightnessService.swift:KeyboardBrightnessService": 0,
     "Tinycast/Features/Music/NowPlayingAdapter/NowPlayingAdapter.swift:tinycastNowPlayingWatch": 1,
     "Tinycast/Features/Notchcast/Island/IslandAnalyserBars.swift:dismantleNSView": 1,
@@ -134,7 +130,6 @@
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastArchives": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastBrightness": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastBuildStats": 1,
-    "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastClean": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastCleaning": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastIsland": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastLauncherTools": 1,
@@ -144,7 +139,6 @@
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastMusic": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastOptions": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastPaste": 1,
-    "Tinycast/Features/SystemMonitor/Model/MonitorFormat.swift:MonitorFormat": 1,
     "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 0,
     "Tinycast/Features/Todo/Model/TodoReminder.swift:Snooze": 0,
     "Tinycast/Features/Todo/Model/TodoTaskDetail.swift:TodoTaskDetail": 0,

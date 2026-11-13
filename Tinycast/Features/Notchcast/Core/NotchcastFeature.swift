@@ -90,13 +90,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryCalibration
     case keepAwake
     case lidClosedAwake
-    case cleanJunk
-    case cleanHistory
-    case cleanAIData
-    case cleanDisk
-    case cleanPurge
-    case cleanOptimize
-    case cleanSystem
     case settingsBackup
     case showDesktop
     case spacesOrder

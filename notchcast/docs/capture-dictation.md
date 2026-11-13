@@ -72,6 +72,9 @@ Globe reservation and Island independence with injected effects and isolated tes
 Dictation history settings show the latest 100 saved transcripts, newest first, with two-line text,
 local date and time, and a Copy button. Clear History uses the app's destructive confirmation and
 leaves an empty state after deletion. Saved content and the 90-day retention policy are unchanged.
+Recovery moves lines it cannot decode to `quarantine.jsonl` (0600) instead of deleting them; the
+quarantine is removed 90 days after its last write and by Clear History.
+Clear History remains available when only quarantined content remains, even with an empty history list.
 `./Scripts/run-tests.sh nc-DictationHistory-list-test` checks ordering, the cap and deletion in a
 temporary store. Gallery pages `settings-dictation-history-{populated,empty}-{dark,light}` use fixtures.
 

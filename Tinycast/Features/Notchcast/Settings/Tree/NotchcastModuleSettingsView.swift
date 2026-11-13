@@ -34,7 +34,6 @@ struct NotchcastModuleSettingsView: View {
         .settingsScrollTarget(module.tab)
         .notchcastEnvironment()
         .environment(core.appearanceCoordinator)
-        .environment(NotchcastCore.clean.coordinator)
     }
 
     private var requiredGrants: [NotchcastGrant] {

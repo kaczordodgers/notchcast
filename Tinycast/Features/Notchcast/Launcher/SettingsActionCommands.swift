@@ -1,56 +1,16 @@
 import AppKit
 
 enum SettingsActionCommands {
-    static let scanJunk = NotchcastCommand(
-        slug: "settings-scanJunk", name: String(localized: "Scan Junk", table: "Notchcast"),
-        sfSymbol: "magnifyingglass", feature: .cleanJunk,
-        run: { scan(.cleanJunk) })
-
-    static let loadHistory = NotchcastCommand(
-        slug: "settings-loadHistory", name: String(localized: "Load Clean History", table: "Notchcast"),
-        sfSymbol: "clock", feature: .cleanHistory,
-        run: { scan(.cleanHistory) })
-
-    static let scanAI = NotchcastCommand(
-        slug: "settings-scanAI", name: String(localized: "Scan AI Data", table: "Notchcast"),
-        sfSymbol: "magnifyingglass", feature: .cleanAIData,
-        run: { scan(.cleanAIData) })
-
-    static let scanDisk = NotchcastCommand(
-        slug: "settings-scanDisk", name: String(localized: "Scan Disk", table: "Notchcast"),
-        sfSymbol: "internaldrive", feature: .cleanDisk,
-        run: { scan(.cleanDisk) })
-
-    static let scanProjects = NotchcastCommand(
-        slug: "settings-scanProjects", name: String(localized: "Scan Projects", table: "Notchcast"),
-        sfSymbol: "folder", feature: .cleanPurge,
-        run: { scan(.cleanPurge) })
-
-    static let resetQuickLook = NotchcastCommand(
-        slug: "settings-resetQuickLook", name: String(localized: "Reset Quick Look Cache", table: "Notchcast"),
-        sfSymbol: "arrow.clockwise", feature: .cleanOptimize,
-        run: { NotchcastCore.clean.coordinator.optimize(.quickLook) })
-
-    static let clearDownloads = NotchcastCommand(
-        slug: "settings-clearDownloads", name: String(localized: "Clear Download History", table: "Notchcast"),
-        sfSymbol: "trash", feature: .cleanOptimize,
-        run: { NotchcastCore.clean.coordinator.optimize(.downloadHistory) })
-
-    static let rebuildOpenWith = NotchcastCommand(
-        slug: "settings-rebuildOpenWith", name: String(localized: "Rebuild Open With Menu", table: "Notchcast"),
-        sfSymbol: "arrow.clockwise", feature: .cleanOptimize,
-        run: { NotchcastCore.clean.coordinator.optimize(.openWithMenu) })
-
     static let checkUpdates = NotchcastCommand(
         slug: "settings-checkUpdates", name: String(localized: "Check App Updates", table: "Notchcast"),
         sfSymbol: "arrow.triangle.2.circlepath", feature: .appUpdates,
-        run: { show(.notchcastCleanAndUpdates, .appUpdates); NotchcastCore.appUpdates.check() })
+        run: { show(.notchcastUpdates, .appUpdates); NotchcastCore.appUpdates.check() })
 
     static let updateMac = NotchcastCommand(
         slug: "settings-updateMac", name: String(localized: "Update This Mac", table: "Notchcast"),
         sfSymbol: "arrow.triangle.2.circlepath", feature: .macUpdate,
         run: {
-            show(.notchcastCleanAndUpdates, .macUpdate)
+            show(.notchcastUpdates, .macUpdate)
             NotchcastCore.macUpdate.run(confirm: NotchcastCore.confirmMacUpdate)
         })
 
@@ -62,7 +22,7 @@ enum SettingsActionCommands {
     static let startCleaning = NotchcastCommand(
         slug: "settings-startCleaning", name: String(localized: "Start Cleaning Mode", table: "Notchcast"),
         sfSymbol: "keyboard", feature: .cleaningMode,
-        run: { show(.notchcastCleanAndUpdates, .cleaningMode); NotchcastCore.cleaning.begin() })
+        run: { show(.notchcastUpdates, .cleaningMode); NotchcastCore.cleaning.begin() })
 
     static let showLibrary = NotchcastCommand(
         slug: "settings-showLibrary", name: String(localized: "Show Library", table: "Notchcast"),
@@ -107,8 +67,4 @@ enum SettingsActionCommands {
             tab: tab, revealing: .section(.notchcast(feature: feature)))
     }
 
-    @MainActor static func scan(_ feature: NotchcastFeature) {
-        show(.notchcastCleanAndUpdates, feature)
-        CleanSettingsActions.scan(feature, coordinator: NotchcastCore.clean.coordinator)
-    }
 }

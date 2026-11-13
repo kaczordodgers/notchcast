@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/AgentBridge/Helper/AgentCLIMCP.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation
 
 @main
@@ -6,6 +9,8 @@ struct AgentCLITests {
     static func check(_ value: Bool, _ message: String = "check failed") { precondition(value, message) }
 
     static func main() throws {
+        let mcp: (String) -> Void = AgentCLIMCP.run
+        _ = mcp
         for verb in ["status", "list", "audit"] {
             let parsed = try AgentRequest.parse([verb, "--json"])
             check(parsed.json && parsed.request.verb.rawValue == verb && parsed.request.isValid)

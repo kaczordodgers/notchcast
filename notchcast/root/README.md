@@ -49,7 +49,7 @@ require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60
 Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
 The harness verifies pure PAM transforms without changing the system.
 
-The fixed program and app client share 23 argument-free verbs. `version` prints the contract version (`4`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
+The fixed program and app client share 21 argument-free verbs. `version` prints the contract version (`4`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
 ` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, absent battery control keys exit 69, and other operation failures exit 70, without stdout. Charge-limit timeouts report unconfirmed state on stderr. Spotlight and battery sleep verbs launch processes, with fixed arguments and an empty environment.
 
 The helper compiles the app's `Tinycast/Features/Notchcast/Root/RootContract.swift` directly, so both programs compile the one command table and app callers send its typed `RootContract.Command` cases. There is no helper Xcode target or resident daemon.

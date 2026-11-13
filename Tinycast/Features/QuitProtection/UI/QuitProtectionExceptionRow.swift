@@ -20,6 +20,7 @@ struct QuitProtectionExceptionRow: View {
                 if let url {
                     Image(nsImage: IconCache.icon(forFile: url.path))
                         .resizable()
+                        .id(IconCache.style.generation)
                         .frame(width: Theme.Size.settingsRowIcon, height: Theme.Size.settingsRowIcon)
                         .accessibilityHidden(true)
                 }

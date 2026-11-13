@@ -22,7 +22,7 @@ TODO = 'Tinycast/Features/Todo/DriftProbe.swift'
 LARGE = 'Tinycast/Features/Battery/Fixture.swift'
 LARGE_LINES = 407
 LARGE_SOURCE = ''.join(f'let fixtureValue{index} = {index}\n' for index in range(LARGE_LINES))
-CLONE_PATH = 'Tinycast/Features/Clean/Fixture.swift'
+CLONE_PATH = 'Tinycast/Features/Fixture/Fixture.swift'
 CLONE_SOURCE = '\n'.join(f'let cloneValue{index} = transform({index}, scale: {index + 3})' for index in range(15)) + '\n'
 NEAR_CLONE_SOURCE = ''.join(f'let nearValue{index} = transform({index}, scale: {index + 3})\n' for index in range(6)) \
     + 'nearTail = transform()\n'  # jscpd 4.0.5: exactly 70 tokens / 6 lines, so raising either limit turns it red.

@@ -25,12 +25,13 @@ final class MonitorAlerts {
         }
         let diskFree = snapshot.volumes.filter { $0.mountPath == "/" && $0.total > 0 && !$0.isReadOnly }
             .map { Double($0.available) / Double($0.total) * 100 }.min()
-        let values: [MonitorAlertRule.Metric: Double?] = [
+        let readings: [MonitorAlertRule.Metric: Double?] = [
             .cpu: snapshot.cpu?.usage?.totalPercent,
             .cpuTemperature: snapshot.sensors?.cpuTemperature,
             .memoryPressure: pressure, .diskFree: diskFree, .battery: snapshot.battery?.percent,
             .batteryTemperature: snapshot.battery?.temperatureCelsius
         ]
+        let values = readings.compactMapValues { $0 }
         for metric in MonitorAlertRule.Metric.allCases {
             guard let rule = configured[metric], let value = values[metric] else { continue }
             if configuration[metric] != rule {
@@ -39,14 +40,24 @@ final class MonitorAlerts {
                 rules[metric] = replacement
                 configuration[metric] = rule
             }
-            if rules[metric]?.evaluate(value ?? .nan, at: now) == .fire {
-                sink(Self.title(metric))
+            if rules[metric]?.evaluate(value, at: now) == .fire {
+                sink(Self.message(metric, value))
             }
         }
     }
 
     func resetBreaches() {
         for metric in rules.keys { rules[metric]?.resetBreaches() }
+    }
+
+    private static func message(_ metric: MonitorAlertRule.Metric, _ value: Double) -> String {
+        let format = MonitorFormat(locale: .current)
+        let reading: String? = switch metric {
+        case .cpu, .diskFree, .battery: format.percent(value)
+        case .cpuTemperature, .batteryTemperature: format.celsius(value)
+        case .memoryPressure: nil
+        }
+        return reading.map { "\(title(metric)) · \($0)" } ?? title(metric)
     }
 
     private static func title(_ metric: MonitorAlertRule.Metric) -> String {
