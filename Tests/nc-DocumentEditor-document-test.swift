@@ -90,7 +90,8 @@ struct EditorDocumentTests {
         precondition(count == tag.count && actual == tag)
         let hardLink = directory.appendingPathComponent("linked.md")
         try FileManager.default.linkItem(at: url, to: hardLink)
-        let inode = try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as! NSNumber
+        let inode = try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber
+        precondition(inode != nil)
         let beforeLinkedSave = try await EditorDocumentRepository.load(url)
         _ = try await EditorDocumentRepository.save("linked replacement", to: url, expecting: beforeLinkedSave)
         try check(try Data(contentsOf: hardLink) == Data("linked replacement".utf8))
@@ -98,6 +99,23 @@ struct EditorDocumentTests {
         _ = try await EditorDocumentRepository.save("short", to: url, expecting: linkedSnapshot)
         try check(try Data(contentsOf: hardLink) == Data("short".utf8))
         try check(try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber == inode)
+        let shortSnapshot = try await EditorDocumentRepository.load(url)
+        var limits = rlimit()
+        precondition(getrlimit(RLIMIT_FSIZE, &limits) == 0)
+        let oldSignal = signal(SIGXFSZ, SIG_IGN)
+        do {
+            defer {
+                precondition(setrlimit(RLIMIT_FSIZE, &limits) == 0)
+                signal(SIGXFSZ, oldSignal)
+            }
+            var restricted = rlimit(rlim_cur: 2, rlim_max: limits.rlim_max)
+            precondition(setrlimit(RLIMIT_FSIZE, &restricted) == 0)
+            do {
+                _ = try await EditorDocumentRepository.save("cannot fit", to: url, expecting: shortSnapshot)
+                preconditionFailure("A failed staged write must fail the save")
+            } catch {}
+        }
+        try check(try Data(contentsOf: hardLink) == shortSnapshot.bytes)
         let restored = try await EditorDocumentRepository.load(url)
         try FileManager.default.removeItem(at: url)
         do {
@@ -213,6 +231,7 @@ struct EditorDocumentTests {
         precondition(document.url == renamed)
         try await document.refresh()
         precondition(document.failure == nil)
+        document.brainDump = false
         precondition(document.edit("saved after rename"))
         try await document.flush()
         try check(try Data(contentsOf: renamed) == Data("saved after rename".utf8))
