@@ -25,7 +25,10 @@ for dir in "$ROOT/$HOST"-*/; do
     runner=$(plutil -extract agentId raw -o - "$dir.runner" 2>/dev/null)
     # An unlabelled runner gets no new job, so after a job already offered has had 30 s to start, idle stays idle.
     if [ "$admitted" = 0 ] && [ "$loaded" = 1 ] && [ -e "$ROOT/refused" ] && [ ! -e "$dir.drained" ]; then
-        if gh api -X DELETE "repos/$REPO/actions/runners/$runner/labels/$LABEL" >/dev/null; then
+        # Unreadable id or labels: drained anyway, so the stop still comes, as before the drain existed.
+        if [ -z "$runner" ] || gh api -X DELETE "repos/$REPO/actions/runners/$runner/labels/$LABEL" >/dev/null \
+            || ! labels=$(gh api "repos/$REPO/actions/runners/$runner/labels" --jq '.labels[].name' 2>/dev/null) \
+            || ! grep -qx "$LABEL" <<< "$labels"; then
             touch "$dir.drained"; say "refused: drained $name"
         fi
     elif [ "$admitted" = 0 ] && [ "$loaded" = 1 ] && [ "$busy" = 0 ] && [ -e "$dir.drained" ] \
@@ -36,11 +39,11 @@ for dir in "$ROOT/$HOST"-*/; do
         if launchctl bootstrap "$DOMAIN" "$HOME/Library/LaunchAgents/$label.plist"; then loaded=1; say "admitted: started $name"; fi
     fi
     if [ "$admitted" = 1 ] && [ -e "$dir.drained" ] \
-        && gh api -X POST "repos/$REPO/actions/runners/$runner/labels" -f "labels[]=$LABEL" >/dev/null; then
+        && { [ -z "$runner" ] || gh api -X POST "repos/$REPO/actions/runners/$runner/labels" -f "labels[]=$LABEL" >/dev/null; }; then
         rm -f "$dir.drained"; say "admitted: labelled $name"
     fi
     [ "$loaded" = 0 ] || rm -f "$dir.stopped"
-    if [ "$loaded" = 1 ] && [ "$busy" = 0 ]; then idle=$((idle + 1)); fi
+    if [ "$loaded" = 1 ] && [ "$busy" = 0 ] && [ ! -e "$dir.drained" ]; then idle=$((idle + 1)); fi
 done
 if [ "$admitted" = 0 ]; then
     [ -e "$ROOT/refused" ] || say "refused: taking no new job"

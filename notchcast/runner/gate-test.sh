@@ -20,7 +20,8 @@ launchctl() {
 }
 pgrep() { local name=${2%/bin/Runner.Worker}; [ -e "$WORK/busy/${name##*/}" ]; }
 gh() {
-    if [ "$1" = api ]; then local r=${4#*/runners/}; echo "$3 ${r%%/*}" >> "$WORK/calls"; return; fi
+    if [ "$1" = api ] && [ "$2" != -X ]; then echo GET >> "$WORK/calls"; cat "$WORK/labels"; [ ! -e "$WORK/fail-GET" ]; return; fi
+    if [ "$1" = api ]; then local r=${4#*/runners/}; echo "$3 ${r%%/*}" >> "$WORK/calls"; [ ! -e "$WORK/fail-$3" ]; return; fi
     echo "$3 ${7% *}" >> "$WORK/calls"
 }
 export -f launchctl pgrep gh
@@ -57,6 +58,39 @@ rm "$WORK/loaded/mba-1"
 gate
 calls 'NOTCHCAST_IDLE_MBA 1' 'booted out by hand'
 echo 'PASS: an admitted Mac starts again the runner the gate stopped, and no other, and gives back the labels'
+
+touch "$WORK/loaded/mba-1" "$WORK/fail-DELETE"
+printf '#!/bin/bash\nexit 1\n' > "$WORK/root/admit"; chmod 755 "$WORK/root/admit"
+echo notchcast-mac > "$WORK/labels"
+gate
+gate
+calls 'DELETE 1,GET,DELETE 2,GET,NOTCHCAST_IDLE_MBA -1' 'label removal failed, label still on'
+test ! -e "$WORK/root/mba-1/.drained"
+: > "$WORK/labels"
+gate
+calls 'DELETE 1,GET,DELETE 2,GET,NOTCHCAST_IDLE_MBA -1' 'label removal failed, label gone'
+test -e "$WORK/root/mba-1/.drained"
+echo 'PASS: a failed label removal retries while the label is on, and counts as drained once it is off'
+
+rm "$WORK/root/admit" "$WORK/fail-DELETE"
+touch "$WORK/fail-POST"
+gate
+calls 'POST 1,POST 2,NOTCHCAST_IDLE_MBA 0' 'labels not given back'
+rm "$WORK/fail-POST"
+gate
+calls 'POST 1,POST 2,NOTCHCAST_IDLE_MBA 2' 'labels given back'
+echo 'PASS: a runner whose label could not be given back is retried and not counted idle meanwhile'
+
+echo '{}' > "$WORK/root/mba-1/.runner"
+printf '#!/bin/bash\nexit 1\n' > "$WORK/root/admit"; chmod 755 "$WORK/root/admit"
+gate
+gate
+calls 'DELETE 2,NOTCHCAST_IDLE_MBA -1' 'no runner id'
+test -e "$WORK/root/mba-1/.drained"
+rm "$WORK/root/admit"
+gate
+calls 'POST 2,NOTCHCAST_IDLE_MBA 2' 'no runner id, admitted'
+echo 'PASS: a runner without a readable id is drained without the API, so the gate still stops it'
 
 # The hook beside a stand-in gate.sh, which records that the hook reached it, and a kill that records its target.
 kill() { echo "kill $*" >> "$WORK/calls"; }
