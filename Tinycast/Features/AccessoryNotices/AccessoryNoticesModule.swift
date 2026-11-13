@@ -24,15 +24,15 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
             guard let self, self.permission != nil,
                   CBManager.authorization == .allowedAlways else { return }
             self.permission = nil
-            if self.running { self.stop(); self.start() }
+            self.start()
         }
     }
 
     func start() {
         guard !running else { return }
-        running = true
         requestAccess()
         guard CBManager.authorization == .allowedAlways else { return }
+        running = true
         engine.seed(source.start { [weak self] address, name, connected in
             guard let self, self.running, self.engine.connection(address, connected: connected) else { return }
             let message = String(localized: "\(name): Connected", table: "Notchcast")

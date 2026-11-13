@@ -107,6 +107,25 @@ struct TodoLinkTests {
         try await oversized(root)
         try await failures(root)
         try await outage(root)
+        let clockStore = try await TodoStore.open(directory: root.appending(path: "clock"))
+        var peer = TodoReplication(replicaID: "future-peer")
+        try peer.perform(.addTask(.init(id: UUID().uuidString, title: "Deferred")))
+        let original = peer.envelopes[0]
+        let future = TodoEnvelope(replicaID: original.replicaID, sequence: original.sequence,
+            timestamp: UInt64(Date().addingTimeInterval(172_800).timeIntervalSince1970 * 1_000),
+            command: original.command, changes: original.changes)
+        let clockCoordinator = TodoLinkCoordinator(exchange: { _ in
+            .init(clock: .init(), envelopes: [future], hasMore: false)
+        })
+        var clockMessages: [String] = []
+        clockCoordinator.showFailure = { clockMessages.append($0) }
+        clockCoordinator.opened(clockStore)
+        clockCoordinator.start()
+        try await idle(clockCoordinator)
+        precondition(clockMessages.count == 1 && clockStore.replication.deferredEnvelopes.count == 1,
+            "Deferred peer changes must report through sync feedback")
+        clockCoordinator.stop()
+        try clockStore.close()
         print("PASS: Todo Mac Link fake-channel suite")
     }
 

@@ -7,7 +7,7 @@ import OSLog
 final class LowDiskManager {
     typealias Read = @Sendable () async throws -> LowDiskEngine.Space
     static let checkInterval: Duration = .seconds(600)
-    nonisolated static let spellKey = "notchcast.lowDisk.isLow"
+    nonisolated static let isLowKey = "notchcast.lowDisk.isLow"
     private static let log = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "LowDisk")
 
     private(set) var engine: LowDiskEngine
@@ -31,7 +31,7 @@ final class LowDiskManager {
         self.read = read ?? { try await Self.readSpace(at: volumeURL) }
         self.interval = interval
         self.wakeCenter = wakeCenter
-        engine = LowDiskEngine(isLow: defaults.bool(forKey: Self.spellKey))
+        engine = LowDiskEngine(isLow: defaults.bool(forKey: Self.isLowKey))
     }
 
     func start() {
@@ -71,7 +71,7 @@ final class LowDiskManager {
                 let space = try await read()
                 guard !Task.isCancelled, let self, self.generation == current, self.isRunning else { return }
                 let notice = self.engine.consume(space)
-                self.defaults.set(self.engine.isLow, forKey: Self.spellKey)
+                self.defaults.set(self.engine.isLow, forKey: Self.isLowKey)
                 if notice { self.onNotice?(space) }
             } catch {
                 if !Task.isCancelled { Self.log.error("Disk capacity read failed: \(error.localizedDescription)") }

@@ -9,7 +9,7 @@ final class SpotifySettingsCoordinator {
     private(set) var hasKey = false
     @ObservationIgnored private weak var core: AppCore?
     @ObservationIgnored private var action: Task<Void, Never>?
-    @ObservationIgnored private var download: Task<Void, Never>?
+    @ObservationIgnored private(set) var download: Task<Void, Never>?
     @ObservationIgnored private var panel: NSOpenPanel?
 
     init(module: SpotifyConnectModule, core: AppCore) {
@@ -84,14 +84,15 @@ final class SpotifySettingsCoordinator {
         guard download == nil else { return }
         let speaker = module.speaker
         speaker.installBuild()
+        let installation = speaker.installing
         download = Task { [weak self] in
-            await speaker.installing?.value
+            let installed = await installation?.value == true
             guard !Task.isCancelled, let self else { return }
             download = nil
             guard module.speaker === speaker, module.isEnabled else { return }
             if let failure = speaker.installFailure {
                 present(failure)
-            } else if speaker.build != nil {
+            } else if installed {
                 core?.showMessage(String(localized: "Soloist Downloaded", table: "Notchcast"))
             }
         }

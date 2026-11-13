@@ -58,12 +58,12 @@ struct IslandInputState: Sendable {
         if pendingHover?.action == .open { pendingHover = nil }
     }
 
-    mutating func advance(now: TimeInterval, focused: Bool = false) -> HoverAction? {
+    mutating func advance(now: TimeInterval, focused: Bool = false, hoverEnabled: Bool = true) -> HoverAction? {
         guard let pendingHover, now >= pendingHover.deadline else { return nil }
         self.pendingHover = nil
         switch pendingHover.action {
         case .open:
-            guard pointerInside, !isOpen else { return nil }
+            guard pointerInside, !isOpen, hoverEnabled else { return nil }
             open()
         case .close:
             guard !pointerInside, isOpen, !isPinned, !focused else { return nil }

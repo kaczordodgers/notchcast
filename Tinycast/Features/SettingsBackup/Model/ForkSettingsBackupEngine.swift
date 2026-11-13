@@ -45,10 +45,6 @@ enum ForkSettingsBackupEngine {
         return values
     }
 
-    static func restored(_ data: Data, current: [String: Any]) throws -> [String: Any] {
-        current.merging(try decode(data)) { _, restored in restored }
-    }
-
     static func newest(in names: [String]) -> String? {
         names.compactMap { name -> (String, Int)? in
             guard name.hasPrefix("settings-v2-"), name.hasSuffix(".plist") else { return nil }

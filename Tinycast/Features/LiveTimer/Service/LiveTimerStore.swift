@@ -61,6 +61,7 @@ final class LiveTimerStore {
             do {
                 timers = try JSONDecoder().decode([LiveTimerEntry].self, from: data)
             } catch {
+                defaults.set(data, forKey: Self.entriesKey + ".corrupt.\(UUID().uuidString)")
                 Self.logger.error("Failed to load timers: \(error)")
             }
         }
@@ -92,6 +93,12 @@ final class LiveTimerStore {
         refresh()
     }
 
+    func stopNext() {
+        if let timer = timers.first(where: { $0.status != .running }) ?? nextTimer {
+            cancel(timer.id)
+        }
+    }
+
     func stop() {
         active = false
         generation = UUID()
@@ -107,9 +114,11 @@ final class LiveTimerStore {
         wake?.cancel()
         wake = nil
         let now = clock()
+        var missed = false
         for index in timers.indices where timers[index].end <= now {
             guard timers[index].status == .running || timers[index].status == .ringing else { continue }
             timers[index].status = now.timeIntervalSince(timers[index].end) >= 300 ? .missed : .ringing
+            missed = missed || timers[index].status == .missed
         }
         if isRinging && playSoundWhenTimeIsUp {
             if nextSound.map({ $0 <= now }) ?? true {
@@ -119,6 +128,7 @@ final class LiveTimerStore {
         } else {
             nextSound = nil
             stopSound()
+            if missed && playSoundWhenTimeIsUp { playSound() }
         }
         schedule(now: now)
     }

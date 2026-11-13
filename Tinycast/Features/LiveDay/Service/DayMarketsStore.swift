@@ -9,6 +9,7 @@ final class DayMarketsStore {
     private(set) var failedSymbols: [String] = []
     private(set) var symbols: [String]
     private let defaults: UserDefaults
+    @ObservationIgnored private let fetch: (URL) async throws -> Data
     nonisolated static let symbolsKey = "notchcast.day.marketSymbols"
     private var visible = false
     private var lastAttempt: Date?
@@ -20,8 +21,9 @@ final class DayMarketsStore {
         self.init(defaults: DayStorage.defaults)
     }
 
-    init(defaults: UserDefaults) {
+    init(defaults: UserDefaults, fetch: @escaping (URL) async throws -> Data = DayHTTPService.data) {
         self.defaults = defaults
+        self.fetch = fetch
         symbols = defaults.stringArray(forKey: Self.symbolsKey) ?? ["USDPLN=X", "^GSPC", "BTC-USD"]
     }
 
@@ -38,6 +40,7 @@ final class DayMarketsStore {
     func setVisible(_ visible: Bool) {
         self.visible = visible
         task?.cancel()
+        if fetchingGeneration != nil { lastAttempt = nil }
         generation = UUID()
         task = nil
         guard visible else { return }
@@ -64,7 +67,7 @@ final class DayMarketsStore {
                 var url = URLComponents(string: "https://query1.finance.yahoo.com/v8/finance/chart/")!
                 url.path += symbol
                 url.queryItems = [.init(name: "range", value: "5d"), .init(name: "interval", value: "5m")]
-                let quote = try DayMarketQuote.decode(await DayHTTPService.data(url.url!), symbol: symbol)
+                let quote = try DayMarketQuote.decode(await fetch(url.url!), symbol: symbol)
                 results.append(.success(quote))
             } catch {
                 results.append(.failure(error))

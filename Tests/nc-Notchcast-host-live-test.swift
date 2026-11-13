@@ -8,9 +8,12 @@ struct DialogAction {
     var title: String
     var role: Role = .normal
 }
-enum SettingsTab { case general, notchcastMusicAndSound, notchcast }
-enum SettingsSection { case notchcastSpotify, notchcastAIUsage }
-enum SettingsAnchor: Equatable { case section(SettingsSection) }
+enum SettingsTab { case general, notchcastMusicAndSound, notchcastTwoMacs }
+enum SettingsAnchor {
+    case notchcastSpotify, notchcastAIUsage
+    var tab: SettingsTab { self == .notchcastSpotify ? .notchcastMusicAndSound : .notchcastTwoMacs }
+}
+enum SettingsTarget: Equatable { case section(SettingsAnchor) }
 struct CopyPathTarget { var processID: Int32; var bundleID: String? }
 enum CopyPathSystemReader {
     enum Target { case finderSelection, browser(CopyPathTarget) }
@@ -26,7 +29,7 @@ enum NotchcastCore { static func remoteResult(_ text: String) {} }
     var isVisible = false
     var isEnabled = false
     var hides: [Bool] = []
-    var targets: [(SettingsTab, SettingsAnchor?)] = []
+    var targets: [(SettingsTab, SettingsTarget?)] = []
     var actions: [DialogAction] = []
     var defaultIndex = -1
     var selection = 0
@@ -35,7 +38,7 @@ enum NotchcastCore { static func remoteResult(_ text: String) {} }
     func refreshNotchcastCommands() {}
     func showPalette(mode: Mode) {}
     func hidePalette(restoreFocus: Bool) { hides.append(restoreFocus) }
-    func showSettings(tab: SettingsTab, revealing: SettingsAnchor? = nil) { targets.append((tab, revealing)) }
+    func showSettings(tab: SettingsTab, revealing: SettingsTarget? = nil) { targets.append((tab, revealing)) }
     func showThemes() {}
     func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { false }
     func choose(title: String, message: String?, symbol: String, options: [DialogAction], defaultIndex: Int) async -> Int {
@@ -57,7 +60,7 @@ enum NotchcastCore { static func remoteResult(_ text: String) {} }
         host.showAppearanceSettings()
         host.showSpotifySettings()
         host.showLinkSettings()
-        precondition(core!.targets.map(\.0) == [.general, .notchcastMusicAndSound, .notchcast])
+        precondition(core!.targets.map(\.0) == [.general, .notchcastMusicAndSound, SettingsAnchor.notchcastAIUsage.tab])
         precondition(core!.targets.map(\.1) == [nil, .section(.notchcastSpotify), .section(.notchcastAIUsage)])
         for options in [[], ["Network", "Reconnect", "Settings"]] {
             core!.selection = options.count

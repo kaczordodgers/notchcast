@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 @MainActor
 final class AgentGrantStore {
@@ -14,7 +15,14 @@ final class AgentGrantStore {
         self.defaults = defaults
         self.key = key
         if let data = defaults.data(forKey: key) {
-            grants = try JSONDecoder().decode([AgentConsentPolicy.Grant].self, from: data)
+            do {
+                grants = try JSONDecoder().decode([AgentConsentPolicy.Grant].self, from: data)
+            } catch {
+                grants = []
+                defaults.removeObject(forKey: key)
+                Logger(subsystem: bundleIdentifier, category: "AgentConsent")
+                    .error("Discarded corrupt agent consent grants: \(error)")
+            }
         } else {
             grants = []
         }

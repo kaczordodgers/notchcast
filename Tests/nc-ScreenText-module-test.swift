@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule.swift
 // notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule+Command.swift
 // notchcast-sources: Tinycast/Features/ScreenText/Model/ScreenTextResult.swift
+// notchcast-sources: Tinycast/Features/ScreenText/Service/ScreenTextService.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 import AppKit
@@ -21,12 +22,6 @@ enum DialogTone { case danger }
         select(.init(rect: CGRect(x: 0, y: 0, width: 2, height: 2), displayID: 1, displayFrame: .zero))
     }
     func stop() { stops += 1 }
-}
-enum ScreenTextService {
-    enum Failure: Error { case clipboardWriteFailed, noContent, displayUnavailable }
-    static func recognize(selection: CaptureAreaSelection, removeLineBreaks: Bool) async throws -> ScreenTextResult {
-        fatalError("Real recognition must not run")
-    }
 }
 @main @MainActor struct ScreenTextModuleTest {
     static func main() async throws {
@@ -66,6 +61,15 @@ enum ScreenTextService {
         precondition(area.stops > stops && !command.isEnabled())
         command.run()
         precondition(area.starts == 2)
+        let writeFailure = ScreenTextModule(defaults: defaults, area: CaptureAreaService(), recognize: { _, _ in
+            ScreenTextResult(content: "Cannot copy", kind: .text)
+        }, write: { _ in false })
+        writeFailure.start()
+        var writeMessages: [String] = []
+        writeFailure.capture { writeMessages.append($0) }
+        for _ in 0..<100 { await Task.yield() }
+        precondition(writeMessages == [CaptureFailure.clipboardFailed.message])
+        writeFailure.stop()
         print("PASS: OCR switch lifecycle, command recognition/output, permission HUD")
     }
 }

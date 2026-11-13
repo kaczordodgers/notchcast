@@ -6,10 +6,7 @@ enum RemoteScreenAddress {
         let request = ProcessRunner.Request(
             executable: URL(filePath: "/bin/launchctl"),
             arguments: ["print", "system/com.apple.screensharing"], timeout: .seconds(2))
-        let enabled: Bool
-        do { enabled = try await ProcessRunner.run(request).status == 0 } catch ProcessRunner.Failure.timedOut {
-            enabled = false
-        }
+        let enabled = try await ProcessRunner.run(request).status == 0
         guard enabled else { return .init(screenSharingEnabled: false) }
         guard let name = SCDynamicStoreCopyLocalHostName(nil) as String? else {
             throw RemoteScreenRequest.Failure.unavailable

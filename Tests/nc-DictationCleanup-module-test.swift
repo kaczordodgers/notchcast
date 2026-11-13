@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/MagpieGateway.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule+Live.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
@@ -53,10 +54,18 @@ import Foundation
         module.stop()
         precondition(stops == 2 && failures == 5)
         let live = DictationCleanupModule.live()
+        var fallbacks = 0
+        live.reportFallback = { fallbacks += 1 }
+        DictationFamily.shared.cleanupFallback?()
+        DictationFamily.shared.cleanupFallback?()
+        precondition(fallbacks == 1, "Cleanup fallback reported more than once")
+        live.saveAPIKey("new")
+        DictationFamily.shared.cleanupFallback?()
+        precondition(fallbacks == 2, "Saving settings did not re-arm the fallback report")
         live.start()
         precondition(DictationCoordinator.transcriptStage != nil)
         live.stop()
         precondition(DictationCoordinator.transcriptStage == nil)
-        print("PASS cleanup module lifecycle, persistence failures and live installation wiring")
+        print("PASS cleanup module lifecycle, persistence failures, live installation wiring and fallback report")
     }
 }

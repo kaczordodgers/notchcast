@@ -69,10 +69,10 @@ final class MicrophoneMute {
             running = true
             audio.start { [weak self] in self?.refresh() }
         }
-        refresh()
+        refresh(unmuteUntracked: !muted)
     }
 
-    private func refresh() {
+    private func refresh(unmuteUntracked: Bool = false) {
         guard running else { return }
         failures = audio.monitoringFailure.map { [$0] } ?? []
         if !validPersistence {
@@ -88,7 +88,7 @@ final class MicrophoneMute {
                 do {
                     if muteWanted {
                         try mute(input)
-                    } else if records[input.uid] != nil {
+                    } else if records[input.uid] != nil || unmuteUntracked {
                         try restore(input)
                     }
                 } catch {

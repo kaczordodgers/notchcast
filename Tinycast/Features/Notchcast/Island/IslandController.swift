@@ -159,7 +159,11 @@ final class IslandController: NotchcastModule {
         }
         updateContent()
         applyPreferences()
-        if isOpen, let panel = panels.first(where: { $0.displayFrame == previousFrame && $0.isVisible }) {
+        let visible = panels.filter(\.isVisible)
+        if isOpen, let index = IslandGeometry.restoredScreenIndex(
+            previous: previousFrame, visibleFrames: visible.map(\.displayFrame), pinned: isPinned)
+        {
+            let panel = visible[index]
             openPanel = panel
             panel.setOpen(true, animated: false)
         } else { close() }
@@ -281,13 +285,12 @@ final class IslandController: NotchcastModule {
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled, let self, observationID == identity,
                   input.pendingHover == pending else { return }
-            let action = input.advance(now: ProcessInfo.processInfo.systemUptime, focused: hasKeyboardFocus)
+            let action = input.advance(now: ProcessInfo.processInfo.systemUptime, focused: hasKeyboardFocus,
+                                       hoverEnabled: !launcherIsUp && NotchcastPreferences.shared.isOn(.islandHoverOpen))
             switch action {
             case .open:
                 input.close()
-                if NotchcastPreferences.shared.isOn(.islandHoverOpen) {
-                    open(page: page, takeKey: false)
-                }
+                open(page: page, takeKey: false)
             case .close: close()
             case nil: break
             }
