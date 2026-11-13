@@ -16,8 +16,7 @@ enum CommandProcessRunner {
                 stopLadder: .terminating(grace: .milliseconds(250)), stopsGroup: true,
                 outputTail: 65_536, groupCleanup: .keepAfterExit, killsOnQuit: true))
             return CatalogShellCommandRunner.Result(exitStatus: result.exitCode,
-                standardOutput: Data((String(bytes: result.stdout, encoding: .utf8) ?? "").utf8),
-                standardError: Data((String(bytes: result.stderr, encoding: .utf8) ?? "").utf8))
+                standardOutput: result.stdout, standardError: result.stderr)
         } catch ProcessRunner.Failure.timedOut {
             return CatalogShellCommandRunner.Result(exitStatus: 143, standardOutput: Data(), standardError: Data())
         }
