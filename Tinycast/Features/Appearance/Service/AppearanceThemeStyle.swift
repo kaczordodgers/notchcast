@@ -3,7 +3,8 @@ import SwiftUI
 
 extension AppearanceThemeColors {
     func ramp(dark: Double, light: Double, role: AppearanceThemeColors.Role = .text) -> Color {
-        Color(nsColor: NSColor(name: nil) { appearance in
+        _ = revision
+        return Color(nsColor: NSColor(name: nil) { appearance in
             _ = self.revision
             let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
             return self.ink(role, in: appearance, dark: dark, light: light)
