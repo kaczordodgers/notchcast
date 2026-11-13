@@ -86,6 +86,10 @@ struct NotchcastLauncherPlacementTests {
         let offscreen = CGRect(x: -3000, y: 0, width: 750, height: 475)
         assert(NotchcastLauncherPlacement.island(hosting: offscreen, among: panels) == nil)
         openIslandGivesWay(builtIn, external, underBuiltIn)
+        assert(NotchcastLauncherPlacement.blocks(builtIn, launchers: [underBuiltIn]))
+        assert(!NotchcastLauncherPlacement.blocks(external, launchers: [underBuiltIn]),
+               "a launcher on display A leaves display B's island clickable")
+        assert(!NotchcastLauncherPlacement.blocks(builtIn, launchers: []))
     }
 
     /// An open island closes for a launcher hung from it or one it covers or touches, and stays open otherwise.
