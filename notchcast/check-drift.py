@@ -6,6 +6,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -304,9 +305,10 @@ def print_counters(root, upstream, observed, ours, our_tests, baseline, known):
 
 
 def notify(counters, thresholds, cache, hook):
+    env = dict(os.environ, PATH=str(Path.home() / '.local/bin') + os.pathsep + os.environ.get('PATH', os.defpath))
     available = subprocess.run(['bash', '-c',
                                 'if [ -f "$1" ]; then source "$1"; fi; declare -F notchcast_task >/dev/null',
-                                'drift-hook', str(hook)], capture_output=True, text=True)
+                                'drift-hook', str(hook)], capture_output=True, text=True, env=env)
     if available.returncode:
         print('no task hook')
         return
@@ -332,13 +334,13 @@ def notify(counters, thresholds, cache, hook):
                                      'else printf "%s\\n" "no task hook"; exit 3; fi',
                                      'drift-hook', str(hook), f'Notchcast: Reduce {counter}',
                                      f'{counter}, {value}, threshold {threshold}, {key}'],
-                                    capture_output=True, text=True)
+                                    capture_output=True, text=True, env=env)
             if result.stdout:
                 print(result.stdout.strip())
             if result.returncode == 0:
                 current[identity] = value
-            elif result.returncode != 3:
-                print(f'task hook failed: {result.stderr.strip()}', file=sys.stderr)
+            else:
+                print(f'task hook failed: {identity} (exit {result.returncode}): {result.stderr.strip()}')
         temporary = cache.with_suffix('.tmp')
         temporary.write_text(json.dumps(current, indent=2, sort_keys=True) + '\n')
         temporary.replace(cache)

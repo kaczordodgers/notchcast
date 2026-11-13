@@ -47,6 +47,8 @@ Maintainer-specific integrations stay out of this repo. `kick.sh`, `update.sh` a
 
 - `notchcast_notify`: a shell function that receives one alert line on stdin (sync trigger failures and open failure issues).
 - `notchcast_task <title> <description>`: files a private task for a `notchcast-design` issue and prints its id; the issue is then closed. The drift reporter also calls this hook once per threshold crossing. It loads the same private file, prints `no task hook` when the function is absent, and never stores private task ids in git.
+
+The drift reporter prepends `~/.local/bin` to the hook's inherited `PATH`, including in noninteractive landings. Every nonzero hook exit prints `task hook failed: <counter>|<key> (exit <status>): <stderr>` on stdout so a stdout-only landing log retains the failure. Failed keys remain eligible for retry; successful keys are recorded even if the hook prints nothing.
 - `notchcast_build_done`: receives the `build/local` result line on stdin when `local-ci.sh` ends.
 - `NOTCHCAST_BUILD_QUEUE`: a command that runs `hold [--landing] -- <command>` through a machine-wide build queue (`local-ci.sh`, and `app-proof.py` from the environment). Without it, builds run directly.
 - `NOTCHCAST_LOCAL_CI_DIR`: where `local-ci.sh` keeps its logs (default `~/Library/Caches/notchcast/local-ci`). The build scratch always lives in the per-user temporary directory (`getconf DARWIN_USER_TEMP_DIR`): Debug binaries embed absolute source paths that `-file-prefix-map` does not remap (Swift's escaping-closure check), so a tree under the home would put the user name into the bundle and fail the identity step.
