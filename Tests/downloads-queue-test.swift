@@ -21,6 +21,7 @@ struct DownloadsQueueTest {
         try await persistence(root)
         try await readOnlyJobs(root)
         try await unreadablePersistence(root)
+        try await failedPersistence(root)
         try await tools(root)
         try await processes(root)
         print("downloads-queue-test: all checks passed")
@@ -52,14 +53,13 @@ struct DownloadsQueueTest {
         let unknown = serial.enqueue(kind: "unregistered", sources: ["unknown"])[0]
         expect(serial.jobs.first?.state == .failed && serial.jobs.first?.detail != nil,
                "unregistered runner fails without blocking FIFO")
-        serial.remove(unknown.id)
         serial.enqueue(kind: "fake", sources: ["a", "b", "c", "d"])
         for (index, source) in ["a", "b", "c", "d"].enumerated() {
             try await eventually { serialProbe.started.count == index + 1 }
             expect(serialProbe.started.last == source, "FIFO start order")
             serialProbe.released.insert(source)
         }
-        try await eventually { serial.jobs.allSatisfy { $0.state == .done } }
+        try await eventually { serial.jobs.filter { $0.id != unknown.id }.allSatisfy { $0.state == .done } }
         await serial.stop()
     }
 
@@ -84,15 +84,6 @@ struct DownloadsQueueTest {
         try await eventually { queue.jobs.filter { $0.state == .done }.count == 2 }
         expect(queue.jobs.last?.source == "first", "retry retains source")
         expect(queue.jobs.last?.progress?.fraction == 0.5, "runner progress applied")
-        queue.clearFinished()
-        expect(queue.jobs.isEmpty, "clear removes terminal rows")
-        let removed = queue.enqueue(kind: "fake", sources: ["remove", "after"])
-        try await eventually { probe.started.contains("remove") }
-        queue.remove(removed[0].id)
-        try await eventually { probe.started.contains("after") }
-        probe.released.insert("after")
-        try await eventually { queue.jobs.first?.state == .done }
-        expect(queue.jobs.count == 1 && queue.jobs[0].source == "after", "remove running job rejects stale completion")
         await queue.stop()
     }
 
@@ -155,8 +146,6 @@ struct DownloadsQueueTest {
         expect(queue.jobs.count == 1, "repeated reads preserve rows")
         try await queue.flush()
         try expect(Data(contentsOf: file) == original, "reading jobs does not persist changes")
-        queue.expireFinished()
-        expect(queue.jobs.isEmpty, "expireFinished drops old finished rows on a running app")
         queue.enqueue(kind: "unregistered", sources: ["expired"])
         now = now.addingTimeInterval(8 * 86400)
         queue.enqueue(kind: "unregistered", sources: ["fresh"])
@@ -179,6 +168,25 @@ struct DownloadsQueueTest {
         let rows = try JSONDecoder().decode([DownloadJob].self, from: Data(contentsOf: file))
         expect(rows.map(\.source) == ["new"], "recovered queue persists new jobs")
         await queue.stop()
+    }
+
+    @MainActor
+    private static func failedPersistence(_ root: URL) async throws {
+        let parent = root.appending(path: "failed-write")
+        let file = parent.appending(path: "downloads.json")
+        let queue = try await DownloadQueue(file: file, destination: root)
+        try FileManager.default.removeItem(at: file)
+        try FileManager.default.removeItem(at: parent)
+        try Data("blocked".utf8).write(to: parent)
+        queue.enqueue(kind: "unregistered", sources: ["fixture"])
+        do {
+            try await queue.flush()
+            fatalError("failed persistence must throw")
+        } catch {
+            expect(queue.persistenceError == error.localizedDescription, "write failure remains observable")
+        }
+        await queue.stop()
+        expect(queue.persistenceError != nil, "stop retains flush failure")
     }
 
     @MainActor

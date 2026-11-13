@@ -82,9 +82,9 @@ struct StdioTest {
             guard authorized else { return nil }
             return {}
         }
-        index.didComplete = { request, reply in
+        index.didComplete = { request, reply, duration in
             if request.verb == .run { audit.append((request, reply)) }
-            if let entry = request.auditEntry(reply: reply, time: Date()) {
+            if let entry = request.auditEntry(reply: reply, time: Date(), duration: duration) {
                 do { try await auditStore.append(entry) } catch { precondition(Task.isCancelled) }
             }
         }

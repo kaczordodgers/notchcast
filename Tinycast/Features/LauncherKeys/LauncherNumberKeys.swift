@@ -1,3 +1,5 @@
+import Foundation
+
 enum LauncherNumberKeys {
     static func badgeSlot(entryIndex index: Int, query: String, enabled: Bool) -> Character? {
         let digit = index + 1
@@ -20,7 +22,8 @@ enum LauncherNumberKeys {
     }
 
     static func entryIndex(digit: Int, query: String, entryCount: Int, enabled: Bool) -> Int? {
-        guard enabled, !query.isEmpty, (1...9).contains(digit), digit <= entryCount else {
+        guard enabled, !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              (1...9).contains(digit), digit <= entryCount else {
             return nil
         }
         return digit - 1

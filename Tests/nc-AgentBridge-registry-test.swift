@@ -12,7 +12,7 @@ struct AgentRegistryTests {
         var runs = 0
         var available = true
         var completions = 0
-        index.didComplete = { _, _ in completions += 1 }
+        index.didComplete = { _, _, _ in completions += 1 }
         let action = AgentAction(id: "fixture.volume", title: "Fixture", parameters: .init(
             properties: ["level": .init(kind: .number, minimum: 0, maximum: 1)], required: ["level"]), danger: .consent)
         let entry = AgentActionIndex.Entry(action: action, isAvailable: { available }, run: { parameters in

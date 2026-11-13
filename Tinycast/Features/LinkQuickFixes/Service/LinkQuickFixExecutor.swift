@@ -16,8 +16,6 @@ struct LinkQuickFixExecutor {
             open(URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!)
         case .relinkInConnections:
             settings()
-        case let .openMirrorLog(url):
-            open(url)
         }
     }
 }
