@@ -330,17 +330,12 @@ struct RootClientTest {
     static func main() async throws {
         validateCommands()
         try validateBoundaries()
-        for command in RootContract.Command.allCases where ![.version, .cleanSystemList, .cleanSystemTrash].contains(command) {
+        for command in RootContract.Command.allCases {
+            let allowed = [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash].contains(command)
             do {
-                _ = try await RootHelperClient().clean(command, input: Data())
-                preconditionFailure("Non-clean command accepted")
-            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse) }
-        }
-        for command in [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash] {
-            do {
-                _ = try await RootHelperClient().clean(command, input: Data(repeating: 0, count: 4097))
-                preconditionFailure("Oversized request accepted")
-            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse) }
+                _ = try await RootHelperClient().clean(command, input: Data(repeating: 0, count: allowed ? 4097 : 0))
+            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
+            preconditionFailure("Disallowed command or oversized request accepted")
         }
         let strict = ProcessInfo.processInfo.environment["LIBDISPATCH_COOPERATIVE_POOL_STRICT"]
         print("Cooperative pool strict: \(strict ?? "unset")")
@@ -362,13 +357,14 @@ struct RootClientTest {
         for data in [Data(repeating: 0, count: 4097), Data([0xff]), Data("4\nextra".utf8)] {
             do {
                 _ = try RootHelperClient.decodeReply(.version, data: data)
-                preconditionFailure("Invalid reply accepted")
-            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse) }
+            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
+            preconditionFailure("Invalid reply accepted")
         }
         let reply = try RootHelperClient.decodeReply(.version, data: Data("4\n".utf8))
         precondition(reply == .version("4"))
         try RootHelperClient.validateExitStatus(0)
         for (status, failure) in [(Int32(1), RootHelperClient.Failure.authorizationRequired),
+                                  (RootContract.unauthorizedCallerExit, .reinstallRequired),
                                   (Int32(7), .executionFailed(7))] {
             do {
                 try RootHelperClient.validateExitStatus(status)
@@ -405,12 +401,6 @@ struct RootClientTest {
         }
         precondition(RootContract.version == "4")
         precondition(RootContract.Reply(command: .version, output: "4\n") == .version("4"))
-        do {
-            try RootHelperClient.validateExitStatus(78)
-            preconditionFailure("Caller rejection must require reinstall")
-        } catch {
-            precondition(error as? RootHelperClient.Failure == .reinstallRequired)
-        }
         precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
         for invalid in [" 2 \n\n", "2", "02\n", "2\n\n", "+2\n"] {
             precondition(RootContract.Reply(command: .version, output: invalid) == nil)
