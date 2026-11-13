@@ -15,7 +15,8 @@ enum Paster {
 
 @main @MainActor
 struct FinderToolsServicesTest {
-    static func main() {
+    static func main() async {
+        await copyGuards()
         let source = CGEventSource(stateID: .privateState)!
         let event = CGEvent(source: source)!
         precondition(!event.isSynthetic)
@@ -44,5 +45,25 @@ struct FinderToolsServicesTest {
         precondition(entries[0].module !== entries[1].module)
         print("PASS: shipped Finder services compile in Swift 6; disabled commands have no effects")
         print("PASS: registration returns one module per switch, each requiring its own feature")
+    }
+
+    private static func copyGuards() async {
+        var count = 10
+        var waits = 0
+        var reads = 0
+        let raced = await FinderCopyService.copySelection(
+            changeCount: { count }, fileCount: { reads += 1; count += 1; return 2 },
+            copy: { count += 1 }, isCurrent: { true }, wait: { waits += 1 })
+        precondition(raced == nil && reads == 1 && waits == 1, "A clipboard change during reading rejects the cut")
+        waits = 0
+        reads = 0
+        let timedOut = await FinderCopyService.copySelection(
+            changeCount: { count }, fileCount: { reads += 1; return 2 },
+            copy: {}, isCurrent: { true }, wait: { waits += 1 })
+        precondition(timedOut == nil && waits == 25 && reads == 0, "Unchanged clipboard times out without arming cut")
+        let copied = await FinderCopyService.copySelection(
+            changeCount: { count }, fileCount: { 2 }, copy: { count += 1 },
+            isCurrent: { true }, wait: {})
+        precondition(copied == count, "A stable file clipboard arms the cut")
     }
 }

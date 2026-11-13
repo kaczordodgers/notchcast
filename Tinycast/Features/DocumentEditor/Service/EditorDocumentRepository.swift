@@ -20,7 +20,8 @@ struct EditorDocumentRepository: Sendable {
 
     @concurrent
     static func save(
-        _ source: String, to url: URL, expecting snapshot: EditorDocumentSnapshot
+        _ source: String, to url: URL, expecting snapshot: EditorDocumentSnapshot,
+        write: @Sendable (FileHandle, Data) throws -> Void = { try $0.write(contentsOf: $1) }
     ) async throws -> EditorDocumentSnapshot {
         let bytes = try snapshot.encoded(source)
         return try coordinated(url, writing: true) { location in
@@ -31,8 +32,15 @@ struct EditorDocumentRepository: Sendable {
                 if (attributes[.referenceCount] as? NSNumber)?.intValue ?? 1 > 1 {
                     let file = try FileHandle(forWritingTo: location)
                     defer { try? file.close() }
-                    try file.truncate(atOffset: 0)
-                    try file.write(contentsOf: bytes)
+                    do {
+                        try write(file, bytes)
+                        try file.truncate(atOffset: UInt64(bytes.count))
+                    } catch {
+                        try file.seek(toOffset: 0)
+                        try file.write(contentsOf: snapshot.bytes)
+                        try file.truncate(atOffset: UInt64(snapshot.bytes.count))
+                        throw error
+                    }
                     return try EditorDocumentSnapshot(bytes: bytes)
                 }
                 let temporary = location.deletingLastPathComponent().appendingPathComponent(".\(UUID().uuidString).tmp")

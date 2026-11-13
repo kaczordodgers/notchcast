@@ -1,12 +1,14 @@
 import Foundation
+import Synchronization
 
 final class EditorFilePresenter: NSObject, NSFilePresenter, Sendable {
-    let presentedItemURL: URL?
+    private let location: Mutex<URL>
+    var presentedItemURL: URL? { location.withLock { $0 } }
     let presentedItemOperationQueue = OperationQueue()
-    private let changed: @Sendable () -> Void
+    private let changed: @Sendable (URL) -> Void
 
-    init(url: URL, changed: @escaping @Sendable () -> Void) {
-        presentedItemURL = url
+    init(url: URL, changed: @escaping @Sendable (URL) -> Void) {
+        location = Mutex(url)
         self.changed = changed
         super.init()
         presentedItemOperationQueue.maxConcurrentOperationCount = 1
@@ -15,12 +17,15 @@ final class EditorFilePresenter: NSObject, NSFilePresenter, Sendable {
 
     func stop() { NSFileCoordinator.removeFilePresenter(self) }
 
-    func presentedItemDidChange() { changed() }
+    func presentedItemDidChange() { changed(location.withLock { $0 }) }
 
-    func presentedItemDidMove(to newURL: URL) { changed() }
+    func presentedItemDidMove(to newURL: URL) {
+        location.withLock { $0 = newURL }
+        changed(newURL)
+    }
 
     func accommodatePresentedItemDeletion(completionHandler: @escaping (Error?) -> Void) {
-        changed()
+        changed(location.withLock { $0 })
         completionHandler(nil)
     }
 }

@@ -103,6 +103,7 @@ final class EditorDocumentSession {
             let next = try await perform { try await EditorDocumentRepository.load(location) }
             try Task.checkCancellation()
             guard isEnabled, lifecycle == requestLifecycle else { return }
+            guard url == location else { requestRefresh(); return }
             guard next.bytes != saved.bytes else {
                 externalVersion = nil
                 failure = nil
@@ -162,6 +163,7 @@ final class EditorDocumentSession {
                 try await EditorDocumentRepository.create(draft, at: destination, format: format)
             }
             presenter?.stop()
+            lifecycle += 1
             url = destination.standardizedFileURL
             rendersMarkdown = markdown
             saved = next
@@ -210,8 +212,13 @@ final class EditorDocumentSession {
     }
 
     private func watch() {
-        presenter = EditorFilePresenter(url: url) { [weak self] in
-            Task { @MainActor [weak self] in self?.requestRefresh() }
+        let watchingLifecycle = lifecycle
+        presenter = EditorFilePresenter(url: url) { [weak self] location in
+            Task { @MainActor [weak self] in
+                guard let self, self.isEnabled, self.lifecycle == watchingLifecycle else { return }
+                self.url = location.standardizedFileURL
+                self.requestRefresh()
+            }
         }
     }
 
@@ -244,7 +251,7 @@ final class EditorDocumentSession {
         await withCheckedContinuation { idleWaiters.append($0) }
     }
 
-    private func perform(
+    func perform(
         _ work: @escaping @Sendable () async throws -> EditorDocumentSnapshot
     ) async throws -> EditorDocumentSnapshot {
         guard operation == nil else { throw EditorFailure.busy }

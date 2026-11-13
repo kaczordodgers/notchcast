@@ -23,9 +23,8 @@ it adds no document window, launcher command, file association or default-handle
   Unmodified saves do not write. Line endings, NUL, normalization and BOM bytes are preserved.
   Unrepresentable edits fail without changing the file. Save As claims a new file without replacing
   an existing destination.
-- `NSFilePresenter` observes external replacements and deletion. The harness verifies consecutive
-  atomic replacements on temporary files. A moved file retains its old destination and reports
-  deletion rather than silently redirecting later saves.
+- `NSFilePresenter` observes external replacements, deletion and moves. A moved file updates the session destination before refresh; callbacks from a retired presenter cannot redirect a new destination.
+- Hard-linked saves keep the inode, write before truncating and restore the original snapshot after a thrown write. Process termination during an in-place write and a second IO failure during rollback remain outside this guarantee.
 - Word counts use `NLTokenizer(.word)`, characters exclude newline graphemes, and lines count CRLF
   once. Brain Dump accepts growth and changes to trailing whitespace, rejecting other deletions.
 
@@ -53,6 +52,7 @@ that window. Mermaid, a preview pane, rich text and printing remain outside this
 
 `./Scripts/run-tests.sh nc-DocumentEditor-document-test` covers encoding, revision checks, Save As,
 deletion, conflict decisions, autosave, the real presenter, Notes edit plans, counts and preferences.
+The document harness also injects a partial hard-link write failure, checks restoration through both links, follows a coordinated rename through the session, and holds one operation suspended while a second load reports busy.
 `./Scripts/run-tests.sh nc-DocumentEditor-coordinator-test` covers lifecycle, concurrent opens,
 symlink identity, feature switches, cancellation and dirty-close protection.
 Both use isolated preferences and temporary directories; neither opens a document window.

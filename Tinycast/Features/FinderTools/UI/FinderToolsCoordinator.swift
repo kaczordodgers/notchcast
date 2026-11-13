@@ -98,8 +98,12 @@ final class FinderToolsCoordinator {
                 return
             }
             guard focus == .files else {
-                self.cutSession.clear()
-                self.input.finishCut(request)
+                if request.action == .paste {
+                    self.input.restoreCut(request)
+                } else {
+                    self.cutSession.clear()
+                    self.input.finishCut(request)
+                }
                 self.forwardUnavailable(request)
                 return
             }
@@ -150,24 +154,20 @@ final class FinderToolsCoordinator {
 
     private func copySelection(_ request: FinderShortcutState.Request) async {
         cutSession.clear()
-        let before = NSPasteboard.general.changeCount
-        FinderCommandService.post(keyCode: 8, flags: .maskCommand, pid: request.pid)
-        for _ in 0..<25 {
-            do { try await Task.sleep(for: .milliseconds(20)) } catch { return }
-            guard isCurrent(request) else { return }
-            let clipboard = NSPasteboard.general
-            let copiedChangeCount = clipboard.changeCount
-            guard copiedChangeCount != before else { continue }
-            let files = clipboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) ?? []
-            guard clipboard.changeCount == copiedChangeCount else {
-                input.finishCut(request)
-                return
-            }
-            cutSession.mark(changeCount: copiedChangeCount, fileCount: files.count)
-            if files.isEmpty { input.finishCut(request) }
-            return
+        let copied = await FinderCopyService.copySelection(
+            changeCount: { NSPasteboard.general.changeCount },
+            fileCount: {
+                NSPasteboard.general.readObjects(forClasses: [NSURL.self],
+                                                options: [.urlReadingFileURLsOnly: true])?.count ?? 0
+            },
+            copy: { FinderCommandService.post(keyCode: 8, flags: .maskCommand, pid: request.pid) },
+            isCurrent: { self.isCurrent(request) })
+        guard isCurrent(request), !Task.isCancelled else { return }
+        if let copied {
+            cutSession.mark(changeCount: copied, fileCount: 1)
+        } else {
+            input.finishCut(request)
         }
-        input.finishCut(request)
     }
 
     private func moveSelection(_ request: FinderShortcutState.Request) {
