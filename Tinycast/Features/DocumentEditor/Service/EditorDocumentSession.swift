@@ -218,6 +218,7 @@ final class EditorDocumentSession {
                     self.url = location.standardizedFileURL.resolvingSymlinksInPath()
                 } else {
                     self.presenter?.stop()
+                    self.lifecycle += 1
                     self.watch()
                 }
                 self.requestRefresh()

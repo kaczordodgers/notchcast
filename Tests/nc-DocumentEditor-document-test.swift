@@ -270,6 +270,15 @@ struct EditorDocumentTests {
             }
             precondition(document.url == original && document.rendersMarkdown)
             precondition(document.failure as? EditorFailure == .missingFile)
+            coordinator.coordinate(writingItemAt: original, options: .forReplacing, error: &error) { location in
+                do { try Data("returned".utf8).write(to: location) } catch { moveError = error }
+            }
+            if let error { throw error }
+            if let moveError { throw moveError }
+            for _ in 0..<100 where document.failure != nil || document.source != "returned" {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            precondition(document.failure == nil && document.source == "returned")
             return
         }
         for _ in 0..<100 where document.url != moved {
