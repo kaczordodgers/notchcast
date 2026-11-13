@@ -32,12 +32,16 @@ enum WebRules {
             } catch MachLinkMessage.Failure.invalidPairing {}
             precondition(defaults.string(forKey: "pairingID") == nil && !module.isPaired)
         }
+        module.start()
+        defer { module.stop() }
         let code = try module.pair(code: "")
         precondition(module.isPaired && defaults.string(forKey: "pairingID") != nil)
         let imported = try module.pair(code: code)
         precondition(imported == code)
+        precondition(module.channel.pairing != nil && module.channel.manager.listener != nil)
         try module.unpair()
         precondition(!module.isPaired && module.channel.pairing == nil)
+        precondition(module.channel.manager.listener == nil)
         precondition(defaults.string(forKey: "pairingID") == nil)
         try module.unpair()
         let channel = module.channel
