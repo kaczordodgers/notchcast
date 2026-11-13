@@ -9,14 +9,17 @@ final class LinkHealthModule: NotchcastModule {
     private(set) var isRunning = false
     @ObservationIgnored private let probe: Probe
     @ObservationIgnored private let now: () -> Date
+    @ObservationIgnored private let pause: @MainActor () async throws -> Void
     @ObservationIgnored private let post: @MainActor (String) -> Void
     @ObservationIgnored private var polling: Task<Void, Never>?
     @ObservationIgnored private var generation = UUID()
 
     init(probe: @escaping Probe, now: @escaping () -> Date = Date.init,
+         pause: @escaping @MainActor () async throws -> Void = { try await Task.sleep(for: .seconds(60)) },
          post: @escaping @MainActor (String) -> Void) {
         self.probe = probe
         self.now = now
+        self.pause = pause
         self.post = post
     }
 
@@ -27,7 +30,7 @@ final class LinkHealthModule: NotchcastModule {
         polling = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh(generation: current)
-                do { try await Task.sleep(for: .seconds(60)) } catch { return }
+                do { try await self?.pause() } catch { return }
             }
         }
     }
