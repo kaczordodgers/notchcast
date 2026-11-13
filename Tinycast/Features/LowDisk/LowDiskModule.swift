@@ -12,12 +12,14 @@ final class LowDiskModule: NotchcastModule {
             self?.latest = $0
             Self.postNotice($0)
         }
+        manager.onReport = { Self.postNotice($0, isLow: false) }
         manager.start()
     }
 
     func stop() {
         manager.stop()
         manager.onNotice = nil
+        manager.onReport = nil
         latest = nil
     }
 }

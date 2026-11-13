@@ -85,6 +85,20 @@ struct LowDiskTests {
         await Task.yield()
         check(restarted.engine.isLow, "Stopped read cannot mutate the spell")
         check(LowDiskManager.checkInterval == .seconds(600), "Ten-minute cadence")
+        reader.value = .init(free: 100 * billion, total: 200 * billion)
+        let checked = LowDiskManager(defaults: defaults, wakeCenter: center, read: { await reader.read() })
+        var reported: [LowDiskEngine.Space] = []
+        checked.onNotice = { _ in preconditionFailure("Healthy space is not a low-disk notice") }
+        checked.onReport = { reported.append($0) }
+        checked.start()
+        await checked.settled()
+        checked.check()
+        await checked.settled()
+        check(reported == [reader.value] && !checked.engine.isLow, "A manual check reports healthy space")
+        checked.refresh()
+        await checked.settled()
+        check(reported.count == 1, "Background checks of healthy space stay quiet")
+        checked.stop()
         print("PASS: \(checks) disk threshold, persistence, wake and stale-result checks")
     }
 }

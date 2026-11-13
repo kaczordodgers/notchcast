@@ -4,6 +4,7 @@ import Observation
 final class SystemLevelsModule: NotchcastModule {
     let service: SystemLevelsService
     private(set) var latest: LevelNotice?
+    @ObservationIgnored var announce: (LevelNotice) -> Void = { _ in }
 
     init(service: SystemLevelsService = SystemLevelsService()) { self.service = service }
 
