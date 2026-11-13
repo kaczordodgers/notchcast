@@ -71,6 +71,12 @@ struct TodoImportTests {
         precondition(state.tasks.values.first { $0.externalRef == "todoist:shared-a" }?.labels == sampleIDs + sharedIDs)
         precondition(state.tasks.values.first { $0.externalRef == "todoist:shared-b" }?.labels == sharedIDs)
         let invalid = Data("{\"tasks\":[{\"id\":\"fake\",\"content\":\"Invalid\",\"priority\":5}]}".utf8)
+        let dangling = Data(#"{"tasks":[{"id":"child","content":"Keep child","parent_id":"missing"},{"id":"other","content":"Keep other"}]}"#.utf8)
+        let recovered = try TodoistImportMapper.map(dangling, into: TodoState(), now: now,
+            calendar: calendar, timeZone: zone, makeID: { UUID().uuidString })
+        var recoveredState = TodoState()
+        try recoveredState.apply(.batch(recovered.commands))
+        precondition(recoveredState.tasks.count == 2 && recoveredState.tasks.values.allSatisfy { $0.parentID == nil })
         do {
             _ = try TodoistImportMapper.map(invalid, into: state, now: now, calendar: calendar,
                 timeZone: zone, makeID: { UUID().uuidString })

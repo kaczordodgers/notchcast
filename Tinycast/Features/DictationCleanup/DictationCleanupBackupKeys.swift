@@ -28,8 +28,10 @@ extension NotchcastFeature.BackupKeys {
 
     private static let cleanup: NotchcastFeature.BackupValue = .object([
         "effort": .string(6, ["low", "medium", "high"]),
-        "promptAddition": .string(16_384), "vocabulary": .array(500, .object([
-            "spelling": .string(256), "misheardForms": .strings(50, 256),
+        "promptAddition": .string(DictationCleanupSettings.promptLimit),
+        "vocabulary": .array(DictationCleanupSettings.vocabularyLimit, .object([
+            "spelling": .string(DictationCleanupSettings.termLimit),
+            "misheardForms": .strings(DictationCleanupSettings.misheardFormsLimit, DictationCleanupSettings.termLimit),
         ])),
     ])
 

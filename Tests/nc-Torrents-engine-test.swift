@@ -57,7 +57,7 @@ import Foundation
 
         func remove(_ gid: String) async throws {
             removed.append(gid)
-            if vanishedGIDs.contains(gid) { throw TorrentFailure.rpc(code: 1, message: "GID not found") }
+            if vanishedGIDs.contains(gid) { throw TorrentFailure.rpc(code: 1, message: "GID \(gid) is not found") }
             statuses[gid] = TorrentStatus(status: "removed")
         }
 
@@ -155,7 +155,10 @@ import Foundation
         var argumentReads = 0
         let manager = TorrentManager(session: session, destination: root, extraArguments: {
             argumentReads += 1
-            return ["--multiple-interface=en0,en7"]
+            return (["--multiple-interface=en0,en7"], ["en0", "en7"])
+        }, interfacesPresent: { names in
+            check(names == ["en0", "en7"], "Interface policy passes parsed names")
+            return true
         }, now: { date }, pollInterval: .milliseconds(10), revealFiles: { revealed = $0 })
         let ids = manager.enqueue([file, magnet])
         try await until("Same info hash is rejected across torrent and magnet") { manager.jobs[1].error == .alreadyRunning }
@@ -273,6 +276,8 @@ import Foundation
         manager.enqueue([fourth])
         try await until("Vanished status fails only that job") { manager.jobs[2].state == .failed }
         try await until("Benign remove race preserves other job") { session.removed.contains("2") }
+        try await Task.sleep(for: .milliseconds(100))
+        check(session.removed.filter { $0 == "2" }.count == 1, "Missing GID is retired once")
         check(manager.jobs[3].state.isRunning && session.stops == 0, "RPC job error preserves child")
         session.failure = .rpcUnavailable
         session.isAlive = false
@@ -444,7 +449,7 @@ import Foundation
         let session = TorrentAria2Session(stateDirectory: root.appendingPathComponent("aria2-state"))
         let offline = ["--enable-dht=false", "--enable-dht6=false", "--bt-enable-lpd=false",
                        "--bt-exclude-tracker=*", "--interface=127.0.0.1"]
-        let manager = TorrentManager(session: session, destination: destination, extraArguments: { offline },
+        let manager = TorrentManager(session: session, destination: destination, extraArguments: { (offline, []) },
                                      pollInterval: .milliseconds(100))
         var large = Data("d7:comment1600000:".utf8)
         large.append(Data(repeating: 65, count: 1_600_000))

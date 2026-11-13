@@ -73,7 +73,7 @@ enum TodoistImportMapper {
             task.order = source.child_order ?? 0
             task.projectID = try reference(source.project_id, in: projects)
             task.sectionID = try reference(source.section_id, in: sections)
-            task.parentID = try reference(source.parent_id, in: taskIDs)
+            task.parentID = source.parent_id.flatMap { taskIDs[$0] }
             task.labels = try (source.labels ?? []).map { name in
                 if let id = labels[name] ?? candidate.labels.values.first(where: { $0.name == name })?.id {
                     labels[name] = id

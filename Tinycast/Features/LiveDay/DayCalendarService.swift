@@ -27,13 +27,17 @@ final class DayCalendarService {
         let predicate = eventStore.predicateForEvents(
             withStart: interval.start, end: interval.end, calendars: calendars)
         return eventStore.events(matching: predicate).compactMap { event in
-            guard event.status != .canceled, let start = event.startDate, let end = event.endDate,
-                !((event.attendees ?? []).contains { $0.isCurrentUser && $0.participantStatus == .declined })
-            else { return nil }
-            return (DayEvent(id: event.calendarItemIdentifier + "|\(start.timeIntervalSinceReferenceDate)",
-                             title: event.title ?? String(localized: "(No Title)"), start: start, end: end,
-                             isAllDay: event.isAllDay, calendarID: event.calendar.calendarIdentifier), event)
+            Self.dayEvent(event).map { ($0, event) }
         }
+    }
+
+    static func dayEvent(_ event: EKEvent) -> DayEvent? {
+        guard event.status != .canceled, let start = event.startDate, let end = event.endDate,
+            !((event.attendees ?? []).contains { $0.isCurrentUser && $0.participantStatus == .declined })
+        else { return nil }
+        return DayEvent(id: event.calendarItemIdentifier + "|\(start.timeIntervalSinceReferenceDate)",
+                        title: event.title ?? String(localized: "(No Title)"), start: start, end: end,
+                        isAllDay: event.isAllDay, calendarID: event.calendar.calendarIdentifier)
     }
 
     func stop() {

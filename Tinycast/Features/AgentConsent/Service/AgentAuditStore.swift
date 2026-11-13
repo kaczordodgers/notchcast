@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 import Synchronization
 
 final class AgentAuditStore: Sendable {
@@ -17,36 +18,32 @@ final class AgentAuditStore: Sendable {
             let manager = FileManager.default
             try manager.createDirectory(at: directory, withIntermediateDirectories: true,
                                         attributes: [.posixPermissions: 0o700])
-            let current = directory.appendingPathComponent("audit.jsonl")
-            let archive = directory.appendingPathComponent("audit.previous.jsonl")
+            let directoryDescriptor = open(directory.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            guard directoryDescriptor >= 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
+            defer { close(directoryDescriptor) }
             var data = try JSONEncoder().encode(entry)
             data.append(0x0A)
             guard data.count <= maximumBytes else { throw CocoaError(.fileWriteOutOfSpace) }
-            if manager.fileExists(atPath: current.path) {
-                let attributes = try manager.attributesOfItem(atPath: current.path)
-                let size = (attributes[.size] as? NSNumber)?.intValue ?? 0
-                if size + data.count > maximumBytes {
-                    if manager.fileExists(atPath: archive.path) { try manager.removeItem(at: archive) }
-                    try manager.moveItem(at: current, to: archive)
+            var descriptor = openat(directoryDescriptor, "audit.jsonl", O_WRONLY | O_CREAT | O_NOFOLLOW | O_CLOEXEC, 0o600)
+            guard descriptor >= 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
+            defer { if descriptor >= 0 { close(descriptor) } }
+            var status = stat()
+            guard fstat(descriptor, &status) == 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
+            guard status.st_mode & S_IFMT == S_IFREG else { throw CocoaError(.fileWriteUnknown) }
+            if status.st_size + Int64(data.count) > Int64(maximumBytes) {
+                guard renameat(directoryDescriptor, "audit.jsonl", directoryDescriptor, "audit.previous.jsonl") == 0 else {
+                    throw POSIXError(.init(rawValue: errno) ?? .EIO)
                 }
+                close(descriptor)
+                descriptor = openat(directoryDescriptor, "audit.jsonl",
+                    O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
+                guard descriptor >= 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
             }
-            if !manager.fileExists(atPath: current.path) {
-                guard manager.createFile(atPath: current.path, contents: nil,
-                                         attributes: [.posixPermissions: 0o600]) else {
-                    throw CocoaError(.fileWriteUnknown)
-                }
-            }
-            try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: current.path)
-            let handle = try FileHandle(forWritingTo: current)
-            do {
-                try handle.seekToEnd()
-                try handle.write(contentsOf: data)
-                try handle.synchronize()
-                try handle.close()
-            } catch {
-                try? handle.close()
-                throw error
-            }
+            guard fchmod(descriptor, 0o600) == 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
+            let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: false)
+            try handle.seekToEnd()
+            try handle.write(contentsOf: data)
+            try handle.synchronize()
         }
     }
 

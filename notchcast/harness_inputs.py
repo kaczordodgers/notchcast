@@ -35,8 +35,12 @@ def upstream_registrations() -> dict[str, list[str]]:
             variables[assignment[1]] = " ".join(shlex.split(assignment[2], comments=True))
         elif line.startswith("run "):
             tokens = shlex.split(line, comments=True)[1:]
+            flags = set()
             while tokens[0] in ("slow", "-O", "index"):
-                tokens.pop(0)
+                flags.add(tokens.pop(0))
+            # run-tests.sh only emits editor flags for an `index` harness and never runs it.
+            if "index" in flags:
+                continue
             name, *arguments = tokens
             registrations[name] = [word for arg in arguments for word in expand(arg).split()]
     return registrations

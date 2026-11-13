@@ -1,6 +1,15 @@
 import Foundation
 
 enum IslandGeometry {
+    static func restoredScreenIndex(previous: CGRect?, visibleFrames: [CGRect], pinned: Bool) -> Int? {
+        if let index = visibleFrames.firstIndex(where: { $0 == previous }) { return index }
+        guard pinned else { return nil }
+        if let previous,
+           let index = screenIndex(containing: CGPoint(x: previous.midX, y: previous.midY), frames: visibleFrames)
+        { return index }
+        return visibleFrames.indices.first
+    }
+
     static func screenIndex(containing point: CGPoint, frames: [CGRect]) -> Int? {
         frames.firstIndex { $0.contains(point) }
     }

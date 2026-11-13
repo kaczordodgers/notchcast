@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 struct CleanAIDataService: Sendable {
     let policy: CleanAIDataPolicy
@@ -6,7 +7,24 @@ struct CleanAIDataService: Sendable {
     let git: any CleanAIDataGitReader
     let now: @Sendable () -> Date
     let chatIdle: @Sendable (URL) async -> Bool?
-    let copy: @Sendable (URL, URL) throws -> Void
+
+    func cleanupLegacyRecovery(defaults: UserDefaults, trash: (URL) throws -> Void) {
+        let key = "cleanAIRecoveryRemoved"
+        guard !defaults.bool(forKey: key) else { return }
+        let folder = policy.home.appendingPathComponent(".clean-ai-recovery")
+        do {
+            if FileManager().fileExists(atPath: folder.path) {
+                guard CleanService.physical(folder, inside: policy.home) else {
+                    throw CocoaError(.fileWriteNoPermission)
+                }
+                try trash(folder)
+            }
+            defaults.set(true, forKey: key)
+        } catch {
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast", category: "Clean")
+                .error("Legacy AI recovery cleanup failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
 
     @concurrent func scan() async throws -> [CleanAIDataItem] {
         let roots: [(String, CleanAIDataItem.Kind)] = [
@@ -40,33 +58,16 @@ struct CleanAIDataService: Sendable {
         var results: [CleanAIDataOutcome] = []
         for item in selected {
             try Task.checkCancellation()
-            var recovery: URL?
             let status: CleanAIDataOutcome.Status
             do {
                 guard item.selectable, policy.permits(item.path, kind: item.kind) else {
-                    results.append(.init(path: item.path, status: .refused, recovery: nil)); continue
+                    results.append(.init(path: item.path, status: .refused)); continue
                 }
                 guard try await current(item) else {
-                    results.append(.init(path: item.path, status: .changed, recovery: nil)); continue
-                }
-                if item.kind != .worktree {
-                    let folder = policy.home.appendingPathComponent(".clean-ai-recovery")
-                    if !FileManager().fileExists(atPath: folder.path) {
-                        try FileManager().createDirectory(at: folder, withIntermediateDirectories: false)
-                    }
-                    guard CleanService.physical(folder, inside: policy.home) else { throw CocoaError(.fileWriteNoPermission) }
-                    let destination = folder.appendingPathComponent(UUID().uuidString)
-                    let original = try Data(contentsOf: item.path)
-                    try copy(item.path, destination)
-                    guard CleanService.physical(destination, inside: policy.home),
-                          try Data(contentsOf: destination) == original,
-                          try Data(contentsOf: item.path) == original else {
-                        results.append(.init(path: item.path, status: .recoveryFailed, recovery: nil)); continue
-                    }
-                    recovery = destination
+                    results.append(.init(path: item.path, status: .changed)); continue
                 }
                 guard try await current(item) else {
-                    results.append(.init(path: item.path, status: .changed, recovery: recovery)); continue
+                    results.append(.init(path: item.path, status: .changed)); continue
                 }
                 try Task.checkCancellation()
                 let metadata = item.kind == .worktree ? try worktreeMetadata(item.path) : nil
@@ -78,7 +79,7 @@ struct CleanAIDataService: Sendable {
             } catch {
                 status = .failed(String(describing: error))
             }
-            results.append(.init(path: item.path, status: status, recovery: recovery))
+            results.append(.init(path: item.path, status: status))
         }
         return results
     }
