@@ -2,6 +2,7 @@
 // notchcast-sources: Tinycast/Features/GitHub/Service/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 import Foundation
+import Network
 import Synchronization
 
 @main
@@ -104,6 +105,31 @@ struct GitHubTest {
         }
         precondition(starsSession.state == .ready && starsSession.results.isEmpty)
         print("Verified: search, empty query Trending, HTTP/rate limit, malformed JSON, stars without token")
-        print("Verified: 700 ms trailing debounce and cancellation; fake network only")
+        print("Verified: 700 ms trailing debounce and cancellation")
+        let requests = Mutex<[String]>([])
+        let parameters = NWParameters.tcp
+        parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
+        let listener = try NWListener(using: parameters)
+        defer { listener.cancel() }
+        listener.newConnectionHandler = { connection in
+            connection.start(queue: .global())
+            connection.receive(minimumIncompleteLength: 1, maximumLength: 4096) { data, _, _, _ in
+                let request = String(bytes: data ?? Data(), encoding: .utf8)!
+                requests.withLock { $0.append(request) }
+                let head = request.hasPrefix("GET /next ") ? "200 OK" : "302 Found\r\nLocation: /next"
+                let response = "HTTP/1.1 \(head)\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in connection.cancel() })
+            }
+        }
+        listener.start(queue: .global())
+        for _ in 0..<100 where (listener.port?.rawValue ?? 0) == 0 { try await Task.sleep(for: .milliseconds(20)) }
+        let port = listener.port!.rawValue
+        var request = URLRequest(url: URL(string: "http://127.0.0.1:\(port)/start")!)
+        request.setValue("Bearer fixture-token", forHTTPHeaderField: "Authorization")
+        let (_, response) = try await GitHubService.network(request)
+        precondition(response.statusCode == 302, "GitHub refuses credential-bearing redirects")
+        let seen = requests.withLock { $0 }
+        precondition(seen.count == 1 && seen[0].contains("Bearer fixture-token"), "Only the selected host gets a request")
+        print("Verified: production GitHub session sends the fixture credential once and refuses the redirect")
     }
 }

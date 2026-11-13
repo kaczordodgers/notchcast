@@ -1,6 +1,6 @@
 import Foundation
 
-@MainActor final class TorrentRPCClient: NSObject, URLSessionTaskDelegate {
+@MainActor final class TorrentRPCClient {
     private struct Response<Value: Decodable & Sendable>: Decodable, Sendable {
         struct Failure: Decodable, Sendable { let code: Int; let message: String }
         let jsonrpc: String
@@ -14,7 +14,6 @@ import Foundation
 
     init(port: UInt16, secret: String) {
         self.secret = secret
-        super.init()
         var components = URLComponents()
         components.scheme = "http"
         components.host = "127.0.0.1"
@@ -26,7 +25,7 @@ import Foundation
         configuration.connectionProxyDictionary = [:]
         configuration.timeoutIntervalForRequest = 2
         configuration.timeoutIntervalForResource = 3
-        session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        session = URLSession(configuration: configuration, delegate: RedirectRefusal(), delegateQueue: nil)
     }
 
     private var rpcURL: URL?
@@ -75,12 +74,5 @@ import Foundation
     func invalidate() {
         session?.invalidateAndCancel()
         session = nil
-    }
-
-    nonisolated func urlSession(
-        _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-        newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void
-    ) {
-        completionHandler(nil)
     }
 }
