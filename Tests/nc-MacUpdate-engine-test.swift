@@ -27,6 +27,9 @@ final class FakeRunner: MacUpdateProcessRunning {
 struct MacUpdateTests {
     @MainActor
     static func main() async throws {
+        for prefix in ["/opt/homebrew", "/usr/local", "/custom/brew"] {
+            precondition(MacUpdateLock.path(for: prefix + "/bin/brew") == prefix + "/var/homebrew/locks/update")
+        }
         precondition(MacUpdateService.State.running.reason == nil)
         precondition(MacUpdateService.State.failed("disk full").reason == "disk full")
         for reason in ["missing-homebrew", "missing-mas", "missing-or-unsupported-cli-install",
@@ -99,7 +102,7 @@ struct MacUpdateTests {
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         let lock = root.appendingPathComponent("maintenance.lock")
         func service(_ runner: FakeRunner, missing: Bool = false,
-                     locked: @escaping () -> Bool = { false }) -> MacUpdateService {
+                     locked: @escaping (String) -> Bool = { _ in false }) -> MacUpdateService {
             MacUpdateService(runner: runner, appRoot: root.path,
                              exists: { _ in true }, resolve: { $0 }, locked: locked,
                              lockTimeout: .milliseconds(60), locate: { missing ? nil : "/fixture/bin/" + $0 })
@@ -116,7 +119,7 @@ struct MacUpdateTests {
         assert(ordered.commands.map(\.kind) == [.homebrew, .homebrewUpgrade, .tool, .tool])
         let renamed = FakeRunner()
         let byKind = await collect(MacUpdateService(
-            runner: renamed, appRoot: root.path, exists: { _ in true }, resolve: { $0 }, locked: { true },
+            runner: renamed, appRoot: root.path, exists: { _ in true }, resolve: { $0 }, locked: { _ in true },
             lockTimeout: .milliseconds(60), locate: { "/fixture/" + $0 + "/run" }))
         assert(byKind.last?.state == .failed("homebrew-lock-timeout") && renamed.commands.isEmpty)
         let missing = FakeRunner()
@@ -131,7 +134,8 @@ struct MacUpdateTests {
         try Data().write(to: lock)
         let waiting = FakeRunner()
         var probes = 0
-        let blocked = service(waiting, locked: {
+        let blocked = service(waiting, locked: { brew in
+            assert(brew == "/fixture/bin/brew")
             probes += 1
             return FileManager.default.fileExists(atPath: lock.path)
         })
@@ -141,7 +145,7 @@ struct MacUpdateTests {
         assert(FileManager.default.fileExists(atPath: lock.path))
         var checks = 0
         let released = FakeRunner()
-        _ = await collect(service(released, locked: { checks += 1; return checks < 2 }))
+        _ = await collect(service(released, locked: { _ in checks += 1; return checks < 2 }))
         assert(released.commands.count == 4 && checks >= 2)
         let cancelling = FakeRunner()
         cancelling.blocks = true

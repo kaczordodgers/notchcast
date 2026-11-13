@@ -11,7 +11,7 @@ nonisolated enum WebRules {
 
     static func isYouTubeHost(_ host: String?) -> Bool {
         guard let host = host?.lowercased() else { return false }
-        return host == "youtu.be" || host == "youtube.com" || host.hasSuffix(".youtube.com")
+        return host == "youtu.be" || host.hasSuffix(".youtu.be") || host == "youtube.com" || host.hasSuffix(".youtube.com")
     }
 
     static func isTrackingParameter(_ name: String) -> Bool {
