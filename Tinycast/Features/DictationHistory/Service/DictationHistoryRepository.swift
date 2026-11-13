@@ -22,6 +22,10 @@ struct DictationHistoryRepository: Sendable {
             .sorted { $0.date > $1.date }.prefix(max(0, limit)))
     }
 
+    func hasQuarantine() -> Bool {
+        FileManager.default.fileExists(atPath: quarantine.path)
+    }
+
     func maintain() throws {
         try prepare()
         try recover()

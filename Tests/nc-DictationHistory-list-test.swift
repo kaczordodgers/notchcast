@@ -28,15 +28,24 @@ struct DictationHistoryListTests {
         precondition(skipped.isEmpty)
         let preserved = try Data(contentsOf: directory.appendingPathComponent("history.jsonl"))
         precondition(preserved == Data("corrupt".utf8))
+        try repository.maintain()
+        let quarantineOnly = try repository.recent()
+        precondition(quarantineOnly.isEmpty)
+        precondition(repository.hasQuarantine())
+        precondition(DictationHistoryClearPolicy.isEnabled(
+            isLoading: false, isClearing: false, isEmpty: quarantineOnly.isEmpty,
+            hasQuarantine: repository.hasQuarantine(), loadFailed: false))
         try repository.deleteAll()
+        precondition(!repository.hasQuarantine())
         let recovered = try repository.recent()
         precondition(recovered.isEmpty)
         precondition(!DictationHistoryClearPolicy.isEnabled(
-            isLoading: false, isClearing: false, isEmpty: true, loadFailed: false))
+            isLoading: false, isClearing: false, isEmpty: true,
+            hasQuarantine: repository.hasQuarantine(), loadFailed: false))
         precondition(!DictationHistoryClearPolicy.isEnabled(
-            isLoading: true, isClearing: false, isEmpty: true, loadFailed: true))
+            isLoading: true, isClearing: false, isEmpty: true, hasQuarantine: true, loadFailed: true))
         precondition(!DictationHistoryClearPolicy.isEnabled(
-            isLoading: false, isClearing: true, isEmpty: true, loadFailed: true))
+            isLoading: false, isClearing: true, isEmpty: true, hasQuarantine: true, loadFailed: true))
         print("PASS history list: newest first, latest 100, clear empties isolated store")
     }
 }
