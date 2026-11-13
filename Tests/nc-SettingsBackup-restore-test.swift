@@ -112,7 +112,8 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let folder = NotchcastIdentity.supportRoot.appendingPathComponent("fork-settings-backups")
         try? FileManager.default.removeItem(at: folder)
         defer { try? FileManager.default.removeItem(at: folder) }
-        let module = ForkSettingsBackupModule()
+        var notices = 0
+        let module = ForkSettingsBackupModule(report: { notices += 1 })
         module.start()
         defer { module.stop() }
         var copies: [ForkSettingsBackupService.Copy] = []
@@ -121,6 +122,7 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             try await Task.sleep(for: .milliseconds(50))
         }
         precondition(!copies.isEmpty, "the hourly backup wrote no copy")
+        precondition(notices == (waitsForFailure ? 1 : 0), "partial backup failure must reach the notice path")
         let data = try await ForkSettingsBackupService.read(folder: folder, name: copies[0].name)
         return (Array(try ForkSettingsBackupEngine.decode(data).keys), module.failed)
     }
@@ -155,7 +157,8 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let oldCPU = NotchcastPreferences.shared.monitorCPU
         let oldIsland = NotchcastPreferences.shared.isOn(.island)
         do {
-            try ForkSettingsBackupState.live.apply(complete.merging(["monitorCPU": 71, "island": !oldIsland]) { _, new in new })
+            let restored = complete.merging(["monitorCPU": 71, "island": !oldIsland]) { _, new in new }
+            try ForkSettingsBackupState.live.apply(restored)
             preconditionFailure("partial restore must report the failed record")
         } catch { }
         precondition(NotchcastPreferences.shared.monitorCPU == 71,
@@ -362,6 +365,15 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let repairedKeys = Set(try ForkSettingsBackupEngine.decode(repairedData).keys)
         precondition(!sameDay.failed && repairedKeys == Set(complete.keys), "a whole copy did not replace today's partial one")
         print("PASS: the hourly backup saves the readable features and fails only when it left one out")
+        try FileManager.default.removeItem(at: backups)
+        try Data().write(to: backups)
+        var saveFailures = 0
+        let unwritable = ForkSettingsBackupModule(report: { saveFailures += 1 })
+        unwritable.start()
+        for _ in 0..<200 where !unwritable.failed { try await Task.sleep(for: .milliseconds(50)) }
+        unwritable.stop()
+        precondition(unwritable.failed && saveFailures == 1, "a daily save error must reach the notice path")
+        try FileManager.default.removeItem(at: backups)
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
         let statusFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: statusFolder, withIntermediateDirectories: true)
@@ -490,6 +502,20 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let validCopies = try await ForkSettingsBackupService.copies(folder: folder)
         precondition(validCopies.map(\.name) == ["settings-v2-3.plist", "settings-v2-1.plist"])
         var reports: [Bool] = []
+        var opened: [URL] = []
+        var opens = true
+        let openFolder = folder.appendingPathComponent("created-by-open")
+        let folderOpener = ForkSettingsBackupCoordinator(folder: openFolder, state: state,
+            open: { opened.append($0); return opens }, report: { reports.append($0) })
+        folderOpener.openFolder()
+        await folderOpener.settled()
+        precondition(opened == [openFolder] && reports.isEmpty)
+        precondition(FileManager.default.fileExists(atPath: openFolder.path))
+        opens = false
+        folderOpener.openFolder()
+        await folderOpener.settled()
+        precondition(opened == [openFolder, openFolder] && reports == [false], "open failure must be reported")
+        reports.removeAll()
         let coordinator = ForkSettingsBackupCoordinator(folder: folder, state: state,
             confirm: { await script.confirm() }, report: { reports.append($0) })
         coordinator.restore()
