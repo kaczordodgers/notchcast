@@ -3,8 +3,12 @@ import AppKit
 @MainActor
 final class URLCleanerSystemPasteboard: URLCleanerPasteboard {
     private let pasteboard: NSPasteboard
+    var writeObjects: ([any NSPasteboardWriting]) -> Bool
 
-    init(_ pasteboard: NSPasteboard) { self.pasteboard = pasteboard }
+    init(_ pasteboard: NSPasteboard) {
+        self.pasteboard = pasteboard
+        writeObjects = pasteboard.writeObjects
+    }
     var changeCount: Int { pasteboard.changeCount }
     var text: String? { pasteboard.string(forType: .string) }
     var isProtected: Bool {
@@ -23,10 +27,14 @@ final class URLCleanerSystemPasteboard: URLCleanerPasteboard {
 
     func write(_ text: String) -> Bool {
         guard !isProtected else { return false }
+        let original = self.text
         let item = NSPasteboardItem()
         item.setString(text, forType: .string)
         item.setString("", forType: ClipboardManager.internalType)
         pasteboard.clearContents()
-        return pasteboard.writeObjects([item])
+        if writeObjects([item]) { return true }
+        // Unmarked, so clipboard history records the restored copy as the user's own.
+        if let original { pasteboard.setString(original, forType: .string) }
+        return false
     }
 }
