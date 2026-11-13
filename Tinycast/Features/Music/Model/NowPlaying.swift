@@ -23,10 +23,11 @@ struct NowPlaying: Equatable, Sendable {
     var origin: Origin
     var shuffle: Bool?
     var repeatMode: RepeatMode?
+    var playbackRate: Double = 1
 
     /// The position at `now`, run on from `stamp` while playing and clamped to the track.
     func position(at now: Date) -> TimeInterval {
-        let moved = isPlaying ? max(0, now.timeIntervalSince(stamp)) : 0
+        let moved = isPlaying ? max(0, now.timeIntervalSince(stamp)) * playbackRate : 0
         return duration > 0 ? min(duration, elapsed + moved) : elapsed + moved
     }
 }
@@ -51,25 +52,14 @@ enum RepeatMode: String, Equatable, Sendable {
     case one
 }
 
-struct MusicQueueItem: Equatable, Sendable {
-    var title: String?
-    var artist: String?
-    var uri: String?
-}
-
 /// Where what is playing comes from. `watch` is event-driven: the source calls back after a change,
 /// and nothing here polls. A source that cannot be read throws and the model retries with a growing
 /// wait.
 @MainActor
 protocol NowPlayingSource: AnyObject {
-    var queue: [MusicQueueItem]? { get }
     func watch(_ onChange: @escaping @MainActor () -> Void)
     func unwatch()
     /// The current track, nil while nothing plays.
     func read() async throws -> NowPlaying?
     func send(_ command: PlayerCommand)
-}
-
-extension NowPlayingSource {
-    var queue: [MusicQueueItem]? { nil }
 }

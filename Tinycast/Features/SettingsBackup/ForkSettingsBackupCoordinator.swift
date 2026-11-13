@@ -11,6 +11,7 @@ import Observation
     private let state: ForkSettingsBackupState
     private let confirm: () async -> Bool
     private let report: (Bool) -> Void
+    private let open: (URL) -> Bool
 
     init(folder: URL = NotchcastIdentity.supportRoot.appendingPathComponent("fork-settings-backups"),
          state: ForkSettingsBackupState = .live,
@@ -20,6 +21,7 @@ import Observation
                  String(localized: "Replace saved settings with the selected backup?", table: "Notchcast"),
                  "clock.arrow.circlepath", String(localized: "Restore", table: "Notchcast"))
          },
+         open: @escaping (URL) -> Bool = { NSWorkspace.shared.open($0) },
          report: @escaping (Bool) -> Void = { success in
              if success {
                  NotchcastHost.current.showMessage(String(localized: "Settings restored.", table: "Notchcast"), .success)
@@ -32,6 +34,7 @@ import Observation
         self.state = state
         self.confirm = confirm
         self.report = report
+        self.open = open
     }
 
     func stop() { cancelChoosing(); folderTask?.cancel() }
@@ -41,7 +44,7 @@ import Observation
         task?.cancel()
     }
 
-    func settled() async { await task?.value }
+    func settled() async { await task?.value; await folderTask?.value }
 
     func openFolder() {
         guard folderTask == nil else { return }
@@ -51,7 +54,7 @@ import Observation
             do {
                 try await ForkSettingsBackupService.create(folder: folder)
                 try Task.checkCancellation()
-                guard NSWorkspace.shared.open(folder) else { throw CocoaError(.fileReadUnknown) }
+                guard open(folder) else { throw CocoaError(.fileReadUnknown) }
             } catch {
                 if !Task.isCancelled { report(false) }
             }
@@ -87,7 +90,6 @@ import Observation
                 let confirmed = await confirm()
                 try Task.checkCancellation()
                 guard confirmed else { return }
-                try state.validate(values)
                 try state.apply(values)
                 report(true)
             } catch {

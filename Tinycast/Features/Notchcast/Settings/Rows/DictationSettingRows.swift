@@ -39,7 +39,7 @@ struct DictationCleanupPromptSettingRow: View {
     var body: some View {
         TextField(text: Binding(get: { module.settings.promptAddition }, set: {
             var updated = module.settings
-            updated.promptAddition = $0
+            updated.promptAddition = String($0.prefix(DictationCleanupSettings.promptLimit))
             module.save(updated)
         }), axis: .vertical) {
             SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Cleanup prompt addition", table: "Notchcast"))
@@ -67,9 +67,9 @@ struct DictationCleanupVocabularySettingRow: View {
 
     private var vocabulary: Binding<String> {
         Binding(get: { vocabularyText }, set: { text in
-            vocabularyText = text
+            vocabularyText = DictationCleanupSettings.vocabularyInput(text)
             var updated = module.settings
-            updated.vocabulary = DictationCleanupSettings.vocabulary(from: text)
+            updated.vocabulary = DictationCleanupSettings.vocabulary(from: vocabularyText)
             module.save(updated)
         })
     }

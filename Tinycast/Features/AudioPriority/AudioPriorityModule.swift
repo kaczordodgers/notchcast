@@ -11,8 +11,10 @@ final class AudioPriorityModule: NotchcastModule {
         }
         manager.inventoryChanged = { store.update($0) }
         manager.succeeded = { store.failure = nil }
+        manager.clearFailure = { store.failure = nil }
     }
 
     func start() { manager.start() }
     func stop() { manager.stop() }
+    func refresh() { manager.refresh() }
 }

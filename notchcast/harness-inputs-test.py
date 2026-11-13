@@ -61,6 +61,17 @@ class HarnessInputsTest(unittest.TestCase):
         self.assertIn("LauncherSettingsFileTests", self.selected(
             "Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift"))
 
+    def test_index_only_registration_is_never_selected(self):
+        (self.root / "Scripts/run-tests.sh").write_text(
+            f'run index -O IndexTests {EXAMPLE}\nrun -O index OptimizedIndexTests {EXAMPLE}\n'
+            f'run slow -O RunnableTests \\\n    {EXAMPLE}\n')
+        for name in ("IndexTests", "OptimizedIndexTests", "RunnableTests"):
+            (self.root / f"Tests/{name}.swift").touch()
+        selected = self.selected(EXAMPLE)
+        self.assertIn("RunnableTests", selected)
+        self.assertNotIn("IndexTests", selected)
+        self.assertNotIn("OptimizedIndexTests", selected)
+
     def test_upstream_queue_gets_only_additional_inputs(self):
         source = "Tinycast/Features/Settings/SettingsTab.swift"
         (self.root / source).parent.mkdir(parents=True, exist_ok=True)

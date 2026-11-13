@@ -5,6 +5,10 @@ extension DictationCleanupModule: NotchcastRegistrant {
         shared.reportFailure = {
             NotchcastHost.current.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), .danger)
         }
+        shared.reportFallback = {
+            NotchcastHost.current.showMessage(
+                String(localized: "Dictation cleanup failed; pasted the original transcript", table: "Notchcast"), .danger)
+        }
         shared.load()
         return [.init(requires: [.dictationCleanup], module: shared)]
     }

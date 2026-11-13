@@ -173,32 +173,31 @@ struct SoloistSourceTest {
         var changes = 0
         source.watch { changes += 1 }
         source.connect(port: server.port)
-        try await wait { source.authState?.loggedIn == false && server.commands.count == 3 && source.queue != nil }
+        try await wait { source.authState?.loggedIn == false && server.commands.count >= 2 }
+        precondition(server.commands == ["get_auth_state", "get_state"], "Unused queues are never requested")
         let loggedOut = try await source.read()
         precondition(loggedOut == nil)
         precondition(source.isConnected && !source.isReady, "Connected without a login is not ready")
         server.loggedIn = true
         server.sendAuth(server.connections[0])
-        try await wait { server.commands.count == 5 }
+        try await wait { server.commands.count == 3 }
         precondition(source.isReady, "Connected and logged in is ready")
-        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"], "Pairing refreshes once")
+        precondition(server.commands.last == "get_state", "Pairing refreshes once")
         server.sendAuth(server.connections[0])
         try await Task.sleep(for: .milliseconds(100))
-        precondition(server.commands.count == 5, "Repeated auth reply must stay passive")
+        precondition(server.commands.count == 3, "Repeated auth reply must stay passive")
         server.send(#"{"type":"track_changed"}"#, server.connections[0])
         // A busy runner stalls the main thread across the refresh window; the trailing refresh then lands late,
         // so the harness waits for it instead of asserting after a fixed sleep.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { Thread.sleep(forTimeInterval: 0.8) }
-        try await wait { server.commands.count >= 7 }
-        precondition(Array(server.commands.dropFirst(5)) == ["get_state", "get_queue"], "\(server.commands)")
+        try await wait { server.commands.count >= 4 }
+        precondition(Array(server.commands.dropFirst(3)) == ["get_state"], "\(server.commands)")
         let received = try await source.read()
         precondition(received == track)
         precondition(changes >= 2)
         commands.forEach { source.send($0.0) }
-        try await wait { server.commands.count == 14 }
-        precondition(Array(server.commands.dropFirst(7)) == commands.map(\.1))
-        precondition(source.queue == [.init(title: "Next Song", artist: "First Artist",
-                                          uri: "spotify:track:fixture1")])
+        try await wait { server.commands.count == 11 }
+        precondition(Array(server.commands.dropFirst(4)) == commands.map(\.1))
         let count = server.commands.count
         for reply in [queueReply, snapshot, #"{"type":"command_result","success":true}"#] {
             source.receive(reply)
@@ -213,27 +212,25 @@ struct SoloistSourceTest {
         var refresh = SoloistRefreshState()
         var refreshCommands: [String] = []
         for index in 0..<50 {
-            refreshCommands += refresh.event(queue: false, now: Double(index) * 0.007)
+            refreshCommands += refresh.event(now: Double(index) * 0.007)
         }
         refreshCommands += refresh.flush(now: 0.4)
         precondition(refreshCommands == [SoloistProtocol.getState, SoloistProtocol.getState])
         var window = SoloistRefreshState()
-        _ = window.event(queue: false, now: 0)
-        _ = window.event(queue: true, now: 0.1)
-        _ = window.event(queue: false, now: 0.2)
-        precondition(window.flush(now: 0.4) == [SoloistProtocol.getState, SoloistProtocol.getQueue],
-                     "A queue event inside the window keeps the trailing queue fetch")
+        _ = window.event(now: 0)
+        _ = window.event(now: 0.1)
+        _ = window.event(now: 0.2)
+        precondition(window.flush(now: 0.4) == [SoloistProtocol.getState], "Trailing refresh only requests state")
         for event in ["track_changed", "playback_changed", "device_changed", "context_changed",
-                      "options_changed", "queue_changed", "position_sync", "volume_changed"] {
+                      "options_changed", "position_sync", "volume_changed"] {
             let parsed = try SoloistProtocol.parse("{\"type\":\"\(event)\"}", now: now)
-            guard case .changed(let queue) = parsed else { fatalError("Missing event") }
+            guard case .changed = parsed else { fatalError("Missing event") }
             var policy = SoloistRefreshState()
-            let requests = policy.event(queue: queue, now: 0)
-            precondition(requests.contains(SoloistProtocol.getQueue) ==
-                         ["track_changed", "options_changed", "queue_changed"].contains(event))
+            let requests = policy.event(now: 0)
+            precondition(requests == [SoloistProtocol.getState])
         }
         print("PASS: queue reply sends zero commands; 50 position_sync events send 2 get_state")
-        print("PASS: queue refresh restricted to track_changed, queue_changed and options_changed")
+        print("PASS: playback refresh never requests unused queues")
         let coverServer = try CoverServer()
         defer { coverServer.stop() }
         try await wait { coverServer.listener.port != nil && coverServer.port > 0 }
