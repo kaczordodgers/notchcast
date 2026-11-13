@@ -51,8 +51,8 @@ struct GitHubTest {
         }, token: { UUID().uuidString })
         let starred = try await stars.starred()
         precondition(starred.first?.isStarred == true)
-        precondition(GitHubHTMLEntities.decode("&lt;&gt;&quot;&apos;&#39;&#x1F680;&copy;&NotEqualTilde;&amp;lt;")
-                     == "<>\"''🚀©≂̸&lt;")
+        precondition(GitHubHTMLEntities.decode("&amp;&lt;&gt;&quot;&apos;&nbsp;&#39;&#x1F680;&#X41;&copy;&amp;lt; café")
+                     == "&<>\"'\u{00a0}'🚀A&copy;&lt; café")
         let calls = Mutex(0)
         let capped = GitHubService(fetch: { request in
             calls.withLock { $0 += 1 }
