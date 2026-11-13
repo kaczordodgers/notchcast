@@ -154,11 +154,6 @@ extension NotchcastSettingsModule {
                 .feature(.pasteImage, settings: []),
                 .feature(.copyPath, settings: []),
             ]),
-            .init(title: "Archives", items: [
-                .feature(.archives, settings: [.filesAndClipboardArchives]),
-                .feature(.archivesInPlace, settings: []),
-                .feature(.archivesDefaultApp, settings: []),
-            ]),
             .init(title: LocalizedStringResource("Convert and compress", table: "Notchcast"), items: [
                 .feature(.convertFiles, settings: []),
                 .feature(.mediaTools, settings: []),

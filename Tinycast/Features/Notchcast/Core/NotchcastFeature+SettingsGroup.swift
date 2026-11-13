@@ -12,7 +12,6 @@ extension NotchcastFeature {
         case music
         case tasks
         case torrents
-        case archives
         case clipboard
         case appearance
         case finder

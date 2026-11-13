@@ -17,7 +17,7 @@ extension NotchcastToolsCommands {
                 guard let queue = downloads.state.queue else {
                     Self.post(String(localized: "Downloads is not ready.", table: "Notchcast")); return
                 }
-                let formats = ["pdf", "png", "jpg", "txt", "zip", "mp3", "mp4"]
+                let formats = ["pdf", "png", "jpg", "txt", "mp3", "mp4"]
                 guard let index = await Self.choose(core, title: action.name, values: formats), valid(),
                       NotchcastPreferences.shared.isOn(.downloads), downloads.state.queue === queue else { return }
                 NotchcastCore.convertFiles.attach(to: queue, post: Self.post)

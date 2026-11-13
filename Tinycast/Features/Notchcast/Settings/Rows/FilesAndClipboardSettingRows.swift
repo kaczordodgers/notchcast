@@ -22,42 +22,6 @@ struct FinderRenameSettingRow: View {
     }
 }
 
-struct ArchiveToolSettingRow: View {
-    private let module = ArchiveModule.shared
-
-    var body: some View {
-        LabeledContent {
-            VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
-                if let tool = module.toolURL {
-                    Text("Found", tableName: "Notchcast")
-                    Text(verbatim: tool.path)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .textSelection(.enabled)
-                } else {
-                    Text("Not found", tableName: "Notchcast")
-                    Text("Install hatchzip and add it to PATH or ~/.local/bin.", tableName: "Notchcast")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        } label: {
-            Text(verbatim: "hatchzip")
-        }
-        .task { await module.refreshTool() }
-        if let failure = module.defaultApplicationFailure {
-            Text(failure)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-struct ArchiveJobsSettingRow: View {
-    var body: some View {
-        ArchiveJobList(module: .shared)
-    }
-}
-
 struct URLCleanerCustomParametersSettingRow: View {
     @Bindable var module: URLCleanerModule
     @State private var draft = URLCleanerRulesDraft()

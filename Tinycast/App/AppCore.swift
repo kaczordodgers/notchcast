@@ -510,7 +510,6 @@ final class AppCore {
         }
         if appearanceCoordinator.handle(url) { return }
         if handleTorrentURL(url) { return }
-        if ArchiveModule.shared.open(url) { return }
         if deepLinkCoordinator.handles(url) {
             deepLinkCoordinator.open(url)
             return
@@ -578,7 +577,6 @@ final class AppCore {
         dictationAudioDucker.restoreImmediately()
         await dictationAudioDucker.waitForTransition()
         await dictationModels.stop()
-        await ArchiveModule.shared.prepareForTermination()
     }
 
     /// Idempotent: both switches are tracked, and either one flipping re-runs the whole decision.

@@ -6,7 +6,6 @@ enum NotchcastCore {
     static let grantStatuses = NotchcastGrantState()
     private static var controller: NotchcastModuleController?
     static private(set) var services: NotchcastServices?
-    private static let archiveServices = ArchiveServices()
 
     static var confirmMacUpdate: () async -> Bool = { false }
 
@@ -29,7 +28,6 @@ enum NotchcastCore {
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
         NotchcastHost.current = .live(core: core)
-        NSApp.servicesProvider = archiveServices
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in

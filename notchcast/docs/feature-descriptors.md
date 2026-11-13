@@ -43,8 +43,8 @@ It also holds the facts a harness could only restate, each as a rule over every 
 - setting-one-case: two settings on one `case` line of `NotchcastSetting.swift`;
 - setting-row-arm: a `NotchcastSetting` without exactly one non-empty row arm in `NotchcastSettingRows+*.swift`;
 - backup-anchor-header: a `notchcastBackup…` search anchor without its `SettingsSectionHeader`;
-- source-hooks: a one-line hook (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present. `HOOKS` also pins `ArchiveModule+Registration.swift` to its one entry, requiring `.archives`;
-- plist: `Info.plist` archive document types, imported type identifiers, the Bonjour service and the local network text.
+- source-hooks: a one-line hook (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present.
+- plist: `Info.plist` imported type identifiers, the Bonjour service and the local network text.
 
 A rule that finds nothing to check fails instead of passing: a descriptor it cannot open, no `unwired` list, a class pin no feature belongs to, an `ABSENT` path with no file, no module static, no setting, no backup anchor.
 
