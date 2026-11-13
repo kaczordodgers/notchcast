@@ -1,14 +1,12 @@
 import Foundation
 
 struct KeepAwakePolicy: Sendable, Equatable {
-    enum Outcome: Sendable, Equatable { case off, expired, batteryFloor, locked, hold }
+    enum Outcome: Sendable, Equatable { case off, expired, batteryFloor, hold }
     var enabled = false
     var until: Date?
     var floor = 20
-    var pauseWhenLocked = false
-    var allowDisplaySleep = false
 
-    func evaluate(now: Date, onBattery: Bool, percent: Int?, locked: Bool) -> Outcome {
+    func evaluate(now: Date, onBattery: Bool, percent: Int?) -> Outcome {
         guard enabled else { return .off }
         if let until, now >= until { return .expired }
         if onBattery, floor > 0 {
@@ -16,12 +14,10 @@ struct KeepAwakePolicy: Sendable, Equatable {
                 return .batteryFloor
             }
         }
-        if locked && pauseWhenLocked { return .locked }
         return .hold
     }
 
     var assertionTypes: [String] {
-        allowDisplaySleep ? ["PreventUserIdleSystemSleep"]
-            : ["PreventUserIdleSystemSleep", "PreventUserIdleDisplaySleep"]
+        ["PreventUserIdleSystemSleep", "PreventUserIdleDisplaySleep"]
     }
 }
