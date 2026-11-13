@@ -3,8 +3,6 @@ import Foundation
 extension NotchcastFeature {
     @MainActor func setFromSettings(_ on: Bool) {
         switch self {
-        case .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge, .cleanOptimize, .cleanSystem:
-            NotchcastCore.clean.set(self, on)
         case .cleaningMode:
             NotchcastPreferences.shared.set(self, on)
             if !on { NotchcastCore.cleaning.stop() }

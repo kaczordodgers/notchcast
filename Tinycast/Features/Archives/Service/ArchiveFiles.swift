@@ -2,6 +2,8 @@ import Darwin
 import Foundation
 
 nonisolated enum ArchiveFiles {
+    static let stagingPrefix = ".notchcast-extract-"
+
     static func samePath(_ lhs: URL, _ rhs: URL) -> Bool {
         resolvedParent(lhs).standardizedFileURL.path == resolvedParent(rhs).standardizedFileURL.path
     }
@@ -40,7 +42,7 @@ nonisolated enum ArchiveFiles {
     /// Hidden owner-only staging beside the archive, carrying its quarantine.
     static func stage(beside archive: URL) throws -> (staging: URL, quarantine: Data?) {
         let warning = try quarantine(archive)
-        let staging = archive.deletingLastPathComponent().appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let staging = archive.deletingLastPathComponent().appending(path: "\(stagingPrefix)\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false,
                                                 attributes: [.posixPermissions: 0o700])
         do { try applyQuarantine(warning, to: staging) } catch {
@@ -150,7 +152,15 @@ nonisolated enum ArchiveFiles {
         exclusiveRename: (String, String) -> Int32 = { renamex_np($0, $1, UInt32(RENAME_EXCL)) }
     ) throws -> URL {
         let base = root == staging ? ArchiveFormat.baseName(archive) : root.lastPathComponent
-        let isFile = try attributes(root).st_mode & S_IFMT == S_IFREG
+        let mode = try attributes(root).st_mode
+        let isFile = mode & S_IFMT == S_IFREG
+        // Moving a directory to a new parent rewrites its "..", which needs write access to it.
+        let locked = root != staging && mode & S_IFMT == S_IFDIR && mode & S_IWUSR == 0
+        if locked, chmod(root.path, mode | S_IWUSR) != 0 {
+            throw ArchiveFailure.filesystem("publish permissions: \(errno)")
+        }
+        var published: URL?
+        defer { if locked { _ = chmod((published ?? root).path, mode) } }
         let suffix = isFile || root.pathExtension.lowercased() == "app" ? root.pathExtension : ""
         let stem = suffix.isEmpty ? base : String(base.dropLast(suffix.count + 1))
         for number in 1..<10_000 {
@@ -161,12 +171,16 @@ nonisolated enum ArchiveFiles {
             if root == staging, chmod(root.path, 0o755) != 0 {
                 throw ArchiveFailure.filesystem("publish permissions: \(errno)")
             }
-            if exclusiveRename(root.path, target.path) == 0 { return target }
+            if exclusiveRename(root.path, target.path) == 0 {
+                published = target
+                return target
+            }
             if errno == ENOTSUP {
                 if mkdir(target.path, 0o755) == 0 {
                     do {
                         let destination = target.appending(path: root == staging ? "Contents" : root.lastPathComponent)
                         try FileManager.default.moveItem(at: root, to: destination)
+                        published = destination
                         return destination
                     } catch {
                         throw ArchiveFailure.filesystem("visible recovery at \(target.path): \(error)")

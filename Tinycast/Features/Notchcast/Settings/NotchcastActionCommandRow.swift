@@ -37,8 +37,6 @@ struct NotchcastActionCommandRow: View {
         case "settings-installCLI": "Install"
         case "settings-restrictGaming", "settings-restrictMirroring", "settings-restrictMusic", "settings-restrictBooks":
             "Install…"
-        case "settings-loadHistory": "Load history"
-        case "settings-scanJunk", "settings-scanAI", "settings-scanDisk", "settings-scanProjects": "Scan…"
         default: "Run"
         }
     }
@@ -46,8 +44,6 @@ struct NotchcastActionCommandRow: View {
     private var actionEnabled: Bool {
         guard let feature = command.feature else { return true }
         return switch feature {
-        case .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge, .cleanOptimize:
-            !NotchcastCore.clean.coordinator.busy.contains(feature)
         case .finderTweaks: !TweaksModule.finder.store.busy
         case .appleAppsTweaks: !TweaksModule.appleApps.store.busy
         case .appUpdates: !NotchcastCore.appUpdates.checking

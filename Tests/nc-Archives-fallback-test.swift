@@ -235,7 +235,7 @@ struct ArchivesFallbackTest {
         }
         expect(queue.jobs.last?.state == .cancelled && ArchiveFiles.exists(slow), "Fallback cancellation preserves source")
         expect(try FileManager.default.contentsOfDirectory(atPath: root.path)
-            .allSatisfy { !$0.hasPrefix(".notchcast-extract-") }, "Cancelled fallback staging and journals cleaned")
+            .allSatisfy { !$0.hasPrefix(ArchiveFiles.stagingPrefix) }, "Cancelled fallback staging and journals cleaned")
         try FileManager.default.removeItem(at: pause)
         queue.retry(identifier)
         for _ in 0..<500 {
@@ -311,7 +311,7 @@ struct ArchivesFallbackTest {
         expect(!ArchiveFiles.exists(root.appending(path: "escaped.txt")), "No fallback path escape")
         expect(!ArchiveFiles.exists(root.appending(path: "żółć.txt")), "No XAD path escape")
         expect(try FileManager.default.contentsOfDirectory(atPath: root.path)
-            .allSatisfy { !$0.hasPrefix(".notchcast-extract-") }, "Fallback staging cleaned")
+            .allSatisfy { !$0.hasPrefix(ArchiveFiles.stagingPrefix) }, "Fallback staging cleaned")
         print("PASS: real bsdtar, zstd→bsdtar and unar reject unsafe paths before extraction; staging cleaned")
     }
 }

@@ -15,7 +15,7 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
     case aiAndAgents = "ai-and-agents"
     case twoMacs = "two-macs"
     case backups
-    case cleanAndUpdates = "clean-and-updates"
+    case updates = "updates"
     case tweaks
     case privacyAndStartup = "privacy-and-startup"
 
@@ -35,7 +35,7 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
         case .aiAndAgents: String(localized: "AI and Agents", table: "Notchcast")
         case .twoMacs: String(localized: "Two Macs", table: "Notchcast")
         case .backups: String(localized: "Backups", table: "Notchcast")
-        case .cleanAndUpdates: String(localized: "Clean and Updates", table: "Notchcast")
+        case .updates: String(localized: "Updates", table: "Notchcast")
         case .tweaks: String(localized: "Tweaks", table: "Notchcast")
         case .privacyAndStartup: String(localized: "Privacy and Startup", table: "Notchcast")
         }
@@ -57,7 +57,7 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
         case .aiAndAgents: "sparkles"
         case .twoMacs: "desktopcomputer"
         case .backups: "externaldrive"
-        case .cleanAndUpdates: "sparkles.rectangle.stack"
+        case .updates: "sparkles.rectangle.stack"
         case .tweaks: "slider.horizontal.3"
         case .privacyAndStartup: "lock.shield"
         }
@@ -79,7 +79,7 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
         case .aiAndAgents: .notchcastAIAndAgents
         case .twoMacs: .notchcastTwoMacs
         case .backups: .notchcastBackups
-        case .cleanAndUpdates: .notchcastCleanAndUpdates
+        case .updates: .notchcastUpdates
         case .tweaks: .notchcastTweaks
         case .privacyAndStartup: .notchcastPrivacyAndStartup
         }
