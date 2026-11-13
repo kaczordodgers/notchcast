@@ -20,7 +20,8 @@ struct DistillTextRetentionTest {
         let original = try Data(contentsOf: source)
         precondition(original == data)
         let manifest = root.appendingPathComponent(DistillConverter.manifestName)
-        var receipts = try JSONSerialization.jsonObject(with: Data(contentsOf: manifest)) as! [String: [String: Any]]
+        guard var receipts = try JSONSerialization.jsonObject(with: Data(contentsOf: manifest))
+            as? [String: [String: Any]] else { preconditionFailure("Expected conversion receipts") }
         receipts[source.lastPathComponent]!["retainSource"] = false
         try JSONSerialization.data(withJSONObject: receipts).write(to: manifest)
         let repeated = try await converter.convert(folder: root)
