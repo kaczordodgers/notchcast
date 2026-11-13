@@ -45,7 +45,7 @@ struct IslandMessage {
 
 enum IslandClosedItem {
     case message(IslandMessage)
-    case card
+    case card(String)
 }
 
 struct IslandClosedState {
@@ -54,7 +54,15 @@ struct IslandClosedState {
     static var idle: Self { Self() }
     var isIdle: Bool { main == nil }
     var spokenSummary: String? { nil }
-    var key: String { isIdle ? "idle" : "active" }
+    var key: String {
+        [main, second].map { item in
+            switch item {
+            case .card(let title): "card-\(title)"
+            case .message: "message"
+            case nil: "none"
+            }
+        }.joined(separator: "|")
+    }
 }
 
 extension EnvironmentValues {
@@ -74,6 +82,7 @@ struct IslandClosedView: View {
     var state: IslandClosedState
     var onSize: (CGSize) -> Void
     var onButtonFrame: (CGRect) -> Void = { _ in }
+    var onSecondButtonFrame: (CGRect) -> Void = { _ in }
     var body: some View { Color.clear }
 }
 
@@ -94,13 +103,24 @@ struct IslandPanelTests {
 
     static func cardClicks(notch: CGRect?) {
         let panel = IslandPanel(screenFrame: CGRect(x: 0, y: 0, width: 1512, height: 982), hardwareNotch: notch)
-        panel.setContent(open: AnyView(EmptyView()), closed: .init(main: .card), header: AnyView(EmptyView()))
+        panel.setContent(open: AnyView(EmptyView()), closed: .init(main: .card("Main")), header: AnyView(EmptyView()))
         panel.cardButtonFrame = CGRect(x: 400, y: 40, width: 60, height: 28)
         let height = panel.contentView!.bounds.height
         assert(panel.cardTakesClick(at: CGPoint(x: 430, y: height - 54)), "the action keeps its click")
         assert(!panel.cardTakesClick(at: CGPoint(x: 300, y: height - 54)), "the title opens the island")
         assert(!panel.cardTakesClick(at: CGPoint(x: 280, y: height - 54)), "the glyph opens the island")
+        panel.setClosedState(.init(main: .message(.init(onCancel: {})), second: .card("Lower")))
+        panel.secondCardButtonFrame = CGRect(x: 400, y: 80, width: 60, height: 28)
+        assert(panel.cardTakesClick(at: CGPoint(x: 430, y: height - 94)), "the lower card keeps its action")
+        assert(panel.closedClickOpens(at: CGPoint(x: 300, y: height - 94)), "the lower title opens the island")
+        panel.setClosedState(.init(main: .message(.init(onCancel: {})), second: .card("Replacement")))
+        assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 94)),
+               "a different lower card cannot inherit the old action frame")
+        panel.setClosedState(.init(main: .message(.init(onCancel: {}))))
+        assert(panel.closedClickOpens(at: CGPoint(x: 430, y: height - 54)),
+               "a cancellable message leaves the closed click to opening")
         panel.setClosedState(.idle)
+        assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 94)), "the lower action cannot survive a swap")
         assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 54)), "an old action frame is inactive")
         panel.close()
     }

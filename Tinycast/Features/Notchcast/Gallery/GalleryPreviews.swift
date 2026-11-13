@@ -51,4 +51,6 @@ private func settle(_ window: NSWindow, _ duration: Duration) {
 #Preview("launcher-root-light") { galleryPreview("launcher-root-light") }
 #Preview("island-usage-dark") { galleryPreview("island-usage-dark") }
 #Preview("island-usage-light") { galleryPreview("island-usage-light") }
+#Preview("island-closed-second-card-mba") { galleryPreview("island-closed-second-card-mba") }
+#Preview("island-closed-second-card-ext") { galleryPreview("island-closed-second-card-ext") }
 #endif

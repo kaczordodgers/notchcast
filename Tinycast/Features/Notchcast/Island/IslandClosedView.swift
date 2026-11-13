@@ -12,6 +12,7 @@ struct IslandClosedView: View {
     /// The body's size: the pill on a monitor, the whole black shape beside a notch.
     var onSize: (CGSize) -> Void
     var onButtonFrame: (CGRect) -> Void = { _ in }
+    var onSecondButtonFrame: (CGRect) -> Void = { _ in }
     @State private var leadingWidth: CGFloat = 0
     @State private var trailingWidth: CGFloat = 0
     @State private var titleWidth: CGFloat = 0
@@ -73,7 +74,7 @@ struct IslandClosedView: View {
                     IslandClosedContent(parts: parts)
                 }
                 if let second = state.second {
-                    IslandClosedContent(parts: IslandItemParts(item: second))
+                    IslandClosedContent(parts: IslandItemParts(item: second, onButtonFrame: onSecondButtonFrame))
                 }
                 if needsLines(main) || state.second != nil {
                     Color.clear.frame(height: NotchcastTheme.Closed.dropBottom)
