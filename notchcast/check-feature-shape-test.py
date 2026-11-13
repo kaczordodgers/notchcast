@@ -113,8 +113,6 @@ BREAKS = (
      "ScreenTextLineBreaksSettingRow(module: ScreenTextModule.shared)", "EmptyView()"),
     ("backup-anchor-header", "give .notchcastBackupExport a SettingsSectionHeader",
      SHAPE.BACKUPS, "SettingsSectionHeader(.notchcastBackupExport)", "SettingsSectionHeader(.notchcastBackupImport)"),
-    ("source-hooks", "hook missing or out of order: await ArchiveModule.shared.prepareForTermination()",
-     "Tinycast/App/AppCore.swift", "await ArchiveModule.shared.prepareForTermination()", ""),
     ("source-hooks", "hook missing or out of order: BlockedDialogModule.linkChannel = macLink.channel",
      "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "        BlockedDialogModule.linkChannel = macLink.channel\n", ""),
     ("source-hooks", "hook missing or out of order: NotchcastHost.current = .live(core: core)",

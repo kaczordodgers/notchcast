@@ -315,3 +315,4 @@ struct ArchivesFallbackTest {
         print("PASS: real bsdtar, zstd→bsdtar and unar reject unsafe paths before extraction; staging cleaned")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
