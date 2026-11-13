@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Webpage/HTMLDocument.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
@@ -120,6 +121,8 @@ import Foundation
         precondition(CaptionText.plainText("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n \n", automatic: false) == "")
         let escaped = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nyes &amp; no"
         precondition(CaptionText.plainText(escaped, automatic: false) == "yes & no")
+        let entities = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nIt&#x27;s &amp; &copy; &ldquo;fine&rdquo; &amp;lt;\n"
+        precondition(CaptionText.plainText(entities, automatic: false) == "It's & © “fine” &lt;")
         let srt = "1\n00:00:00,000 --> 00:00:01,000\nHello\n\n2\n00:00:01,000 --> 00:00:02,000\nthere"
         precondition(CaptionText.plainText(srt, automatic: false) == "Hello there")
         precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions", automatic: true) == "")

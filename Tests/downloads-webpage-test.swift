@@ -24,6 +24,7 @@ struct DownloadsWebpageTests {
     static func main() async throws {
         converter()
         addresses()
+        await cancelledResolution()
         frontMatter()
         failureDescriptions()
         contentRules()
@@ -132,6 +133,34 @@ struct DownloadsWebpageTests {
         expect(markdown("<img alt=\"\" src=\"/empty-alt.png\">").contains("empty-alt.png"), "empty quoted attribute")
         expect(markdown("<h2>Heading<a href='#heading'><svg></svg></a></h2>") == "## Heading", "empty permalink dropped")
         expect(markdown("<main>\n <p>One</p>\n <p>Two</p>\n </main>") == "One\n\nTwo", "block whitespace normalized")
+        expect(markdown("<a href='/next'><div><h2>Title</h2><p>Read more</p></div></a>") ==
+               "[## Title Read more](<https://example.com/next>)", "block link label stays inline")
+    }
+
+    static func cancelledResolution() async {
+        let release = DispatchSemaphore(value: 0)
+        var fetch: Task<[String], any Error>?
+        await withCheckedContinuation { started in
+            fetch = Task {
+                try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in
+                    started.resume()
+                    _ = release.wait(timeout: .now() + 3)
+                    return ["127.0.0.1"]
+                }
+            }
+        }
+        guard let fetch else { return }
+        let clock = ContinuousClock()
+        let start = clock.now
+        fetch.cancel()
+        do {
+            _ = try await fetch.value
+            expect(false, "cancelled DNS cannot publish its late result")
+        } catch {
+            expect(error is CancellationError && start.duration(to: clock.now) < .seconds(1),
+                   "DNS cancellation returns before blocked lookup finishes")
+        }
+        release.signal()
     }
 
     static func addresses() {
@@ -199,6 +228,15 @@ struct DownloadsWebpageTests {
         expect(!extracted.contains("navigation") && !extracted.contains("footer"),
                "extractor removes chrome")
         expect(extracted.contains("/photo.jpg"), "extractor retains remote images")
+        for (text, blocked) in [("This short article explains how cookies work in a browser.", false),
+                                ("Verify you are human", true)] {
+            try await navigation.load("<html><head><title>Browser guide</title></head><body><main>\(text)</main></body></html>",
+                                      into: view)
+            let value = try await view.callAsyncJavaScript(WebpageExtraction.script, arguments: [:],
+                                                          in: nil, contentWorld: .defaultClient)
+            let fields = try JSONSerialization.jsonObject(with: Data((value as? String ?? "{}").utf8)) as? [String: Any]
+            expect((fields?["blocked"] as? Bool ?? false) == blocked, "cookie article passes and human check blocks")
+        }
         view.navigationDelegate = nil
         view.stopLoading()
         let proxy = try PublicWebProxy()
