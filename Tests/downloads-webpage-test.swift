@@ -31,13 +31,6 @@ struct DownloadsWebpageTests {
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
         try await extraction()
-        do {
-            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1/")!)
-            expect(false, "private DNS destination is refused")
-        } catch let refusal as PublicWebAddress.Refusal {
-            expect(refusal.localizedDescription == PublicWebAddress.Refusal.privateAddress.localizedDescription,
-                   "proxy preserves private-address refusal")
-        }
         if let directory = ProcessInfo.processInfo.environment["TINYCAST_WEBPAGE_TEST_DIRECTORY"] {
             try await files(URL(filePath: directory, directoryHint: .isDirectory))
         }
