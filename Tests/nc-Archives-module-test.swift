@@ -243,7 +243,7 @@ struct ArchiveModuleLifecycleTests {
         precondition(module.queue.jobs.map(\.state) == [.cancelled, .cancelled])
         precondition(FileManager.default.fileExists(atPath: archive.path))
         let remaining = try FileManager.default.contentsOfDirectory(atPath: root.path)
-        precondition(remaining.allSatisfy { !$0.hasPrefix(".notchcast-extract-") })
+        precondition(remaining.allSatisfy { !$0.hasPrefix(ArchiveFiles.stagingPrefix) })
         preferences.set(.archives, true)
         await settle()
         module.retry(module.queue.jobs[0].id)

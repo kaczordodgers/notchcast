@@ -17,6 +17,7 @@ final class SystemNoticesManager {
     private var timer: Task<Void, Never>?
     private var reading: Task<Void, Never>?
     private var readAgain = false
+    private var reportTailscale = false
     private var generation = UUID()
     private var sleeping = false
     private var locked = false
@@ -129,7 +130,14 @@ final class SystemNoticesManager {
         reading?.cancel()
         reading = nil
         readAgain = false
+        reportTailscale = false
         engine = SystemNoticeEngine()
+    }
+
+    func checkTailscale() {
+        guard canMonitor else { return }
+        reportTailscale = true
+        refreshTailscale()
     }
 
     func refreshTailscale() {
@@ -151,7 +159,12 @@ final class SystemNoticesManager {
 
     func consume(_ reading: SystemNoticeEngine.Reading) {
         guard canMonitor else { return }
-        for notice in engine.consume(reading) { onNotice?(notice) }
+        var notices = engine.consume(reading)
+        if case .tailscale(let state) = reading, reportTailscale {
+            reportTailscale = false
+            if notices.isEmpty { notices = [.tailscale(state)] }
+        }
+        for notice in notices { onNotice?(notice) }
     }
 
     isolated deinit {

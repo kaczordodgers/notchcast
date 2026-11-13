@@ -38,6 +38,11 @@ enum AgentSocketClient {
                 try AgentSocketIO.write(AgentSocketIO.frame(request), to: descriptor, timeout: .seconds(5))
                 let data = try AgentSocketIO.readLine(descriptor, timeout: .seconds(35))
                 let reply = try JSONDecoder().decode(AgentReply.self, from: data)
+                if reply.code == .timedOutUnknown {
+                    Darwin.close(descriptor)
+                    descriptor = -1
+                    return reply
+                }
                 if reply.code == .failed { throw AgentReply.Code.failed }
                 if reply.code == .ok, case .string(let line) = request.parameters,
                    case .object(let fields) = try? JSONDecoder().decode(AgentJSON.self, from: Data(line.utf8)),

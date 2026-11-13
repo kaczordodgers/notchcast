@@ -46,7 +46,7 @@ struct AgentDeviceTests {
         try AgentDeviceActions.register(katana, in: index)
         index.start()
         var audited: [AgentReply.Code] = []
-        index.didComplete = { request, reply in
+        index.didComplete = { request, reply, _ in
             if request.verb == .run, !request.dryRun { audited.append(reply.code) }
         }
         index.authorize = { action, _ in

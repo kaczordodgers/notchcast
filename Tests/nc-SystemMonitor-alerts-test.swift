@@ -25,6 +25,7 @@ struct MonitorAlertsTests {
         precondition(calls.isEmpty)
         evaluate(95, 1)
         precondition(calls.count == 1)
+        precondition(calls[0].contains("95"), "The alert names the reading that crossed the threshold")
         evaluate(85, 70)
         evaluate(95, 71)
         precondition(calls.count == 1)
@@ -95,6 +96,13 @@ struct MonitorAlertsTests {
         precondition(streakCalls == 0, "stopping the module clears the streak")
         streakCheck()
         precondition(streakCalls == 1)
+
+        var placeholderCalls = 0
+        let placeholder = MonitorAlerts { _ in placeholderCalls += 1 }
+        for sample in [highSample(), highSample(), MonitorSnapshot(), highSample()] {
+            placeholder.evaluate(sample, rules: sustainedRules, enabled: true, demand: 1, at: Date())
+        }
+        precondition(placeholderCalls == 1, "a placeholder snapshot without readings keeps the streak")
 
         var diskCalls = 0
         let diskAlerts = MonitorAlerts { _ in diskCalls += 1 }

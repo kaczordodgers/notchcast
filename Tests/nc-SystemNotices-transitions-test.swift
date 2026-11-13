@@ -86,20 +86,35 @@ struct SystemNoticesTests {
             return url
         }
         let valid = try fixture("valid", body: "printf '{\"BackendState\":\"Running\"}'\n")
-        check(await TailscaleStatusService(executable: valid).read() == .connected, "CLI fixture decodes")
+        check(await TailscaleStatusService(executables: [valid]).read() == .connected, "CLI fixture decodes")
         let failure = try fixture("failure", body: "printf '{\"BackendState\":\"Running\"}'\nexit 1\n")
-        check(await TailscaleStatusService(executable: failure).read() == .unavailable, "Nonzero exit rejected")
+        check(await TailscaleStatusService(executables: [failure]).read() == .unavailable, "Nonzero exit rejected")
         let large = try fixture("large", body: "exec /usr/bin/yes x\n")
-        check(await TailscaleStatusService(executable: large).read() == .unavailable, "Oversized output capped")
+        check(await TailscaleStatusService(executables: [large]).read() == .unavailable, "Oversized output capped")
         let hanging = try fixture("hanging", body: "exec /bin/sleep 30\n")
-        check(await TailscaleStatusService(executable: hanging, timeout: .milliseconds(50)).read() == .unavailable,
+        check(await TailscaleStatusService(executables: [hanging], timeout: .milliseconds(50)).read() == .unavailable,
               "Deadline kills and reaps child")
-        let task = Task { await TailscaleStatusService(executable: hanging).read() }
+        let task = Task { await TailscaleStatusService(executables: [hanging]).read() }
         try await Task.sleep(for: .milliseconds(30))
         task.cancel()
         check(await task.value == .unavailable, "Cancellation kills and reaps child")
-        check(await TailscaleStatusService(executable: root.appendingPathComponent("absent")).read() == .unavailable,
+        check(await TailscaleStatusService(executables: [root.appendingPathComponent("absent")]).read() == .unavailable,
               "Missing executable stays quiet")
+        check(await TailscaleStatusService(executables: [failure, valid]).read() == .connected,
+              "A failing first binary falls through to the next install")
+        let checked = SystemNoticesManager(observeSystem: false, readTailscale: { .connected })
+        var reports: [SystemNoticeEngine.Notice] = []
+        checked.onNotice = { reports.append($0) }
+        checked.start()
+        for expected in 1...2 {
+            checked.checkTailscale()
+            for _ in 0..<200 where reports.count < expected { try await Task.sleep(for: .milliseconds(10)) }
+        }
+        check(reports == [.tailscale(.connected), .tailscale(.connected)], "A manual check always reports")
+        checked.refreshTailscale()
+        try await Task.sleep(for: .milliseconds(100))
+        check(reports.count == 2, "Background polls stay quiet when nothing changed")
+        checked.stop()
         check(SystemNoticesManager.tailscaleInterval == .seconds(300), "Five-minute safety cadence")
         print("PASS: \(checks) notice edges, re-arming and bounded CLI checks")
     }
