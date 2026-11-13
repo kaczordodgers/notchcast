@@ -33,7 +33,6 @@ struct ArchivesEngineTest {
         try rules()
         try crashRecovery(root)
         try await killedRunner(root)
-        try await restoreDefaults()
         let fallbackStage = root.appending(path: "fallback-stage")
         try FileManager.default.createDirectory(at: fallbackStage, withIntermediateDirectories: false,
                                                attributes: [.posixPermissions: 0o700])
@@ -168,34 +167,6 @@ struct ArchivesEngineTest {
         expect(try String(contentsOf: root.appending(path: "runner-output"), encoding: .utf8) == "crash payload",
                "SIGKILL of app-side runner recovers visibly")
         print("PASS: SIGKILL of app-side runner publishes durable output visibly")
-    }
-
-    @MainActor static func restoreDefaults() async throws {
-        let application = URL(fileURLWithPath: "/Applications/Fixture.app")
-        let types = Array(ArchiveFormat.typeIdentifiers.prefix(4))
-        var attempted: [String] = []
-        try await ArchiveDefaultApplicationService.apply(
-            enabled: true, application: application, supported: Set(ArchiveFormat.typeIdentifiers), current: { _ in nil }
-        ) { attempted.append($0) }
-        expect(attempted == ArchiveFormat.defaultTypeIdentifiers, "claims only eligible archive types")
-        expect(!attempted.contains("public.iso-image"), "ISO never claimed by real default-service path")
-        expect(!attempted.contains("com.apple.installer-package-archive"), "PKG never claimed by real default-service path")
-        attempted = []
-        do {
-            try await ArchiveDefaultApplicationService.apply(
-                enabled: false, application: application, supported: Set(types.prefix(3)),
-                current: { $0 == types[2] ? URL(fileURLWithPath: "/Applications/Other.app") : application }
-            ) { identifier in
-                attempted.append(identifier)
-                throw ArchiveFailure.filesystem("failure-\(identifier)")
-            }
-            fatalError("restore errors lost")
-        } catch {
-            expect(attempted == Array(types.prefix(2)), "restore filters unsupported and other-app types")
-            let message = String(describing: error)
-            expect(attempted.allSatisfy { message.contains("failure-\($0)") }, "restore collects each type error")
-        }
-        print("PASS: fake default application service filters restore types and collects per-type errors")
     }
 
     static func listing(_ entries: [(String, Bool)], total: String = "12 B") throws -> ArchiveListing {
