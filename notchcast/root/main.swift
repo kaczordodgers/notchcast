@@ -11,12 +11,6 @@ guard RootCaller.permits(command, identity: RootCaller.authorized) else {
 
 if command.operation != .read {
     guard geteuid() == 0 else { exit(77) }
-    if command == .cleanSystemList || command == .cleanSystemTrash {
-        do {
-            try FileHandle.standardOutput.write(contentsOf: CleanSystem.run(command))
-            exit(0)
-        } catch { exit(70) }
-    }
     do {
         switch command {
         case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff:

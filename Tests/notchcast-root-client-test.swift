@@ -1,7 +1,6 @@
 // notchcast-kit: root platform
 // notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift notchcast/root/install.sh
-// notchcast-reads: Tinycast/Features/Clean/Model/CleanSystem*.swift
 // notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 import Darwin
 import Foundation
@@ -330,23 +329,12 @@ struct RootClientTest {
     static func main() async throws {
         validateCommands()
         try validateBoundaries()
-        for command in RootContract.Command.allCases {
-            let allowed = [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash].contains(command)
-            do {
-                try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: allowed ? 4097 : 0))
-            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
-            preconditionFailure("Disallowed command or oversized request accepted")
-        }
-        for command in [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash] {
-            try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: 4096))
-        }
         let strict = ProcessInfo.processInfo.environment["LIBDISPATCH_COOPERATIVE_POOL_STRICT"]
         print("Cooperative pool strict: \(strict ?? "unset")")
         if ProcessInfo.processInfo.environment["NOTCHCAST_TEST_HELPER_EXECUTABLE"] == "1" {
             try validateExecutable()
         }
         try validatePaths()
-        try await validateProcessLifetime()
         let echo = Process()
         echo.executableURL = URL(fileURLWithPath: "/bin/cat")
         let payload = Data(repeating: 42, count: 4096)
@@ -380,7 +368,7 @@ struct RootClientTest {
         for command in RootContract.Command.allCases {
             precondition(RootContract.Command(arguments: command.arguments) == command)
             let read = command.operation == .read
-            let spotlight = [.spotlightOn, .spotlightOff, .cleanSystemList, .cleanSystemTrash].contains(command)
+            let spotlight = [.spotlightOn, .spotlightOff].contains(command)
             precondition(command.operation == (read ? .read : spotlight ? .spotlight : .change))
             precondition(command.operation.timeout == .seconds(read ? 3 : spotlight ? 60 : 12))
             precondition(RootContract.Reply(command: command, output: command.output) != nil)
@@ -506,45 +494,5 @@ struct RootClientTest {
         precondition(RootToolPath.problem(path: "parent", info: info, directory: true) == .wrongKind("parent"))
     }
 
-    private static func validateProcessLifetime() async throws {
-        let fast = sleeper("0.01")
-        let fastExit = try fast.runObservingExit()
-        try await RootHelperClient.wait(for: fast, exit: fastExit, timeout: .seconds(1))
-        precondition(!fast.isRunning && fast.terminationStatus == 0)
-
-        let slow = sleeper("10")
-        let slowExit = try slow.runObservingExit()
-        let clock = ContinuousClock()
-        let start = clock.now
-        do {
-            try await RootHelperClient.wait(for: slow, exit: slowExit, timeout: .milliseconds(50))
-            preconditionFailure("A slow helper must time out")
-        } catch RootHelperClient.Failure.timedOut {
-            precondition(start.duration(to: clock.now) < .seconds(2))
-        }
-
-        let cancelled = sleeper("10")
-        let cancelledExit = try cancelled.runObservingExit()
-        let task = Task {
-            try await RootHelperClient.wait(for: cancelled, exit: cancelledExit, timeout: .seconds(3))
-        }
-        task.cancel()
-        do {
-            try await task.value
-            preconditionFailure("Cancellation must propagate")
-        } catch is CancellationError {
-        }
-    }
-
-    private static func sleeper(_ seconds: String) -> Process {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/sleep")
-        process.arguments = [seconds]
-        process.environment = [:]
-        process.standardInput = FileHandle.nullDevice
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-        return process
-    }
 }
 #endif

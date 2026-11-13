@@ -15,8 +15,8 @@ extension CopyPathModule {
                               NSPasteboard.general.clearContents()
                               return NSPasteboard.general.setString($0, forType: .string)
                           },
-                          report: @escaping (String) -> Void = {
-                              NotchcastHost.current.showMessage($0, .neutral)
+                          report: @escaping (String, DialogTone) -> Void = {
+                              NotchcastHost.current.showMessage($0, $1)
                           }) {
         guard isRunning, let service else { return }
         commandTask?.cancel()
@@ -26,14 +26,15 @@ extension CopyPathModule {
                 guard !Task.isCancelled, self?.isRunning == true else { return }
                 switch result {
                 case .path(let text), .link(let text):
-                    report(copy(text) ? String(localized: "Copied path") : String(localized: "Could not copy to clipboard.", table: "Notchcast"))
+                    let copied = copy(text)
+                    report(copied ? String(localized: "Copied path") : String(localized: "Could not copy to clipboard.", table: "Notchcast"), copied ? .success : .danger)
                 case .nothing:
-                    report(String(localized: "Unavailable"))
+                    report(String(localized: "Unavailable"), .neutral)
                 }
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, self?.isRunning == true else { return }
-                report((error as? CopyPathService.Failure ?? .unreadable).localizedDescription)
+                report((error as? CopyPathService.Failure ?? .unreadable).localizedDescription, .danger)
             }
         }
     }
