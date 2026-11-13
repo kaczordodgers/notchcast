@@ -216,6 +216,9 @@ final class EditorDocumentSession {
                 guard let self, self.isEnabled, self.lifecycle == watchingLifecycle else { return }
                 if (try? EditorDocumentRepository.kind(of: location)) == self.rendersMarkdown {
                     self.url = location.standardizedFileURL.resolvingSymlinksInPath()
+                } else {
+                    self.presenter?.stop()
+                    self.watch()
                 }
                 self.requestRefresh()
             }
