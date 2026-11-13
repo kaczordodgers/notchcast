@@ -4,7 +4,6 @@ import Foundation
 enum CleanTool {
     private static let limit = 1_048_576
 
-    /// `code` is 128 plus the signal for a killed tool, so a kill never reads as one of its exit codes.
     static func run(_ executable: URL, _ arguments: [String], timeout: TimeInterval) async throws
         -> (code: Int32, output: String, error: String) {
         let result = try await ProcessRunner.run(.init(executable: executable, arguments: arguments,
@@ -16,7 +15,7 @@ enum CleanTool {
         }
         let error = String(decoding: result.stderr.prefix(limit), as: UTF8.self)
         let cut = result.stderr.count > limit
-        return (result.signaled ? 128 + result.status : result.status, output, cut ? error + "\n[truncated]" : error)
+        return (result.exitCode, output, cut ? error + "\n[truncated]" : error)
     }
 
     /// A tool past its budget reports `.timedOut`; only a failure to start or read throws.

@@ -103,7 +103,6 @@ CLASS_PINS = (
 HOOKS = (
     ("Tinycast/App/AppCore.swift", "func handleOpenURL(_ url: URL)", "if pendingURLs != nil",
      "if ArchiveModule.shared.open(url) { return }", "if deepLinkCoordinator.handles(url)"),
-    ("Tinycast/App/AppCore.swift", "await ArchiveModule.shared.prepareForTermination()"),
     ("Tinycast/App/AppCore.swift", "if settings.extensionsEnabled { extensions.start("),
     ("Tinycast/App/AppDelegate.swift", "AppCore.shared.handleOpenURL(url)"),
     ("Tinycast/App/MenuBarItem.swift",
