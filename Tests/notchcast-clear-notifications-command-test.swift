@@ -29,8 +29,11 @@ enum NotchcastFeature { case clearNotifications }
         let command = ClearNotificationsModule.launcherCommand
         precondition(command.feature == .clearNotifications && command.isEnabled())
         module.clearFromLauncher()
-        await module.commandTask?.value
-        precondition(calls.withLock { $0 } == 1)
+        let first = module.commandTask
+        module.clearFromLauncher()
+        precondition(module.commandTask == first)
+        await first?.value
+        precondition(calls.withLock { $0 } == 1 && module.commandTask == nil)
         precondition(AppCore.shared.messages.last == "Notifications cleared: 7")
         module.stop()
         struct Unknown: Error {}
@@ -63,7 +66,8 @@ enum NotchcastFeature { case clearNotifications }
         precondition(entries[0].module === ClearNotificationsModule.shared)
         command.run()
         await ClearNotificationsModule.shared.commandTask?.value
-        precondition(ClearNotificationsModule.shared.commandTask != nil && AppCore.shared.messages.count == 1)
+        precondition(ClearNotificationsModule.shared.commandTask == nil && AppCore.shared.messages.count == 1)
+        print("Verified a second launcher action while one runs is ignored")
         print("Verified launcher action reaches fake runner, reports count, refuses stopped module")
         print("Verified the command reaches the registered module, which refuses until started")
         print("Verified each failure reports its own message")

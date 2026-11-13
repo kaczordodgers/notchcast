@@ -89,6 +89,11 @@ struct GreenMaximizeTest {
         precondition(gate.moved(to: CGPoint(x: 110, y: 250)))
         precondition(gate.zone == nil)
         precondition(!gate.moved(to: CGPoint(x: 400, y: 400)))
+        gate.replace(zones: [CGRect(x: 390, y: 390, width: 100, height: 40)], at: CGPoint(x: 400, y: 400))
+        precondition(gate.zone == 0, "a still pointer enters a zone that appears under it")
+        gate.replace(zones: [zone], at: CGPoint(x: 400, y: 400))
+        precondition(gate.zone == nil, "a zone that moves away no longer holds the pointer")
+        print("green-maximize: replaced zones re-gate a still pointer")
         print("green-maximize: pointer zone gate and hop throttling passed")
     }
 

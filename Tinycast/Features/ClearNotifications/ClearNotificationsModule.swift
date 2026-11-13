@@ -13,7 +13,6 @@ final class ClearNotificationsModule: NotchcastModule {
         isRunning = false
         revision &+= 1
         commandTask?.cancel()
-        commandTask = nil
     }
 
     func run(accessibilityGranted: Bool) async throws -> Int {

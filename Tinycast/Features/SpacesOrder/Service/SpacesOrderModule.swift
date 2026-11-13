@@ -8,22 +8,31 @@ final class SpacesOrderModule: NotchcastModule {
     private let key = "mru-spaces" as CFString
     private var task: Task<Void, Never>?
     private var restartPending = false
+    private var enabled = false
     var onFailure: (() -> Void)?
 
     func start() {
-        guard task == nil else { return }
-        task = Task { [weak self] in
-            while !Task.isCancelled {
-                self?.apply(enabled: true)
-                do { try await Task.sleep(for: .seconds(30)) } catch { return }
-            }
-        }
+        enabled = true
+        apply(enabled: true)
+        keepApplying()
     }
 
     func stop() {
-        task?.cancel()
-        task = nil
+        enabled = false
         apply(enabled: false)
+        keepApplying()
+    }
+
+    private func keepApplying() {
+        guard task == nil, enabled || restartPending else { return }
+        task = Task { [weak self] in
+            while true {
+                try? await Task.sleep(for: .seconds(30))
+                guard let self else { return }
+                guard enabled || restartPending else { task = nil; return }
+                apply(enabled: enabled)
+            }
+        }
     }
 
     func restoreIfDisabled() {

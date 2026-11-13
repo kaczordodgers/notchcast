@@ -12,6 +12,11 @@ enum GreenMaximizeClick {
             return true
         }
 
+        mutating func replace(zones: [CGRect], at point: CGPoint) {
+            self.zones = zones
+            zone = zones.firstIndex { $0.contains(point) }
+        }
+
         static func zone(bounds: CGRect, layer: Int) -> CGRect? {
             guard layer == 0, !bounds.isEmpty else { return nil }
             return bounds.intersection(CGRect(origin: bounds.origin, size: CGSize(width: 100, height: 40)))

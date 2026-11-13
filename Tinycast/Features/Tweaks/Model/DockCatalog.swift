@@ -27,7 +27,6 @@ nonisolated enum DockCatalog {
         "hide-desktop": [Write("com.apple.WindowManager", "HideDesktop", .bool(true)),
                          Write("com.apple.WindowManager", "StandardHideDesktopIcons", .bool(true))],
     ]
-    static let preset = Set(writes.keys)
 
     static func restartProcess(for identifier: String) -> String? {
         if identifier == "screenshot-shadow" { return "SystemUIServer" }
