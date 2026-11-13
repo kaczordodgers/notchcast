@@ -79,7 +79,7 @@ import AppKit
         put([], count: 2)
         assert(adapter.isProtected && !adapter.write("replacement"))
         put([.URL, .init("public.url-name")])
-        assert(!adapter.isProtected, "types=\(board.types ?? []), items=\(board.pasteboardItems?.count ?? -1)")
+        assert(!adapter.isProtected, "types=\(board.types ?? []), items=\(board.pasteboardItems?.map(\.types) ?? [])")
         module.clipboardDidChange(adapter)
         let historyText = board.string(forType: .string)
         assert(historyText == "https://example.com/?keep=1")
