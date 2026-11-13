@@ -35,8 +35,8 @@ assert route({"COUNT": "1", "IDLE": "\n".join(fresh), "EVENT": "push"}, NOW) == 
 print("PASS: only the owner's own refs reach a Mac")
 
 
-def pool(count, idle, busy, **env):
-    return route({**OWNER, "COUNT": str(count), "IDLE": "\n".join(idle), "EVENT": "push", **env}, NOW, busy)
+def pool(count, idle, busy, queued=(0, 0), **env):
+    return route({**OWNER, "COUNT": str(count), "IDLE": "\n".join(idle), "EVENT": "push", **env}, NOW, busy, *queued)
 
 
 assert pool(2, fresh, 0) == ["notchcast-mac"] * 2
@@ -44,21 +44,29 @@ assert pool(4, fresh, 0) == ["notchcast-mac"] * 3 + ["xcode-27"]
 busy_mac = [f"0 {NOW}"]
 assert pool(3, busy_mac, 0) == ["xcode-27"] * 3
 assert pool(3, busy_mac, 2) == ["xcode-27"] * 3
-assert pool(4, busy_mac, 3) == ["xcode-27"] * 2 + ["notchcast-mac"] * 2
-assert pool(2, busy_mac, 5) == ["notchcast-mac"] * 2
-assert pool(2, busy_mac, 9) == ["notchcast-mac"] * 2
+assert pool(4, busy_mac, 3) == ["xcode-27"] * 2 + ["notchcast-mac", "xcode-27"]
+assert pool(2, busy_mac, 5) == ["notchcast-mac", "xcode-27"]
+assert pool(2, busy_mac, 9) == ["notchcast-mac", "xcode-27"]
 asleep = [f"1 {NOW - 1000}", f"0 {NOW - 1000}"]
 assert pool(9, asleep, 0) == ["xcode-27"] * 9
 assert pool(4, asleep, 5) == ["xcode-27"] * 4
 assert pool(3, [f"-1 {NOW}"], 5) == ["xcode-27"] * 3
-assert pool(3, [f"-1 {NOW}", f"0 {NOW}"], 5) == ["notchcast-mac"] * 3
+assert pool(3, [f"-1 {NOW}", f"0 {NOW}"], 5) == ["notchcast-mac", "xcode-27", "xcode-27"]
 assert pool(3, [f"1 {NOW}"], 4) == ["notchcast-mac", "xcode-27", "notchcast-mac"]
 assert pool(3, [f"1 {NOW}"], 0) == ["notchcast-mac", "xcode-27", "xcode-27"]
 assert pool(2, [], None) == ["xcode-27"] * 2
 assert pool(2, fresh, 0, ELIGIBLE="false") == ["xcode-27"] * 2
 assert pool(1, fresh, 0, EVENT="pull_request", HEAD_REPO="owner/repo", ACTION="ready_for_review") == ["notchcast-mac"]
 assert pool(1, fresh, 0, EVENT="pull_request", HEAD_REPO="owner/repo", ACTION="synchronize") == ["xcode-27"]
-print("PASS: pool first, hosted while a slot is free, pool when both are full")
+print("PASS: pool first, hosted while a slot is free")
+
+three_busy = [f"0 {NOW}"] * 3
+assert pool(4, three_busy, 5, (2, 39)) == ["xcode-27"] * 4
+assert pool(4, three_busy, 5, (20, 3)) == ["notchcast-mac"] * 4
+assert pool(4, three_busy, 5, (5, 3)) == ["notchcast-mac", "xcode-27", "xcode-27", "notchcast-mac"]
+assert pool(1, three_busy, 5, (5, 3)) == ["notchcast-mac"]
+assert pool(2, [f"1 {NOW}"], 5, (0, 9)) == ["notchcast-mac", "xcode-27"]
+print("PASS: with both full, each job takes the queue with the shorter expected wait; a tie stays on the Macs")
 
 
 def api(queued, active, jobs):
@@ -84,10 +92,19 @@ jobs = {
         {"status": "queued", "labels": ["ubuntu-latest"]},
     ],
     2: [{"status": "in_progress", "labels": ["macos-14"]}],
+    3: [{"status": "queued", "labels": ["self-hosted", "notchcast-mac"]}] * 39
+    + [{"status": "in_progress", "labels": ["xcode-27"]}] * 3
+    + [{"status": "queued", "labels": ["xcode-27"]}] * 2,
 }
-assert hosted_busy("owner/repo", api([1], [2], jobs)) == 3
-assert hosted_busy("owner/repo", api([], [], jobs)) == 0
-print("PASS: hosted count is queued or running macOS jobs on the hosted image")
+assert hosted_busy("owner/repo", api([1], [2], jobs)) == (3, 1, 1)
+assert hosted_busy("owner/repo", api([], [], jobs)) == (0, 0, 0)
+assert hosted_busy("owner/repo", api([], [3], jobs)) == (5, 2, 39)
+print("PASS: hosted count is queued or running macOS jobs on the hosted image, with both queue depths")
+
+measured = {**OWNER, "COUNT": "4", "IDLE": "\n".join(three_busy), "EVENT": "push"}
+assert decide(measured, NOW, api([], [3], jobs)) == ["xcode-27"] * 4
+assert decide(measured, NOW, failing) == ["xcode-27"] * 4
+print("PASS: the measured backlog (39 queued on 3 busy Macs, hosted full with 2 queued) goes hosted")
 
 assert decide({**OWNER, "COUNT": "2", "IDLE": "\n".join(fresh), "EVENT": "push"}, NOW, failing) == ["notchcast-mac"] * 2
 assert decide({**OWNER, "COUNT": "2", "IDLE": "", "EVENT": "push"}, NOW, failing) == ["xcode-27"] * 2

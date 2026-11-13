@@ -52,17 +52,23 @@ def hosted(label):
 
 
 def hosted_busy(repo, fetch):
-    """Queued or running macOS jobs of this repository on the hosted image."""
-    busy = 0
+    """Queued or running hosted macOS jobs, then queued hosted jobs and queued Mac pool jobs."""
+    busy = hosted_queued = mac_queued = 0
     for status in ACTIVE:
         for run in fetch(f"/repos/{repo}/actions/runs?status={status}&per_page=100")["workflow_runs"]:
             for job in fetch(f"/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest&per_page=100")["jobs"]:
-                if job["status"] in ACTIVE and any(hosted(label) for label in job["labels"]):
+                if job["status"] not in ACTIVE:
+                    continue
+                queued = job["status"] == "queued"
+                if any(hosted(label) for label in job["labels"]):
                     busy += 1
-    return busy
+                    hosted_queued += queued
+                elif MAC in job["labels"]:
+                    mac_queued += queued
+    return busy, hosted_queued, mac_queued
 
 
-def route(env, now, busy=None):
+def route(env, now, busy=None, hosted_queued=0, mac_queued=0):
     """Labels for COUNT jobs. busy is the hosted count, or None when the API could not say."""
     count = count_of(env)
     if not takes_macs(env):
@@ -73,28 +79,36 @@ def route(env, now, busy=None):
         # No hosted count, or no Mac taking jobs: idle Macs first, hosted for the rest.
         macs = min(count, pool)
         return [MAC] * macs + [HOSTED] * (count - macs)
-    # Hosted only while an idle Mac is not waiting for the job and a hosted slot is free.
+    # An idle Mac first, then a free hosted slot, then the queue with the shorter expected wait.
     free = max(HOSTED_SLOTS - busy, 0)
     labels = []
     for _ in range(count):
-        if pool == 0 and free > 0:
+        if pool > 0:
+            labels.append(MAC)
+            pool -= 1
+        elif free > 0:
             labels.append(HOSTED)
             free -= 1
+        elif hosted_queued * len(online) < mac_queued * HOSTED_SLOTS:
+            labels.append(HOSTED)
+            hosted_queued += 1
         else:
             labels.append(MAC)
-            pool = max(pool - 1, 0)
+            mac_queued += 1
     return labels
 
 
 def decide(env, now, fetch):
-    busy = None
+    busy, hosted_queued, mac_queued = None, 0, 0
     if takes_macs(env) and count_of(env) > 0:
         try:
-            busy = hosted_busy(env.get("REPO", ""), fetch)
+            busy, hosted_queued, mac_queued = hosted_busy(env.get("REPO", ""), fetch)
         except Exception as error:
             print(f"route: hosted count unavailable, idle Macs first ({error})", file=sys.stderr)
-    labels = route(env, now, busy)
-    print(f"route: hosted busy {busy}, idle Macs {sum(fresh(env.get('IDLE') or '', now))} -> {labels}", file=sys.stderr)
+    labels = route(env, now, busy, hosted_queued, mac_queued)
+    idle = sum(fresh(env.get("IDLE") or "", now))
+    queues = f"queued hosted {hosted_queued}, queued Macs {mac_queued}"
+    print(f"route: hosted busy {busy}, {queues}, idle Macs {idle} -> {labels}", file=sys.stderr)
     return labels
 
 
