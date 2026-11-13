@@ -9,7 +9,8 @@ enum CommandProcessRunner {
         do {
             let result = try await ProcessRunner.run(.init(
                 executable: executable, arguments: request.arguments,
-                environment: ExecutableLocator.toolEnvironment(),
+                environment: ExecutableLocator.toolEnvironment().merging(
+                    ProcessInfo.processInfo.environment.filter { $0.key == "SSH_AUTH_SOCK" }) { $1 },
                 directory: request.workingDirectory.map { URL(fileURLWithPath: $0) },
                 stderr: .capture(limit: 65_536), timeout: request.timeout,
                 stopLadder: .terminating(grace: .milliseconds(250)), stopsGroup: true,

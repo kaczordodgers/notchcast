@@ -44,6 +44,14 @@ import Foundation
         let shell = try await CommandProcessRunner.run(.init(executable: "/usr/bin/printenv",
             arguments: ["SHELL"], workingDirectory: nil))
         precondition(shell.standardOutput.isEmpty, "Commands preserve filtered environment inheritance")
+        setenv("SSH_AUTH_SOCK", "/tmp/nc-test.sock", 1)
+        let agent = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
+            arguments: ["-c", "printenv SSH_AUTH_SOCK; printenv SHELL"], workingDirectory: nil))
+        precondition(agent.standardOutput == Data("/tmp/nc-test.sock\n".utf8), "Host commands inherit the SSH agent")
+        unsetenv("SSH_AUTH_SOCK")
+        let noAgent = try await CommandProcessRunner.run(.init(executable: "/usr/bin/printenv",
+            arguments: ["SSH_AUTH_SOCK"], workingDirectory: nil))
+        precondition(noAgent.standardOutput.isEmpty, "An unset SSH agent stays unset")
         let output = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "pwd; printf 'error output' >&2; exit 7"], workingDirectory: root.path))
         precondition(output.exitStatus == 7, "Expected exit 7, got \(output.exitStatus)")
