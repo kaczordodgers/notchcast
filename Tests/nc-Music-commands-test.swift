@@ -16,6 +16,7 @@ enum DialogTone { case danger, success }
 extension MusicNowPlayingModule { static var shared: MusicNowPlayingModule? }
 extension MicrophoneMuteModule { static var shared: MicrophoneMuteModule? }
 extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
+extension MusicBlockAppleMusicModule { static var shared: MusicBlockAppleMusicModule? }
 @MainActor final class CommandSource: NowPlayingSource {
     var commands: [PlayerCommand] = []
     func watch(_ onChange: @escaping @MainActor () -> Void) {}
@@ -55,8 +56,6 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
      let encoded = try SoloistProtocol.encode(.shuffle(false), isPlaying: true)
      let object = try JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any]
      precondition(object?["shuffle"] as? Bool == false)
-     let queued = try SoloistProtocol.addToQueue(uri: "spotify:track:fixture")
-     precondition(queued.contains("add_to_queue"))
      let notification = try SoloistProtocol.parse(#"{"type":"queue_changed"}"#, now: .now)
      precondition(notification == .changed(queue: true))
      let queueChange = try SoloistProtocol.parse(
@@ -126,7 +125,12 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
  precondition(resumable.canResume)
  resumable.lastPlayer.setEnabled(false)
  precondition(!resumable.canResume, "saved installed player requires Resume last player enabled")
- let observer = MusicCommandFeedback(music: music, preferences: preferences)
+ var launched: (@MainActor (PlayerApps.Launch) -> Void)?
+ let blocker = MusicLaunchBlocker(apps: PlayerApps(
+     isInstalled: { _ in false }, isRunning: { _ in false }, open: { _ in }, play: { _ in },
+     watchLaunches: { launched = $0; return [] }, quit: { _ in false }),
+     uptime: { 10 }, gestureAge: { 100 }, openReplacement: { _ in Task {} })
+ let observer = MusicCommandFeedback(music: music, preferences: preferences, blocker: blocker)
  defer { withExtendedLifetime(observer) {} }
  let source = CommandSource()
  precondition(source.queue == nil)
@@ -134,6 +138,25 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
  music.model.setSoloistSource(nil)
  music.start()
  for _ in 0..<100 { await Task.yield() }
+ let savedConnect = preferences.isOn(.spotifyConnect)
+ preferences.set(.spotifyConnect, true)
+ for _ in 0..<100 { await Task.yield() }
+ let soloistMessages = shown.count
+ music.soloist.receive(#"{"type":"error","message":"fixture rejection"}"#)
+ for _ in 0..<100 { await Task.yield() }
+ precondition(shown.count == soloistMessages + 1, "Soloist failure reaches the command HUD")
+ music.soloist.receive(#"{"type":"error","message":"fixture rejection"}"#)
+ for _ in 0..<100 { await Task.yield() }
+ precondition(shown.count == soloistMessages + 1, "Unchanged Soloist failure is not repeated")
+ preferences.set(.spotifyConnect, savedConnect)
+ blocker.setEnabled(true)
+ for _ in 0..<100 { await Task.yield() }
+ let blockerMessages = shown.count
+ blocker.noteMediaKey(.playPause, at: 10)
+ launched?(.init(bundleID: LastPlayer.appleMusic, processID: 123))
+ for _ in 0..<100 { await Task.yield() }
+ precondition(shown.count == blockerMessages + 1, "Failed launch blocking reaches the command HUD")
+ blocker.setEnabled(false)
  let mute = MicrophoneMute(audio: CommandAudio(), defaults: defaults)
  let microphone = MicrophoneMuteModule(model: mute, showMessage: { _ in }, showFailure: { _ in })
  microphone.start()

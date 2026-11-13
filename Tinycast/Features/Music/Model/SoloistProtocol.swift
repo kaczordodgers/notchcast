@@ -23,7 +23,6 @@ enum SoloistProtocol {
         var position_ms: Double?
         var volume: Int?
         var shuffle: Bool?
-        var uri: String?
     }
 
     private struct Entity: Decodable {
@@ -128,8 +127,4 @@ enum SoloistProtocol {
     static let getState = #"{"type":"command","command":"get_state"}"#
     static let getAuthState = #"{"type":"command","command":"get_auth_state"}"#
     static let getQueue = #"{"type":"command","command":"get_queue"}"#
-
-    static func addToQueue(uri: String) throws -> String {
-        String(data: try JSONEncoder().encode(Command(command: "add_to_queue", uri: uri)), encoding: .utf8)!
-    }
 }

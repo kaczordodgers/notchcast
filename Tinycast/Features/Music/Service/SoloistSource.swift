@@ -4,7 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class SoloistSource: NowPlayingSource {
-    enum Failure: Error { case invalidPort, malformedFrame, connection, command(String), artwork }
+    enum Failure: Error, Equatable { case invalidPort, malformedFrame, connection, command(String), artwork }
 
     private(set) var authState: SoloistProtocol.AuthState?
     private(set) var failure: Failure?
@@ -214,13 +214,6 @@ final class SoloistSource: NowPlayingSource {
     func watch(_ onChange: @escaping @MainActor () -> Void) { self.onChange = onChange }
     func unwatch() { onChange = nil }
     func read() async throws -> NowPlaying? { state }
-
-    func addToQueue(uri: String) {
-        do { enqueue(try SoloistProtocol.addToQueue(uri: uri)) } catch {
-            failure = .command(String(describing: error))
-            onChange?()
-        }
-    }
 
     func send(_ command: PlayerCommand) {
         do {
