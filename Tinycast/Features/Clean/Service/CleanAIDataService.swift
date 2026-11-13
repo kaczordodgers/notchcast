@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 struct CleanAIDataService: Sendable {
     let policy: CleanAIDataPolicy
@@ -7,17 +8,22 @@ struct CleanAIDataService: Sendable {
     let now: @Sendable () -> Date
     let chatIdle: @Sendable (URL) async -> Bool?
 
-    func cleanupLegacyRecovery(defaults: UserDefaults) throws {
+    func cleanupLegacyRecovery(defaults: UserDefaults, trash: (URL) throws -> Void) {
         let key = "cleanAIRecoveryRemoved"
         guard !defaults.bool(forKey: key) else { return }
         let folder = policy.home.appendingPathComponent(".clean-ai-recovery")
-        if FileManager().fileExists(atPath: folder.path) {
-            guard CleanService.physical(folder, inside: policy.home) else {
-                throw CocoaError(.fileWriteNoPermission)
+        do {
+            if FileManager().fileExists(atPath: folder.path) {
+                guard CleanService.physical(folder, inside: policy.home) else {
+                    throw CocoaError(.fileWriteNoPermission)
+                }
+                try trash(folder)
             }
-            try transport.trash(folder)
+            defaults.set(true, forKey: key)
+        } catch {
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast", category: "Clean")
+                .error("Legacy AI recovery cleanup failed: \(error.localizedDescription, privacy: .public)")
         }
-        defaults.set(true, forKey: key)
     }
 
     @concurrent func scan() async throws -> [CleanAIDataItem] {
