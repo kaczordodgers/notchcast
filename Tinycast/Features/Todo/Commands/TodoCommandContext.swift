@@ -18,9 +18,12 @@ struct TodoCommandContext {
                 return
             }
             let instant = now()
+            let calendar = calendar
+            let language = language
             var parser = TodoQuickAddParser(text: text, projects: store.state.projects.values.map(\.name),
                 sections: store.state.sections.values.map(\.name), labels: store.state.labels.values.map(\.name)) { text in
-                guard let date = parseDate(text, now: instant) else { return nil }
+                guard let date = TodoDateParser.parse(text, now: instant, calendar: calendar,
+                    timeZone: calendar.timeZone, preferredLanguage: language) else { return nil }
                 return TodoQuickAddDate(range: NSRange(date.matchedRange, in: text),
                                         display: date.normalised, payload: String(text[date.matchedRange]))
             }

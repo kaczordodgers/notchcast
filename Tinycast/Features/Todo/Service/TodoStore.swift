@@ -47,7 +47,8 @@ final class TodoStore {
     }
 
     static func open(directory: URL, now: Date = Date(),
-                     write: @escaping (FileHandle, Data) throws -> Void = { try $0.write(contentsOf: $1) }) async throws -> TodoStore {
+                     write: @escaping (FileHandle, Data) throws -> Void = { try $0.write(contentsOf: $1) }
+    ) async throws -> TodoStore {
         let loaded = try await read(directory: directory, now: now)
         try Task.checkCancellation()
         return try TodoStore(directory: directory, loaded: loaded, write: write)

@@ -225,7 +225,7 @@ struct TodoQuickAddParser: Sendable {
         return ranges
     }
 
-    /// The callback returns one match per call; consumed ranges become spaces with equal UTF-16 length.
+    /// The callback returns one match per call; masks keep ranges apart and preserve UTF-16 offsets.
     private static func dateCandidates(
         in text: String, excluding ranges: [NSRange], dateParser: (String) -> TodoQuickAddDate?
     ) -> [Candidate] {
@@ -245,7 +245,7 @@ struct TodoQuickAddParser: Sendable {
                 !excluded.contains(where: { NSIntersectionRange($0, range).length > 0 })
             else { break }
             excluded.append(range)
-            units.replaceSubrange(range.location..<NSMaxRange(range), with: repeatElement(32, count: range.length))
+            units.replaceSubrange(range.location..<NSMaxRange(range), with: repeatElement(0xFFFC, count: range.length))
             guard indices.lowerBound == text.startIndex || text[text.index(before: indices.lowerBound)].isWhitespace,
                 isEndBoundary(indices.upperBound, in: text), text[indices].contains(where: { !$0.isWhitespace })
             else { continue }
