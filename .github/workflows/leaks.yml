@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: A train run names its base
+        if: startsWith(github.ref, 'refs/heads/train/') && inputs.base == ''
+        run: |
+          echo "::error::train branches are dispatched by notchcast/train.sh with -f base=<main sha>"
+          exit 1
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0

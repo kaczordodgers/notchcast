@@ -98,10 +98,15 @@ green() { [ "$(check_run "$1" build)" = success ] || local_build_green "$1"; }
 # The gates PR $1 passes before it is merged: open, ready, and its checks green on its exact head.
 admit() {
     local pr=$1 metadata head name verdict required branch generated proven sha
-    metadata=$(gh pr view "$pr" -R "$FORK_REPO" --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository,title,body)
+    metadata=$(gh pr view "$pr" -R "$FORK_REPO" --json state,isDraft,labels,headRefOid,headRefName,baseRefName,isCrossRepository,title,body)
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
-    # A draft gets no PR build of its own; a covering train run is that build.
-    head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and (not p["isDraft"] or sys.argv[1]); print(p["headRefOid"])' "$covered" <<< "$metadata") || refuse 'PR must be open and ready'
+    [ "$(jq -r .state <<< "$metadata")" = OPEN ] || refuse 'PR must be open and ready'
+    if [ "$(jq -r .isDraft <<< "$metadata")" = true ]; then
+        [ -n "$covered" ] || refuse 'PR must be open and ready; a draft lands only on a green train run'
+        jq -e '(.labels // []) | any(.name == "land")' <<< "$metadata" > /dev/null \
+            || refuse "draft #$pr has no land label, the lead's sign-off to land it on a train run"
+    fi
+    head=$(jq -r .headRefOid <<< "$metadata")
     git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
     if [ -n "$covered" ]; then
@@ -139,8 +144,7 @@ admit() {
     printf '%s\n' "$metadata" > "$scratch/pr-$pr.json"
 }
 uncovered() { echo "train: ${train_run:0:8} $1; each PR's own head checks decide" >&2; }
-# Sets covered when commit $train_run is current main with each train PR's current head merged onto it in order, as
-# train.sh builds it, and its checks are green: admit then skips each head's own checks. Else covered stays empty.
+# Sets covered when $train_run is a green train.sh merge of current main and each PR's current head.
 covered=
 train_covers() {
     local commit i=${#train[@]} pr head parents name verdict required

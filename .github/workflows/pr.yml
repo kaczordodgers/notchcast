@@ -98,6 +98,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: A train run names its base
+        if: startsWith(github.ref, 'refs/heads/train/') && inputs.base == ''
+        run: |
+          echo "::error::train branches are dispatched by notchcast/train.sh with -f base=<main sha>"
+          exit 1
       - name: Checks and every harness shard passed
         if: needs.checks.result != 'success' || needs.harnesses.result != 'success'
         run: |

@@ -20,7 +20,9 @@ case "$*" in
         sha=$*
         sha=${sha#*commits/}
         if grep -qxF "${sha%%/*}" "$FIXTURE/green" 2>/dev/null; then echo success; else echo "${HEAD_CHECKS:-success}"; fi ;;
-    'workflow run '*) echo "$*" >> "$FIXTURE/dispatched" ;;
+    'workflow run '*)
+        [[ -z "${DISPATCH_FAILS:-}" || "$*" != *"--ref $DISPATCH_FAILS "* ]] || { echo 'HTTP 422' >&2; exit 1; }
+        echo "$*" >> "$FIXTURE/dispatched" ;;
     'run list '*databaseId,status*) ;;
     # A dispatched train run is red when its branch train/<a>-<b> names a PR in RED_PRS.
     'run list '*workflow_dispatch*)
@@ -126,7 +128,7 @@ open_pr() {
     git commit --quiet -m "$title"
     git push --quiet origin "$branch" "$branch:refs/pull/$number/head"
     jq -n --arg head "$(git rev-parse HEAD)" --arg branch "$branch" --arg title "$title" \
-        '{state: "OPEN", isDraft: false, headRefOid: $head, headRefName: $branch, baseRefName: "main", isCrossRepository: false, title: $title, body: ""}' \
+        '{state: "OPEN", isDraft: false, headRefOid: $head, headRefName: $branch, baseRefName: "main", isCrossRepository: false, title: $title, body: "", labels: []}' \
         > "$FIXTURE/pr-$number.json"
     git switch --quiet main
 }
@@ -270,6 +272,7 @@ train() {
     train_sha=$(sed -n 's/^GREEN .*--train-run \([0-9a-f]*\) .*/\1/p' "$FIXTURE/train-output" | tail -1)
 }
 draft() { jq '.isDraft = true' "$FIXTURE/pr-$1.json" > "$FIXTURE/pr.json" && mv "$FIXTURE/pr.json" "$FIXTURE/pr-$1.json"; }
+label() { jq '.labels += [{name: "land"}]' "$FIXTURE/pr-$1.json" > "$FIXTURE/pr.json" && mv "$FIXTURE/pr.json" "$FIXTURE/pr-$1.json"; }
 untouched() { [ "$(origin rev-parse main)" = "$base" ] && [ ! -e "$FIXTURE/closed" ] && [ ! -e "$FIXTURE/hold" ]; }
 
 fixture
@@ -284,12 +287,22 @@ train 1 2
 echo "$train_sha" > "$FIXTURE/green"
 draft 1
 draft 2
+label 1
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q '^REFUSED: draft #2 has no land label' "$FIXTURE/output" && untouched \
+    || fail 'a draft without the land label landed on a green train run'
+echo 'PASS: a draft without the land label is refused even under a green train run'
+land 1
+[ "$status" -eq 1 ] && grep -q '^REFUSED: PR must be open and ready; a draft lands only on a green train run' "$FIXTURE/output" && untouched \
+    || fail 'a labelled draft landed without a train run'
+echo 'PASS: a labelled draft without --train-run is refused as before'
+label 2
 HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
 [ "$status" -eq 0 ] && grep -q "train: ${train_sha:0:8} is green on main" "$FIXTURE/output" || fail 'a green train run did not cover its PRs'
 [ "$(landed)" = 'Notchcast: Add B (#1)|Notchcast: Add C (#2)' ] && [ "$(origin rev-parse 'main^{tree}')" = "$(origin rev-parse "$train_sha^{tree}")" ] \
     || fail "the train run landed '$(landed)'"
 [ -z "$(origin for-each-ref refs/heads/train/)" ] || fail 'the landed train branch was not deleted'
-echo 'PASS: a green train run lands its draft PRs, red on their own heads, as the exact tree it tested, and deletes its branch'
+echo 'PASS: a green train run lands its labelled draft PRs, red on their own heads, as the exact tree it tested, and deletes its branch'
 
 fixture
 open_pr 1 pr-b 'Add B' src/b.txt
@@ -361,6 +374,27 @@ train 1 2
 [ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: src/shared.txt' "$FIXTURE/train-output" || { cat "$FIXTURE/train-output"; fail 'a conflicting train was not refused'; }
 [ -z "$(origin for-each-ref refs/heads/train/)" ] && [ ! -e "$FIXTURE/dispatched" ] && untouched || fail 'a refused train pushed or dispatched'
 echo 'PASS: a train whose merge is refused pushes no branch and dispatches nothing'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+origin update-ref refs/heads/train/3 "$base"
+RED_PRS=2 train 1 2 3
+[ "$status" -eq 1 ] && grep -q '^REFUSED: origin already has train/3' "$FIXTURE/train-output" || { cat "$FIXTURE/train-output"; fail 'a taken split name was not refused'; }
+[ "$(origin for-each-ref --format='%(refname:lstrip=2)' refs/heads/train/)" = train/3 ] && ! grep -q -- '--ref train/1-2 ' "$FIXTURE/dispatched" && untouched \
+    || fail "a split refused on a taken name left '$(origin for-each-ref refs/heads/train/)'"
+echo 'PASS: a split round whose branch name is taken refuses before pushing any half'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+RED_PRS=2 DISPATCH_FAILS=train/3 train 1 2 3
+[ "$status" -eq 1 ] && grep -q 'scrapping train/1-2, which has no verdict' "$FIXTURE/train-output" \
+    && grep -q 'scrapping train/3, which has no verdict' "$FIXTURE/train-output" || { cat "$FIXTURE/train-output"; fail 'a failed dispatch scrapped nothing'; }
+[ -z "$(origin for-each-ref refs/heads/train/)" ] && untouched || fail "a failed dispatch left '$(origin for-each-ref refs/heads/train/)'"
+echo 'PASS: a split round that stops after pushing deletes every half it pushed'
 
 # a-test is red only with both src/a.txt and src/b.txt: the train run is green, the merged-tree pass is not.
 fixture
