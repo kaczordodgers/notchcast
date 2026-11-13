@@ -66,11 +66,6 @@ final class AudioPriorityManager {
         }
     }
 
-    func refresh() {
-        clearFailure()
-        refresh(apply: true, force: Set(AudioPriorityDevice.Direction.allCases))
-    }
-
     private func trackRankings(_ identity: UUID) {
         let rankings = Dictionary(uniqueKeysWithValues: AudioPriorityDevice.Direction.allCases.map {
             ($0, store.ranking(for: $0))
@@ -108,6 +103,7 @@ final class AudioPriorityManager {
                     if let target = AudioPriorityPolicy.target(
                         ranking: ranking, connected: available, current: current) {
                         try transport.setDefault(uid: target, for: direction)
+                        clearFailure()
                     }
                 } catch { report(error) }
             }
