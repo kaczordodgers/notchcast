@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/ExecutableLocator.swift
 

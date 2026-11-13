@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/Music/Model/*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/*.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
 // notchcast-kit: core
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift

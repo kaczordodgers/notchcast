@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CatalogShellCommandRunner.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
