@@ -11,6 +11,8 @@ final class AudioPriorityManager {
     private var connected: [AudioPriorityDevice.Direction: Set<String>] = [:]
     var inventoryChanged: ([AudioPriorityDevice]) -> Void = { _ in }
     var succeeded: () -> Void = {}
+    var clearFailure: () -> Void = {}
+    func refresh() { refresh(apply: true) }
 
     init(transport: any AudioPriorityTransport, store: any AudioPriorityStore,
          report: @escaping (any Error) -> Void) {
