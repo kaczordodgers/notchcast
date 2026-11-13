@@ -1465,6 +1465,7 @@
 		ACB45791BFE60896455293B4 /* FileSearchPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FC86115B040B8C574EAD0B5 /* FileSearchPolicy.swift */; };
 		ACD8CAE659B1C49EC8652576 /* HotKeyCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26AD346C8FD5F2D4F00FF2B6 /* HotKeyCenter.swift */; };
 		ACE645630E536C93CA102050 /* VolumeHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90559D7DB9F6F3874CAFCDE /* VolumeHUDView.swift */; };
+		ACFD0C23EBE6140124B771B2 /* BatterySettingsPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9175ECE3734FFDB8A57DDCCC /* BatterySettingsPolicy.swift */; };
 		AD30262AEEC0DF5F33C5130A /* KatanaPatchRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801321FC217E72342DF22E8F /* KatanaPatchRegion.swift */; };
 		AD48091EFA8648AE7701C9CC /* SoloistProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C5F2F8AFA4690E1E13CA3 /* SoloistProtocol.swift */; };
 		AD9753D6EAF202B6E31510EB /* ClipboardFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682E7F6534CB4014969D98E0 /* ClipboardFilter.swift */; };
@@ -3475,6 +3476,7 @@
 		91151402A1A4586B2496BF35 /* NotesPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesPanel.swift; sourceTree = "<group>"; };
 		91342170A8C4E79C654AF504 /* AppUpdateTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTransport.swift; sourceTree = "<group>"; };
 		916971391D1DCC0A533F1C16 /* ChatFind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFind.swift; sourceTree = "<group>"; };
+		9175ECE3734FFDB8A57DDCCC /* BatterySettingsPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySettingsPolicy.swift; sourceTree = "<group>"; };
 		9188FA8A06EAE3E55FFCBC70 /* UpdateInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateInstaller.swift; sourceTree = "<group>"; };
 		91C0A620E98C7B6F19E39124 /* AgentSessionsDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSessionsDescriptor.swift; sourceTree = "<group>"; };
 		91C288BA8108ACE77B3A805C /* MemoryDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryDecoder.swift; sourceTree = "<group>"; };
@@ -5444,6 +5446,7 @@
 			children = (
 				4DBFB6338D9DA226059A3393 /* BatteryJournalKey.swift */,
 				04BB1043E87AA82DA1DFFA6D /* BatteryOwnershipJournal.swift */,
+				9175ECE3734FFDB8A57DDCCC /* BatterySettingsPolicy.swift */,
 				50AD468CC75CC84BE7AA9D08 /* CalibrationSession.swift */,
 				E417A2669D79802BC2B76377 /* ChargeEngine.swift */,
 				A790023F0AA622619D1C7FC8 /* ChargePolicy.swift */,
@@ -10891,6 +10894,7 @@
 				393E42D20A574099139B19D3 /* BatterySailingDescriptor.swift in Sources */,
 				A42ED8D5ABB522B87BD89F21 /* BatteryService.swift in Sources */,
 				9B65D5176495DDF3D0F84CB6 /* BatterySettingRows.swift in Sources */,
+				ACFD0C23EBE6140124B771B2 /* BatterySettingsPolicy.swift in Sources */,
 				E1A4A8EE48CC3BC03D5B0F41 /* BlockedDialogEngine.swift in Sources */,
 				773D997683550E6D5804A49A /* BlockedDialogModule+Command.swift in Sources */,
 				FB8556BD4ADA7F89B608052C /* BlockedDialogModule+Link.swift in Sources */,
