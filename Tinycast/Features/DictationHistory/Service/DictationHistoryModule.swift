@@ -52,8 +52,10 @@ final class DictationHistoryModule: NotchcastModule {
     }
 
     func maintain() async {
-        do { try await perform { try $0.maintain() } }
-        catch { onFailure?() }
+        do {
+            try await perform { try $0.maintain() }
+            revision += 1
+        } catch { onFailure?() }
     }
 
     func record(raw: String, cleaned: String) async {
@@ -68,8 +70,8 @@ final class DictationHistoryModule: NotchcastModule {
         try await perform { try $0.recent(limit: limit) }
     }
 
-    func hasQuarantine() async throws -> Bool {
-        try await perform { $0.hasQuarantine() }
+    func snapshot(limit: Int = 100) async throws -> (entries: [DictationHistoryEntry], hasQuarantine: Bool) {
+        try await perform { (try $0.recent(limit: limit), $0.hasQuarantine()) }
     }
 
     func deleteAll() async throws {

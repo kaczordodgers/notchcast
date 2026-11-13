@@ -29,11 +29,10 @@ struct DictationHistorySettingRow: View {
                 isLoading = true
                 loadFailed = false
                 do {
-                    let loaded = try await DictationHistoryModule.shared.recent(limit: 100)
-                    let quarantine = try await DictationHistoryModule.shared.hasQuarantine()
+                    let loaded = try await DictationHistoryModule.shared.snapshot(limit: 100)
                     try Task.checkCancellation()
-                    entries = loaded
-                    hasQuarantine = quarantine
+                    entries = loaded.entries
+                    hasQuarantine = loaded.hasQuarantine
                 } catch is CancellationError {
                     return
                 } catch {
