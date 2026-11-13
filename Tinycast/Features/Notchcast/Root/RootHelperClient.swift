@@ -17,16 +17,20 @@ struct RootHelperClient: Sendable {
 
     @concurrent
     func clean(_ command: RootContract.Command, input: Data) async throws -> Data {
+        try Self.checkRequest(command, input: input)
+        return try await execute(command, input: input)
+    }
+
+    static func checkRequest(_ command: RootContract.Command, input: Data) throws {
         guard [.version, .cleanSystemList, .cleanSystemTrash].contains(command)
         else { throw Failure.invalidResponse }
-        return try await execute(command, input: input)
+        guard input.count <= 4096 else { throw Failure.invalidResponse }
     }
 
     @concurrent
     private func execute(_ command: RootContract.Command, input: Data) async throws -> Data {
         try Task.checkCancellation()
         try Self.refuseWhileAbandonedRuns()
-        guard input.count <= 4096 else { throw Failure.invalidResponse }
         if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")

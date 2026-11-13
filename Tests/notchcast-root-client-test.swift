@@ -333,9 +333,12 @@ struct RootClientTest {
         for command in RootContract.Command.allCases {
             let allowed = [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash].contains(command)
             do {
-                _ = try await RootHelperClient().clean(command, input: Data(repeating: 0, count: allowed ? 4097 : 0))
+                try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: allowed ? 4097 : 0))
             } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
             preconditionFailure("Disallowed command or oversized request accepted")
+        }
+        for command in [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash] {
+            try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: 4096))
         }
         let strict = ProcessInfo.processInfo.environment["LIBDISPATCH_COOPERATIVE_POOL_STRICT"]
         print("Cooperative pool strict: \(strict ?? "unset")")

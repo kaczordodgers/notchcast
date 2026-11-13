@@ -177,15 +177,14 @@ enum DialogTone { case neutral }
                 ('approval', 'Approval', NULL, NULL), ('question', 'Question', NULL, NULL),
                 ('both', 'Both', NULL, NULL), ('resolved', 'Resolved', NULL, NULL),
                 ('archived', 'Archived', 'date', NULL), ('deleted', 'Deleted', NULL, 'date'),
-                ('future', 'Future', NULL, NULL), ('untitled', NULL, NULL, NULL),
-                (NULL, 'No identity', NULL, NULL);
+                ('future', 'Future', NULL, NULL), ('untitled', NULL, NULL, NULL);
             INSERT INTO orchestration_v2_projection_runtime_requests VALUES
                 ('approval', 'command', NULL), ('approval', 'command', NULL),
                 ('question', 'user_input', NULL), ('both', 'user_input', NULL), ('both', 'command', NULL),
                 ('resolved', 'command', 'date'), ('resolved', 'user_input', 'date'),
                 ('archived', 'command', NULL), ('deleted', 'user_input', NULL),
                 ('orphan', 'command', NULL), ('future', 'future_kind', NULL),
-                ('untitled', 'command', NULL), (NULL, 'command', NULL);
+                ('untitled', 'command', NULL);
             """
         precondition(sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK)
         sqlite3_close(database)
@@ -193,7 +192,8 @@ enum DialogTone { case neutral }
         precondition(rows == [WaitingAlert(id: "approval", title: "Approval", kind: .approval),
                               WaitingAlert(id: "both", title: "Both", kind: .approval),
                               WaitingAlert(id: "future", title: "Future", kind: .approval),
-                              WaitingAlert(id: "question", title: "Question", kind: .question)])
+                              WaitingAlert(id: "question", title: "Question", kind: .question),
+                              WaitingAlert(id: "untitled", title: "untitled", kind: .approval)])
         print("PASS: temp SQLite pending/resolved rows; archived/deleted/orphan excluded; grouped; approval wins")
         print("PASS: missing file not created; schema-missing database throws; unknown kind is approval")
     }

@@ -19,7 +19,7 @@ struct WaitingAlertsReader: WaitingAlertsReading {
         var statement: OpaquePointer?
         defer { sqlite3_finalize(statement) }
         let query = """
-            SELECT t.thread_id, t.title,
+            SELECT t.thread_id, COALESCE(t.title, t.thread_id),
                    MAX(CASE WHEN r.kind = 'user_input' THEN 0 ELSE 1 END)
             FROM orchestration_v2_projection_runtime_requests r
             JOIN orchestration_v2_projection_threads t ON t.thread_id = r.thread_id
