@@ -29,7 +29,7 @@ extension DictationFamily {
                 ? await DictationEnglish.process(raw, language: language, settings: settings, key: key,
                                                  client: client, onFallback: onFallback)
                 : await DictationCleanup.process(raw, language: language, settings: settings, key: key,
-                                                 client: client)
+                                                 client: client, onFallback: onFallback)
             guard !Task.isCancelled, try store.read() == settings else { return raw }
             return result
         } catch {

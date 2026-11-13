@@ -104,8 +104,6 @@
   "core-lookups": {},
   "dead": {
     "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
-    "Tinycast/Features/DictationEnglish/Service/DictationEnglishSettingsSection.swift:DictationEnglishSettingsSection": 1,
-    "Tinycast/Features/DictationTrigger/UI/DictationTriggerSettingsSection.swift:DictationTriggerSettingsSection": 1,
     "Tinycast/Features/DisplayBrightness/Service/KeyboardBrightnessService.swift:KeyboardBrightnessService": 0,
     "Tinycast/Features/Music/NowPlayingAdapter/NowPlayingAdapter.swift:tinycastNowPlayingWatch": 1,
     "Tinycast/Features/Notchcast/Island/IslandAnalyserBars.swift:dismantleNSView": 1,
@@ -116,7 +114,7 @@
   "file-size": {
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
     "Tinycast/Features/Battery/Store/BatteryModule.swift": 438,
-    "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 2275,
+    "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 0,
     "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
     "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0
   },

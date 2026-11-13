@@ -8,7 +8,7 @@ extension GalleryPages {
         "low-disk", "meeting-reminder", "dictation", "walk", "message", "danger-message",
         "music", "music-paused", "recording", "count", "step", "speed", "toggle", "level", "spinner", "calibration",
         "two-at-once", "timer-end", "long-message",
-        "agents", "camera", "mac-update", "several-items", "transcribing", "two-activities",
+        "agents", "camera", "mac-update", "several-items", "transcribing", "two-activities", "second-card",
     ]
 
     static func island(_ core: AppCore) -> [GalleryPage] {
@@ -213,6 +213,9 @@ extension GalleryPages {
         case "two-at-once": shown = (nil, [tea], track)
         case "timer-end":
             return IslandClosedState(main: .card(IslandCard(kind: .timerEnd, title: "Tea timer", action: {})))
+        case "second-card":
+            return IslandClosedState(main: .message(message("Working", progress: true)),
+                                     second: .card(IslandCard(kind: .timerEnd, title: "Tea timer", action: {})))
         case "long-message":
             shown.message = message("Couldn't paste some dictation into the app",
                                     detail: "The text is on the clipboard instead")

@@ -16,4 +16,6 @@ struct AppUpdate: Sendable, Equatable {
     let latest: String?
     let link: URL?
     let isNewer: Bool?
+
+    var settingsLink: URL? { source == .sparkle ? nil : link }
 }

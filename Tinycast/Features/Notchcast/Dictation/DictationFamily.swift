@@ -11,6 +11,7 @@ final class DictationFamily {
     private var cleanupEnabled = false
     private var historyEnabled = false
     var historySink: (@MainActor (String, String) -> Void)?
+    var cleanupFallback: (@MainActor () -> Void)?
 
     init(process: @escaping Process) {
         self.process = process
@@ -67,7 +68,7 @@ final class DictationFamily {
         }
         let process = process
         DictationCoordinator.transcriptStage = { @MainActor [self] raw, language in
-            cleanupEnabled ? await process(raw, language, false, {}) : raw
+            cleanupEnabled ? await process(raw, language, false, { @MainActor in self.cleanupFallback?() }) : raw
         }
     }
 }

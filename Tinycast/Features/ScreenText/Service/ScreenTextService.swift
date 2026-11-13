@@ -17,14 +17,18 @@ enum ScreenTextService {
 
     @concurrent
     static func recognize(
-        selection: CaptureAreaSelection, removeLineBreaks: Bool = false
+        selection: CaptureAreaSelection, removeLineBreaks: Bool = false,
+        content: @Sendable () async throws -> ([SCDisplay], [SCRunningApplication]) = {
+            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            return (content.displays, content.applications)
+        }
     ) async throws -> ScreenTextResult {
         try Task.checkCancellation()
-        let shareable = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        let (displays, applications) = try await content()
         try Task.checkCancellation()
-        guard let display = shareable.displays.first(where: { $0.displayID == selection.displayID })
+        guard let display = displays.first(where: { $0.displayID == selection.displayID })
         else { throw Failure.displayUnavailable }
-        let ownApplications = shareable.applications.filter {
+        let ownApplications = applications.filter {
             $0.processID == ProcessInfo.processInfo.processIdentifier
                 || $0.bundleIdentifier == Bundle.main.bundleIdentifier
         }

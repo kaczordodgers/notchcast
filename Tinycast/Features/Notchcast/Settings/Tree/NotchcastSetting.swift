@@ -52,6 +52,5 @@ enum NotchcastSetting: String, CaseIterable, Sendable {
     case tweaksFinder
     case tweaksDock
     case privacyAndStartupLaunchAgents
-    case privacyAndStartupAppleApps
     case privacyAndStartupIPhoneBackup
 }
