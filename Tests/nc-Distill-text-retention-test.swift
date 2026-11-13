@@ -17,14 +17,16 @@ struct DistillTextRetentionTest {
         let converter = DistillConverter(trash: { _ in preconditionFailure("Text must never reach Trash") })
         let first = try await converter.convert(folder: root)
         precondition(first.first?.status == .retained)
-        precondition(try Data(contentsOf: source) == data)
+        let original = try Data(contentsOf: source)
+        precondition(original == data)
         let manifest = root.appendingPathComponent(DistillConverter.manifestName)
         var receipts = try JSONSerialization.jsonObject(with: Data(contentsOf: manifest)) as! [String: [String: Any]]
         receipts[source.lastPathComponent]!["retainSource"] = false
         try JSONSerialization.data(withJSONObject: receipts).write(to: manifest)
         let repeated = try await converter.convert(folder: root)
         precondition(repeated.first { $0.source == source }?.status == .retained)
-        precondition(try Data(contentsOf: source) == data)
+        let retained = try Data(contentsOf: source)
+        precondition(retained == data)
         print("PASS text retained on fresh conversion and legacy receipt reuse")
     }
 }
