@@ -60,7 +60,7 @@ enum TorrentCommands {
         panel.allowedContentTypes = [UTType(importedAs: "org.bittorrent.torrent")]
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = true
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
         panel.begin { response in
             guard response == .OK, enabled else { return }
             download(panel.urls)
