@@ -55,12 +55,19 @@ final class MacUpdateService {
     }
 
     private func perform(_ progress: AsyncStream<Progress>.Continuation) async {
-        let tools = await withTaskGroup(of: (String, String?).self) { [locate] group in
-            for name in MacUpdatePlan.tools { group.addTask { (name, await locate(name)) } }
-            var found: [String: String] = [:]
-            for await (name, path) in group { found[name] = path }
-            return found
+        // A shell lookup ignores cancellation, so cancel stops waiting instead of waiting it out.
+        let (lookups, finished) = AsyncStream<[String: String]>.makeStream()
+        Task { [locate] in
+            finished.yield(await withTaskGroup(of: (String, String?).self) { group in
+                for name in MacUpdatePlan.tools { group.addTask { (name, await locate(name)) } }
+                var found: [String: String] = [:]
+                for await (name, path) in group { found[name] = path }
+                return found
+            })
+            finished.finish()
         }
+        var tools: [String: String] = [:]
+        for await found in lookups { tools = found }
         for step in MacUpdateStep.allCases {
             func emit(_ state: State) { progress.yield(Progress(step: step, state: state)) }
             do {

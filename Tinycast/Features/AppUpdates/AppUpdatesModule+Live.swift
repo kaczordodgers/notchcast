@@ -7,15 +7,20 @@ extension AppUpdatesModule {
             let brew = await ExecutableLocator.locate("brew")
             let checker = AppUpdatesChecker(fetch: { try await transport.fetch($0) },
                                             outdated: { try await AppUpdateBrewRunner(brew: brew).outdated() })
-            let data = try? await AppUpdateBrewRunner(
-                brew: brew, arguments: ["info", "--cask", "--json=v2", "--installed"]).outdated()
-            let apps = await installedApps(caskData: data)
+            let casks = await AppUpdateBrewRunner(
+                brew: brew, arguments: ["info", "--cask", "--json=v2", "--installed"]
+            ).installedCasks { _ in
+                Task { @MainActor in
+                    IslandHUDRouter.post(String(localized: "Homebrew apps could not be checked.", table: "Notchcast"),
+                                         tone: .danger, symbol: "shippingbox")
+                }
+            }
+            let apps = await installedApps(casks: casks)
             return try await checker.check(apps: apps, now: Date()).results
         }
     }
 
-    @concurrent private static func installedApps(caskData: Data?) async -> [AppUpdate.App] {
-        let casks = AppUpdateFeed.caskApplications(caskData)
+    @concurrent private static func installedApps(casks: [String: String]) async -> [AppUpdate.App] {
         let roots = [URL(filePath: "/Applications"),
                      FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications")]
         return roots.flatMap { root -> [AppUpdate.App] in

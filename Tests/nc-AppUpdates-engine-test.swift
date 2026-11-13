@@ -96,6 +96,18 @@ struct AppUpdatesTest {
         let intel = try await AppUpdateBrewRunner(brew: intelBrew).outdated()
         precondition(String(bytes: intel, encoding: .utf8)
             == "\(intelBrew.path) outdated --cask --json=v2 1 \(intelFolder)\n", "Homebrew outside /opt/homebrew")
-        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; located brew")
+        let failingBrew = intelRoot.appending(path: "failing-brew")
+        try Data("#!/bin/sh\nexit 1\n".utf8).write(to: failingBrew)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: failingBrew.path)
+        let (reports, reported) = AsyncStream<Bool>.makeStream()
+        for brew in [nil, failingBrew] {
+            let casks = await AppUpdateBrewRunner(brew: brew).installedCasks { _ in reported.yield(brew != nil) }
+            precondition(casks.isEmpty)
+        }
+        reported.finish()
+        var reportedFailures: [Bool] = []
+        for await failure in reports { reportedFailures.append(failure) }
+        precondition(reportedFailures == [true], "A failed cask scan is reported; no Homebrew is not a failure")
+        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; located brew; cask scan failure")
     }
 }

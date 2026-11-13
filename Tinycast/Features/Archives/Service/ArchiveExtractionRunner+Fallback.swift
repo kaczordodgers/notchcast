@@ -68,11 +68,7 @@ extension ArchiveExtractionRunner {
                                   mode: .keepArchive, fallback: mode == .inPlace ? .inPlaceCheckRefused(1) : nil)
             await progress(update)
             let report: @Sendable () async -> Void = {
-                if let written = try? ArchiveFiles.bytes(staging) {
-                    var current = update
-                    current.bytesWritten = min(written, total)
-                    await progress(current)
-                }
+                await Self.reportBytes(update, limit: total, progress: progress)
             }
             if route == .xad {
                 let flags = encoding.map { ["-e", $0] } ?? []
@@ -97,8 +93,7 @@ extension ArchiveExtractionRunner {
             try Task.checkCancellation()
             return try finish(update.recovery, archive: archive)
         } catch {
-            try ArchiveFiles.removeStaging(staging)
-            try durable.remove()
+            try Self.cleanupFailure(durable, route: route)
             throw error
         }
     }

@@ -12,6 +12,7 @@ import Foundation
 enum DialogTone {}
 @MainActor final class LowDiskManager {
     var onNotice: ((LowDiskEngine.Space) -> Void)?
+    var onReport: ((LowDiskEngine.Space) -> Void)?
     func start() {}
     func stop() {}
 }

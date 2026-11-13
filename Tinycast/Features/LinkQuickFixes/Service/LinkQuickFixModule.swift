@@ -28,7 +28,7 @@ final class LinkQuickFixModule: NotchcastModule {
         }
         var offered: [LinkQuickFixEngine.Action] = []
         for cause in causes {
-            for action in actions(for: cause, configuration: .init()) where !offered.contains(action) {
+            for action in actions(for: cause) where !offered.contains(action) {
                 offered.append(action)
             }
         }
@@ -44,11 +44,8 @@ final class LinkQuickFixModule: NotchcastModule {
         execute(offered[index])
     }
 
-    func actions(
-        for cause: LinkQuickFixEngine.Cause,
-        configuration: LinkQuickFixEngine.Configuration
-    ) -> [LinkQuickFixEngine.Action] {
+    func actions(for cause: LinkQuickFixEngine.Cause) -> [LinkQuickFixEngine.Action] {
         guard enabled else { return [] }
-        return LinkQuickFixEngine.actions(for: cause, configuration: configuration)
+        return LinkQuickFixEngine.actions(for: cause)
     }
 }
