@@ -32,8 +32,9 @@ struct ScreenshotOutputTest {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
-        let pngFolder = folder.appending(path: "png")
+        let pngFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: pngFolder, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: pngFolder) }
         let pngURL = try await ScreenshotService.capture(.display(42), destination: .file(folder: pngFolder),
             pasteboard: board, captureImage: { request in
                 guard case .display(42) = request else { preconditionFailure("Capture request changed") }
@@ -64,13 +65,13 @@ struct ScreenshotOutputTest {
             preconditionFailure("Cancelled output must not write")
         } catch is CancellationError {}
         let files = try FileManager.default.contentsOfDirectory(atPath: folder.path)
-        precondition(files.count == 3)
+        precondition(files.count == 2)
         var reported: URL?
         let saved = try await ScreenshotService.output(original, destination: .both(folder: folder), writeClipboard: { _ in
             guard let written = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else {
                 preconditionFailure("Missing screenshot folder")
             }
-            precondition(written.count == 4, "File must exist before clipboard write")
+            precondition(written.count == 3, "File must exist before clipboard write")
             return false
         }, clipboardFailure: { reported = $0 })
         precondition(saved != nil && saved == reported)
