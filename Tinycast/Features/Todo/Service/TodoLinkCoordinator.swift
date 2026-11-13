@@ -180,7 +180,7 @@ final class TodoLinkCoordinator {
                 }
             } else if let envelope = try assembly.receive(chunk) { envelopes.append(envelope) }
         }
-        try store.receive(envelopes)
+        for error in try store.receive(envelopes) { report(error) }
         if let chunk = packet.chunk, assembly.receipt == nil,
            !store.replication.envelopes.contains(where: { $0.id == chunk.id }) {
             throw TodoLinkPacket.Failure.noProgress

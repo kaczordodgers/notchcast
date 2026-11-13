@@ -75,6 +75,22 @@ struct TodoCommandTests {
             .init(date: now, isAllDay: true, normalized: "today"))
         try opened.perform(.batch([.addTask(today), .addTask(overdue)]))
         let before = opened.state
+        let projectID = UUID().uuidString
+        let sectionID = UUID().uuidString
+        try opened.perform(.addProject(.init(id: projectID, name: "Home")))
+        try opened.perform(.addSection(.init(id: sectionID, name: "Inbox", projectID: projectID)))
+        for text in ["Buy milk /Inbox", "Buy milk /Inbox #Unknown", "/Inbox"] {
+            clipboard = text
+            commands[0].run()
+            precondition(opened.state.tasks.values.contains {
+                $0.title == text && $0.sectionID == nil
+            }, "Unassigned section text must survive quick add")
+        }
+        clipboard = "Assigned #Home /Inbox"
+        commands[0].run()
+        precondition(opened.state.tasks.values.contains { $0.title == "Assigned" && $0.sectionID == sectionID })
+        for _ in 0..<6 { try opened.undo() }
+        precondition(opened.state == before)
         commands[1].run()
         precondition(opened.state.tasks[overdue.id]?.completedAt == now)
         precondition(opened.state.tasks[today.id]?.completedAt == nil)
