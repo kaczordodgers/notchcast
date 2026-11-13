@@ -260,8 +260,6 @@ final class IslandController: NotchcastModule {
         mouseMonitors = [global, local].compactMap { $0 }
     }
 
-    private var pointerPanel: IslandPanel? { panels.first { $0.isVisible && $0.containsPointer } }
-
     private func pointerEvent(_ event: NSEvent) {
         updatePresenter()
         panels.forEach { $0.updateMousePassthrough() }

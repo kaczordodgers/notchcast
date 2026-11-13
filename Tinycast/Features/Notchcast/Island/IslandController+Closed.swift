@@ -57,6 +57,8 @@ extension IslandController {
         return NotchcastLauncherPlacement.blocks(panel, launchers: frames)
     }
 
+    var pointerPanel: IslandPanel? { panels.first { $0.isVisible && $0.containsPointer } }
+
     func restoreAfterLauncher() {
         guard !launcherIsUp else { return }
         panels.forEach { $0.launcherDidClose() }
