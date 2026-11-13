@@ -3,6 +3,7 @@ import Network
 
 @MainActor
 final class PublicWebProxy {
+    private(set) var refusal: PublicWebAddress.Refusal?
     private let listener: NWListener
     private let username = UUID().uuidString
     private let password = UUID().uuidString + UUID().uuidString
@@ -69,7 +70,8 @@ final class PublicWebProxy {
             guard let self, !self.stopped, count <= self.remainingBytes else { return false }
             self.remainingBytes -= count
             return true
-        }, finished: { [weak self] in self?.tunnels[id] = nil })
+        }, refused: { [weak self] in self?.refusal = $0 },
+                            finished: { [weak self] in self?.tunnels[id] = nil })
         tunnels[id] = tunnel
         tunnel.start()
     }
@@ -82,18 +84,21 @@ final class PublicWebProxy {
         private let password: String
         private let consume: (Int) -> Bool
         private let finished: () -> Void
+        private let refused: (PublicWebAddress.Refusal) -> Void
         private var work: Task<Void, Never>?
         private var deadline: Task<Void, Never>?
         private var connectContinuation: CheckedContinuation<Void, any Error>?
         private var closed = false
 
         init(connection: NWConnection, username: String, password: String,
-             consume: @escaping (Int) -> Bool, finished: @escaping () -> Void) {
+             consume: @escaping (Int) -> Bool, refused: @escaping (PublicWebAddress.Refusal) -> Void,
+             finished: @escaping () -> Void) {
             client = connection
             self.username = username
             self.password = password
             self.consume = consume
             self.finished = finished
+            self.refused = refused
         }
 
         func start() {
@@ -174,7 +179,10 @@ final class PublicWebProxy {
                 try await send([5, 0, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
                 relay(from: client, to: connection)
                 relay(from: connection, to: client)
-            } catch { close() }
+            } catch {
+                if let refusal = error as? PublicWebAddress.Refusal { refused(refusal) }
+                close()
+            }
         }
 
         private func destination(_ type: UInt8) async throws -> String {
