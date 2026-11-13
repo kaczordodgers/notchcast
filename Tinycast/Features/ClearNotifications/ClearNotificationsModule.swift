@@ -3,7 +3,7 @@ final class ClearNotificationsModule: NotchcastModule {
     enum Failure: Error { case disabled }
     private(set) var isRunning = false
     private let runner: ClearNotificationsRunner
-    private var revision = 0
+    private(set) var revision = 0
     var commandTask: Task<Void, Never>?
 
     init(runner: ClearNotificationsRunner = ClearNotificationsRunner()) { self.runner = runner }
@@ -13,6 +13,7 @@ final class ClearNotificationsModule: NotchcastModule {
         isRunning = false
         revision &+= 1
         commandTask?.cancel()
+        commandTask = nil
     }
 
     func run(accessibilityGranted: Bool) async throws -> Int {

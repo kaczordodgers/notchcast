@@ -36,11 +36,16 @@ import AppKit
         let title = SystemLanguages.localized("Disk Not Ejected Properly",
             bundlePath: "/System/Library/Frameworks/DiskArbitration.framework", languages: ["pl"])
         precondition(title == "Dysk nie został wysunięty poprawnie.")
-        let policy = NotificationCleanupPolicy(diskEjectionTitles: [title, "Disk Not Ejected Properly"])
+        let policy = NotificationCleanupPolicy(diskEjectionTitles: [title, "Disk Not Ejected Properly"],
+            localizedClose: polish[3], localizedClearAll: polish[2])
         for name in [title, "Disk Not Ejected Properly"] {
             precondition(policy.closeAction(for: .init(identifier: name, title: name,
                 isIndividualAlert: true, actions: ["AXClose"])) == "AXClose")
         }
+        precondition(policy.isStack(actions: ["Name:Wymaż wszystko…", "AXClose"]),
+            "localized Clear All marks a notification stack")
+        precondition(policy.closeAction(for: .init(identifier: title, title: title,
+            isIndividualAlert: true, actions: ["Name:Zamknij…"])) == "Name:Zamknij…")
         print("Verified macOS Polish strings, Polish and English script matching, and disk title selection")
     }
 }

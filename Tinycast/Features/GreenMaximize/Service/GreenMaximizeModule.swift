@@ -259,7 +259,7 @@ final class GreenMaximizeModule: NotchcastModule {
             return GreenMaximizeClick.PointerGate.zone(bounds: rect, layer: layer)
         }
         return shared.value.withLock { value in
-            value.pointerGate.replace(zones: zones, at: point)
+            if value.pointerGate.replace(zones: zones, at: point) { value.pointerSnapshot = nil }
             return value.pointerGate.zone != nil
         }
     }

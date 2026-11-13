@@ -10,7 +10,10 @@ final class NotificationCleanupObserver {
         "Disk Not Ejected Properly",
         SystemLanguages.localized("Disk Not Ejected Properly",
             bundlePath: "/System/Library/Frameworks/DiskArbitration.framework")
-    ])
+    ], localizedClose: SystemLanguages.localized("Close",
+        bundlePath: "/System/Library/CoreServices/NotificationCenter.app"),
+       localizedClearAll: SystemLanguages.localized("Clear All",
+        bundlePath: "/System/Library/CoreServices/NotificationCenter.app"))
 
     func start() {
         stop()
@@ -101,7 +104,7 @@ final class NotificationCleanupObserver {
         }
         guard let title = titles.compactMap({ $0 }).first(where: policy.diskEjectionTitles.contains) else { return nil }
         return .init(identifier: title, title: title,
-                     isIndividualAlert: !names.contains(where: { $0.hasPrefix("Name:Clear All") }), actions: names)
+                     isIndividualAlert: !policy.isStack(actions: names), actions: names)
     }
 
     private func string(_ element: AXUIElement, _ attribute: String) -> String? {

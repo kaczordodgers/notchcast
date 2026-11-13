@@ -9,9 +9,10 @@ extension ClearNotificationsModule {
 
     func clearFromLauncher() {
         guard commandTask == nil else { return }
+        let stamp = revision
         commandTask = Task { [weak self] in
             guard let self else { return }
-            defer { commandTask = nil }
+            defer { if revision == stamp { commandTask = nil } }
             do {
                 let count = try await run(accessibilityGranted: Permissions.isAccessibilityTrusted())
                 try Task.checkCancellation()

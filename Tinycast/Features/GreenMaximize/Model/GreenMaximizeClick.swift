@@ -12,9 +12,10 @@ enum GreenMaximizeClick {
             return true
         }
 
-        mutating func replace(zones: [CGRect], at point: CGPoint) {
+        @discardableResult
+        mutating func replace(zones: [CGRect], at point: CGPoint) -> Bool {
             self.zones = zones
-            zone = zones.firstIndex { $0.contains(point) }
+            return moved(to: point)
         }
 
         static func zone(bounds: CGRect, layer: Int) -> CGRect? {
