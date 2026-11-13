@@ -53,7 +53,7 @@ fi
 # Shared fork helpers no header lists: a compiled Tinycast source naming `<symbol>` brings its files in.
 symbol_sources=(
     'AgentPaths Tinycast/Features/Notchcast/Model/AgentPaths.swift'
-    'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
+    'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift Tinycast/Platform/ProcessExit.swift'
     'ExecutableLocator Tinycast/Platform/ExecutableLocator.swift Tinycast/Features/Notchcast/Process/ExecutableLocator+Search.swift Tinycast/Platform/ProcessExit.swift'
     'RedirectRefusal Tinycast/Features/Notchcast/Core/RedirectRefusal.swift'
     'MagpieGateway Tinycast/Features/Notchcast/Core/MagpieGateway.swift'

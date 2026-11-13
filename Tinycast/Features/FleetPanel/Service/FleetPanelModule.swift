@@ -84,7 +84,8 @@ final class FleetPanelModule: NotchcastModule {
     static func remoteMessage(_ column: FleetSnapshot.Column) -> String {
         switch column {
         case .rows: String(localized: "Other Mac: \(column.waiting) waiting, \(column.working) working.", table: "Notchcast")
-        case .sourceOff, .remoteOff: String(localized: "Other Mac: remote feature is off.", table: "Notchcast")
+        case .sourceOff: String(localized: "Other Mac: Agent Threads is off.", table: "Notchcast")
+        case .remoteOff: String(localized: "Other Mac: remote feature is off.", table: "Notchcast")
         case .linkDown: String(localized: "Other Mac: link is down.", table: "Notchcast")
         case .failed: String(localized: "Other Mac: could not read threads.", table: "Notchcast")
         }

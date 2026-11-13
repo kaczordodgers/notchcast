@@ -45,6 +45,14 @@ private func settle(_ window: NSWindow, _ duration: Duration) {
 
 #Preview("island-closed-timer-mba") { galleryPreview("island-closed-timer-mba") }
 #Preview("island-open-home-entries-mba") { galleryPreview("island-open-home-entries-mba") }
+#Preview("launcher-surface-glass-dark") { galleryPreview("launcher-surface-glass-dark") }
+#Preview("launcher-surface-glass-light") { galleryPreview("launcher-surface-glass-light") }
+#Preview("launcher-surface-black-dark") { galleryPreview("launcher-surface-black-dark") }
+#Preview("launcher-surface-black-light") { galleryPreview("launcher-surface-black-light") }
+#Preview("dialog-surface-glass-dark") { galleryPreview("dialog-surface-glass-dark") }
+#Preview("dialog-surface-glass-light") { galleryPreview("dialog-surface-glass-light") }
+#Preview("dialog-surface-black-dark") { galleryPreview("dialog-surface-black-dark") }
+#Preview("dialog-surface-black-light") { galleryPreview("dialog-surface-black-light") }
 #Preview("launcher-root-dark") { galleryPreview("launcher-root-dark") }
 #Preview("settings-general-dark") { galleryPreview("settings-general-dark") }
 #Preview("settings-notchcast-island-dark") { galleryPreview("settings-notchcast-island-dark") }

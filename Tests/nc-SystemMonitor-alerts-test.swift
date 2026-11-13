@@ -145,3 +145,4 @@ struct MonitorAlertsTests {
         print("PASS: threshold crossing, hysteresis, cooldown, disabled and no-demand gating")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

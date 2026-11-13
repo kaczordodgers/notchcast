@@ -578,7 +578,6 @@ final class AppCore {
         dictationAudioDucker.restoreImmediately()
         await dictationAudioDucker.waitForTransition()
         await dictationModels.stop()
-        await ArchiveModule.shared.prepareForTermination()
     }
 
     /// Idempotent: both switches are tracked, and either one flipping re-runs the whole decision.

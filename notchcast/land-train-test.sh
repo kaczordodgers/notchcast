@@ -64,6 +64,7 @@ STUB
 cat > "$seed/Scripts/run-tests.sh" <<'STUB'
 #!/bin/bash
 BIN="$TMPDIR/tinycast-harness-fixture"
+[ ! -e "$FIXTURE/slow" ] || { echo $$ > "$FIXTURE/started"; sleep 20; }
 mkdir -p "$BIN"
 ran=
 status=0
@@ -407,3 +408,34 @@ land --train-run "$train_sha" 1 2
     || fail 'a red merged-tree pass on a train run dropped a PR and landed the rest'
 [ -n "$(origin rev-parse --verify -q refs/heads/train/1-2)" ] || fail 'a refused train lost its branch'
 echo 'PASS: a red pass on a train run bisects to its breaking PR and lands no part of the train'
+
+# Last: a killed lander can leave children behind.
+for signal in TERM HUP; do
+    fixture
+    open_pr 1 pr-b 'Add B' src/b.txt
+    : > "$FIXTURE/slow"
+    bash notchcast/land.sh 1 > "$FIXTURE/output" 2>&1 &
+    lander=$!
+    for _ in $(seq 600); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+    [ -s "$FIXTURE/started" ] || fail "the $signal lander never reached its harnesses"
+    [ -s "$FIXTURE/hold" ] || fail "no hold while the harnesses ran"
+    kill -"$signal" "$lander"
+    status=0
+    wait "$lander" || status=$?
+    [ "$status" -ne 0 ] && [ ! -e "$FIXTURE/hold" ] || fail "a $signal left the hold behind (exit $status)"
+done
+echo 'PASS: a lander killed by TERM or HUP during its harnesses releases its hold'
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+: > "$FIXTURE/slow"
+bash notchcast/land.sh 1 > "$FIXTURE/output" 2>&1 &
+lander=$!
+for _ in $(seq 600); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+[ -s "$FIXTURE/started" ] || fail 'the lander never reached its harnesses'
+kill -KILL "$lander" "$(cat "$FIXTURE/started")"  # the harness too, or it writes into the next fixture
+wait "$lander" || true
+[ -s "$FIXTURE/hold" ] || fail 'a SIGKILL ran the EXIT trap'
+rm "$FIXTURE/slow"
+land 1
+[ "$status" -eq 0 ] && [ "$(landed)" = 'Notchcast: Add B (#1)' ] && [ ! -e "$FIXTURE/hold" ] || fail 'the hold of a killed lander refused the next one'
+echo 'PASS: the next lander on the Mac takes over the hold of one killed by SIGKILL'

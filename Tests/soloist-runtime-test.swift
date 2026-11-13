@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Music/Model/NowPlaying.swift
 // notchcast-sources: Tinycast/Features/Music/Model/Soloist*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
 // notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
