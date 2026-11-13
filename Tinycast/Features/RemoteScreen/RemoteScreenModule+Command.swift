@@ -5,7 +5,7 @@ extension RemoteScreenModule {
         slug: "remote-screen", name: String(localized: "Remote Screen", table: "Notchcast"), sfSymbol: "display", feature: .remoteScreen,
         run: { Task { do {
             guard let module = RemoteScreenModule.shared else { throw RemoteScreenRequest.Failure.unavailable }
-            let installed = NSWorkspace.shared.urlForApplication(withBundleIdentifier: RemoteScreenState.Client.preferred.bundleID) != nil
+            let installed = module.launcher.preferredClientInstalled
             try await module.coordinator.show(.init(host: "peer.local"), preferredClientInstalled: installed)
         } catch {
             let message = switch error {

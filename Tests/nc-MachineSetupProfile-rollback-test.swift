@@ -26,6 +26,18 @@ import Foundation
                 precondition(executor.report == [.init(id: "dock.autohide", status: .failed)])
             }
         }
-        print("PASS Dock rollback preserves absent and false values after thrown and nonzero restart failures")
+        for throwsOnWrite in [false, true] {
+            var calls: [[String]] = []
+            var executor = MachineSetupProfileProcessExecutor(process: { _, args in
+                calls.append(args)
+                if args.first == "read" { return .init(status: 0, output: "0") }
+                if throwsOnWrite { throw MachineSetupProfileProcessExecutor.Failure.stepFailed }
+                return .init(status: 1, output: "")
+            }, isRoot: { false })
+            do { try executor.apply(.init(profile: profile)); fatalError("Write must fail") } catch {}
+            precondition(calls.count == 2, "Failed write must not restore or restart Dock")
+            precondition(executor.report == [.init(id: "dock.autohide", status: .failed)])
+        }
+        print("PASS Dock rollback and thrown/nonzero write failures without restore or restart")
     }
 }

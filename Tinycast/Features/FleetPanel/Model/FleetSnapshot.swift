@@ -31,6 +31,28 @@ struct FleetSnapshot: Codable, Equatable, Sendable {
     let rows: [Row]
     let failure: Failure?
 
+    private enum CodingKeys: String, CodingKey { case rows, failure, reason }
+
+    init(rows: [Row], failure: Failure?) {
+        self.rows = rows
+        self.failure = failure
+    }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        rows = try values.decode([Row].self, forKey: .rows)
+        let wireFailure = try values.decodeIfPresent(Failure.self, forKey: .failure)
+        let reason = try values.decodeIfPresent(String.self, forKey: .reason)
+        failure = wireFailure == .off && reason == "sourceOff" ? .sourceOff : wireFailure
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(rows, forKey: .rows)
+        try values.encodeIfPresent(failure == .sourceOff ? .off : failure, forKey: .failure)
+        if failure == .sourceOff { try values.encode("sourceOff", forKey: .reason) }
+    }
+
     func column(now: Date, remote: Bool) -> Column {
         if failure == .sourceOff { return .sourceOff }
         if let failure { return failure == .off ? (remote ? .remoteOff : .sourceOff) : .failed }
