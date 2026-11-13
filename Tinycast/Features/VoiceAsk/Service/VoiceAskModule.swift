@@ -99,7 +99,7 @@ final class VoiceAskModule: NotchcastModule {
                 try Task.checkCancellation()
                 guard identity == current, self.destination == destination else { return }
                 guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                    message(String(localized: "No speech detected."), .danger)
+                    message(String(localized: "No speech detected."), .neutral)
                     return
                 }
                 let reply = try await transport.send(text, destination: destination)

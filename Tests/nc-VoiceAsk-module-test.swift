@@ -4,7 +4,7 @@
 
 import Foundation
 
-enum DialogTone { case success, danger }
+enum DialogTone { case neutral, success, danger }
 
 @MainActor
 final class ModuleTransport: VoiceAskTransport {
@@ -81,7 +81,7 @@ struct VoiceAskModuleTest {
         try await wait { begins == 3 }
         module.release()
         try await wait { messages.count == 5 }
-        precondition(messages.last?.0 == "No speech detected." && messages.last?.1 == .danger)
+        precondition(messages.last?.0 == "No speech detected." && messages.last?.1 == .neutral)
         precondition(transport.calls == 2)
         let previousCancels = cancels
         preferences.set(.voiceAsk, false)

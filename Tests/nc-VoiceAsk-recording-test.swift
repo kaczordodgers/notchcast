@@ -17,7 +17,7 @@ final class AppCore {
         let dictationLanguage = "en"
     }
 
-    final class Models {
+    @MainActor final class Models {
         var calls = 0
         func transcribe(_ samples: [Float], model: String, language: String) async throws -> String {
             calls += 1
