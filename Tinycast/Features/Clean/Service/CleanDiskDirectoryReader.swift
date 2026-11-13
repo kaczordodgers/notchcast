@@ -9,10 +9,8 @@ struct CleanDiskEntry: Equatable, Sendable {
     var kind: Kind
     var device: UInt64
     var inode: UInt64
-    var linkCount: UInt64
     var allocatedSize: UInt64
     var isDataless: Bool
-    var isMountPoint: Bool
 }
 
 struct CleanDiskListing: Equatable, Sendable {
@@ -222,18 +220,16 @@ enum CleanDiskDirectoryReader {
                 guard let value = read(UInt64.self) else { return nil }
                 inode = value
             }
-            var mountPoint = false, size: Int64 = 0, links: UInt32 = 1
+            var size: Int64 = 0
             if returned.dirattr & attrgroup_t(ATTR_DIR_MOUNTSTATUS) != 0 {
-                guard let value = read(UInt32.self) else { return nil }
-                mountPoint = value & UInt32(DIR_MNTSTATUS_MNTPOINT) != 0
+                guard read(UInt32.self) != nil else { return nil }
             }
             if returned.dirattr & attrgroup_t(ATTR_DIR_ALLOCSIZE) != 0 {
                 guard let value = read(Int64.self) else { return nil }
                 size = value
             }
             if returned.fileattr & attrgroup_t(ATTR_FILE_LINKCOUNT) != 0 {
-                guard let value = read(UInt32.self) else { return nil }
-                links = value
+                guard read(UInt32.self) != nil else { return nil }
             }
             if returned.fileattr & attrgroup_t(ATTR_FILE_ALLOCSIZE) != 0 {
                 guard let value = read(Int64.self) else { return nil }
@@ -251,10 +247,9 @@ enum CleanDiskDirectoryReader {
             default: .other
             }
             return .entry(CleanDiskEntry(name: name, kind: kind, device: device,
-                                        inode: inode, linkCount: UInt64(max(links, 1)),
+                                        inode: inode,
                                         allocatedSize: UInt64(max(size, 0)),
-                                        isDataless: flags & UInt32(SF_DATALESS) != 0,
-                                        isMountPoint: kind == .directory && mountPoint))
+                                        isDataless: flags & UInt32(SF_DATALESS) != 0))
         }
 
         static func component(_ bytes: UnsafeRawBufferPointer) -> String? {

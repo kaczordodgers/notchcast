@@ -130,7 +130,7 @@ final class CleanModule: NotchcastModule {
             let items = try await service.scan()
             trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, $0.allocatedSize) }))
             return .init(items: items.map {
-                .init(id: $0.path, size: $0.allocatedSize, reportOnly: $0.activity != .idle)
+                .init(id: $0.path, size: $0.allocatedSize, reportOnly: $0.activity != .idle || $0.recentlyActive)
             }) { paths in
                 let outcomes = try await service.clean(items.filter { paths.contains($0.path) })
                 guard outcomes.allSatisfy({ $0.status == .trashed }) else { throw Failure.itemsChanged }
@@ -324,7 +324,7 @@ final class CleanModule: NotchcastModule {
                 throw Failure.toolFailed
             }
             defer { sqlite3_close(database) }
-            sqlite3_busy_timeout(database, Int32(min(timeout, 5) * 1000))
+            sqlite3_busy_timeout(database, Int32(min(max(timeout, 0) * 1000, Double(Int32.max))))
             if clear {
                 try Task.checkCancellation()
                 guard sqlite3_exec(database, "DELETE FROM LSQuarantineEvent", nil, nil, nil) == SQLITE_OK

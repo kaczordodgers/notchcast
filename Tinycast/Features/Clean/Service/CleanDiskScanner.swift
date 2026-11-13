@@ -61,6 +61,7 @@ struct CleanDiskScanner: Sendable {
                         path: nodes[index].path.appendingPathComponent(entry.name),
                         parent: index, directory: isDirectory, device: entry.device,
                         inode: entry.inode, allocatedSize: unique ? entry.allocatedSize : 0))
+                    if entry.kind != .file && entry.kind != .directory { nodes[child].unreadable = true }
                     var info = stat()
                     if lstat(nodes[child].path.path, &info) == 0,
                        UInt64(info.st_ino) == entry.inode,

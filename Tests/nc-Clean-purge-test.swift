@@ -23,7 +23,7 @@ struct CleanPurgeTest {
         try manager.createDirectory(at: receipts, withIntermediateDirectories: true)
         let sentinel = temp.appendingPathComponent("sentinel")
         try Data("safe".utf8).write(to: sentinel)
-        for name in ["idle", "active", "changed", "linked", "nested", "no-marker"] {
+        for name in ["idle", "active", "recent", "changed", "linked", "nested", "no-marker"] {
             let project = root.appendingPathComponent(name)
             try manager.createDirectory(at: project, withIntermediateDirectories: true)
             try Data().write(to: project.appendingPathComponent("package.json"))
@@ -48,7 +48,7 @@ struct CleanPurgeTest {
             transport: PurgeFakeTrash(root: root, receipts: receipts),
             activity: { project, _ in project.lastPathComponent == "active" ? .active : .idle },
             lastActivity: { project in
-                Date(timeIntervalSince1970: project.lastPathComponent == "active" ? 999 : 0)
+                Date(timeIntervalSince1970: ["active", "recent"].contains(project.lastPathComponent) ? 999 : 0)
             })
         let items = try await service.scan()
         let timeoutService = CleanPurgeService(policy: policy,
@@ -56,7 +56,7 @@ struct CleanPurgeTest {
             activity: { _, _ in throw POSIXError(.ETIMEDOUT) }, lastActivity: { _ in .distantPast })
         let unknown = try await timeoutService.scan()
         precondition(unknown.count == items.count && unknown.allSatisfy { $0.activity == .unknown })
-        precondition(items.count == 4, "Found: \(items.map(\.path))")
+        precondition(items.count == 5, "Found: \(items.map(\.path))")
         precondition(items.allSatisfy { $0.path.lastPathComponent == "node_modules" })
         precondition(items.allSatisfy { $0.allocatedSize >= 4096 })
         let initial = try manager.contentsOfDirectory(atPath: receipts.path)
@@ -67,7 +67,7 @@ struct CleanPurgeTest {
         let results = try await service.clean(items.filter { $0.project.lastPathComponent != "no-marker" })
         precondition(results.filter { $0.status == .trashed }.count == 1,
             "Outcomes: \(results.map { "\($0.item.project.lastPathComponent): \($0.status)" })")
-        precondition(results.filter { $0.status == .changedOrMissing }.count == 2)
+        precondition(results.filter { $0.status == .changedOrMissing }.count == 3)
         print("PASS: purge boundaries, activity, explicit selection, snapshots")
     }
 }

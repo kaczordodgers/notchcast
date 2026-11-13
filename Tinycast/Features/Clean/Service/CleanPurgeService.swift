@@ -70,6 +70,8 @@ struct CleanPurgeService: Sendable {
                 guard CleanService.physical(item.path),
                       repositoryBoundary(item.project, manager: manager),
                       confirmed(item.rule, project: item.project, manager: manager),
+                      policy.now.timeIntervalSince(try lastActivity(item.project))
+                        > max(0, policy.recentActivityThreshold),
                       try await activity(item.project, item.path) == .idle,
                       let current = try measure(item.path, manager: manager),
                       current.snapshot == item.snapshot else {
