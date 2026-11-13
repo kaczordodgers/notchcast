@@ -65,5 +65,9 @@ struct FinderToolsServicesTest {
             changeCount: { count }, fileCount: { 2 }, copy: { count += 1 },
             isCurrent: { true }, wait: {})
         precondition(copied == count, "A stable file clipboard arms the cut")
+        let empty = await FinderCopyService.copySelection(
+            changeCount: { count }, fileCount: { 0 }, copy: { count += 1 },
+            isCurrent: { true }, wait: {})
+        precondition(empty == nil, "A non-file clipboard never arms the cut")
     }
 }

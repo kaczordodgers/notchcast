@@ -120,6 +120,7 @@ final class EditorDocumentSession {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
+            guard url == location else { requestRefresh(); throw error }
             failure = error
             throw error
         }
@@ -204,10 +205,7 @@ final class EditorDocumentSession {
                     try Task.checkCancellation()
                     try await refresh()
                 }
-            } catch is CancellationError {
-            } catch {
-                failure = error
-            }
+            } catch {}
         }
     }
 
@@ -216,7 +214,9 @@ final class EditorDocumentSession {
         presenter = EditorFilePresenter(url: url) { [weak self] location in
             Task { @MainActor [weak self] in
                 guard let self, self.isEnabled, self.lifecycle == watchingLifecycle else { return }
-                self.url = location.standardizedFileURL
+                if (try? EditorDocumentRepository.kind(of: location)) == self.rendersMarkdown {
+                    self.url = location.standardizedFileURL.resolvingSymlinksInPath()
+                }
                 self.requestRefresh()
             }
         }

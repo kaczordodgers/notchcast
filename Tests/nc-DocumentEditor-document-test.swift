@@ -29,6 +29,7 @@ struct EditorDocumentTests {
         try await sessions()
         try await busy()
         try await moves()
+        try await moves(changesKind: true)
         try await statistics()
         preferences()
         print("Document editor: byte fidelity, conflicts, deletion, autosave, Markdown and text policies passed")
@@ -242,14 +243,14 @@ struct EditorDocumentTests {
         _ = try await running.value
     }
 
-    private static func moves() async throws {
-        let directory = try temporaryDirectory()
+    private static func moves(changesKind: Bool = false) async throws {
+        let directory = try temporaryDirectory().resolvingSymlinksInPath()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let original = directory.appendingPathComponent("before.txt")
+        let original = directory.appendingPathComponent(changesKind ? "before.md" : "before.txt")
         let moved = directory.appendingPathComponent("after.txt")
         try Data("original".utf8).write(to: original)
         let document = EditorDocumentSession(
-            url: original, snapshot: try await EditorDocumentRepository.load(original), rendersMarkdown: false)
+            url: original, snapshot: try await EditorDocumentRepository.load(original), rendersMarkdown: changesKind)
         document.setEnabled(true)
         defer { document.setEnabled(false) }
         let coordinator = NSFileCoordinator(filePresenter: nil)
@@ -263,11 +264,18 @@ struct EditorDocumentTests {
         }
         if let error { throw error }
         if let moveError { throw moveError }
+        if changesKind {
+            for _ in 0..<100 where document.failure == nil {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            precondition(document.url == original && document.rendersMarkdown)
+            precondition(document.failure as? EditorFailure == .missingFile)
+            return
+        }
         for _ in 0..<100 where document.url != moved {
             try await Task.sleep(for: .milliseconds(20))
         }
         precondition(document.url == moved)
-        try await document.refresh()
         precondition(document.edit("saved after rename"))
         try await document.flush()
         try check(try Data(contentsOf: moved) == Data("saved after rename".utf8))

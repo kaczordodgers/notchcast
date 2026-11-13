@@ -164,7 +164,7 @@ final class FinderToolsCoordinator {
             isCurrent: { self.isCurrent(request) })
         guard isCurrent(request), !Task.isCancelled else { return }
         if let copied {
-            cutSession.mark(changeCount: copied, fileCount: 1)
+            cutSession.mark(changeCount: copied)
         } else {
             input.finishCut(request)
         }
