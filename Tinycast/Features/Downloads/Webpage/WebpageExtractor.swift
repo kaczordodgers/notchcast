@@ -54,9 +54,15 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
                 view.stopLoading()
             }
             defer { timeout.cancel() }
-            try await withCheckedThrowingContinuation { (pending: CheckedContinuation<Void, any Error>) in
-                continuation = pending
-                view.load(URLRequest(url: source, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 60))
+            do {
+                try await withCheckedThrowingContinuation { (pending: CheckedContinuation<Void, any Error>) in
+                    continuation = pending
+                    view.load(URLRequest(url: source, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 60))
+                }
+            } catch {
+                try Task.checkCancellation()
+                if let refusal = proxy.refusal { throw refusal }
+                throw error
             }
             try Task.checkCancellation()
             try await Task.sleep(for: .milliseconds(750))

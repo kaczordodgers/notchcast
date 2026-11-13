@@ -21,6 +21,7 @@ struct DownloadsQueueTest {
         try await persistence(root)
         try await readOnlyJobs(root)
         try await unreadablePersistence(root)
+        try await failedWrites(root)
         try await tools(root)
         try await processes(root)
         print("downloads-queue-test: all checks passed")
@@ -179,6 +180,22 @@ struct DownloadsQueueTest {
         let rows = try JSONDecoder().decode([DownloadJob].self, from: Data(contentsOf: file))
         expect(rows.map(\.source) == ["new"], "recovered queue persists new jobs")
         await queue.stop()
+    }
+
+    @MainActor
+    private static func failedWrites(_ root: URL) async throws {
+        let parent = root.appending(path: "failed-writes")
+        let file = parent.appending(path: "queue.json")
+        let queue = try await DownloadQueue(file: file, destination: root)
+        var reports: [String] = []
+        queue.reportPersistenceFailure = { reports.append($0) }
+        try FileManager.default.removeItem(at: parent)
+        try Data("not a directory".utf8).write(to: parent)
+        queue.enqueue(kind: "missing", sources: ["one"])
+        do { try await queue.flush(); expect(false, "write must fail") } catch {}
+        expect(reports.count == 1 && reports.last == queue.persistenceError, "failed write reports its cause")
+        await queue.stop()
+        expect(reports.count == 2, "shutdown flush reports its failed write")
     }
 
     @MainActor

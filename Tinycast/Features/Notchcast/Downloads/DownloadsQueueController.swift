@@ -52,6 +52,7 @@ final class DownloadsQueueController {
                     throw error
                 }
                 queue = loaded
+                loaded.reportPersistenceFailure = report
                 trackSpeech(id, queue: loaded)
                 if let problem = loaded.persistenceError { report(problem) }
             } catch {

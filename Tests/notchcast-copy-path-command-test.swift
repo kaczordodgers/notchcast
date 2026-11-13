@@ -5,7 +5,7 @@
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
-enum DialogTone { case neutral }
+enum DialogTone { case neutral, danger }
 enum NotchcastFeature { case copyPath }
 @main struct CopyTests {
     @MainActor static func main() async {
@@ -16,8 +16,9 @@ enum NotchcastFeature { case copyPath }
         module.start()
         var copied = ""
         var reported = ""
+        var tone = DialogTone.neutral
         module.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
-                                home: "/test", copy: { copied = $0; return true }, report: { reported = $0 })
+                                home: "/test", copy: { copied = $0; return true }, report: { reported = $0; tone = $1 })
         await module.commandTask?.value
         precondition(copied == "~/file" && reported == "Copied path")
         module.stop()
@@ -33,9 +34,10 @@ enum NotchcastFeature { case copyPath }
             let failing = CopyPathModule(makeService: { CopyPathService { _ in throw failure } })
             failing.start()
             failing.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
-                                     home: "/test", copy: { _ in true }, report: { reported = $0 })
+                                     home: "/test", copy: { _ in true }, report: { reported = $0; tone = $1 })
             await failing.commandTask?.value
             precondition(reported == message, "\(failure) reported \(reported)")
+            precondition(tone == .danger)
             failing.stop()
         }
         let (gate, release) = AsyncStream<Void>.makeStream()
@@ -46,7 +48,8 @@ enum NotchcastFeature { case copyPath }
         pending.start()
         var lateCopied = false
         pending.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
-                                 home: "/test", copy: { _ in lateCopied = true; return true }, report: { _ in lateCopied = true })
+                                 home: "/test", copy: { _ in lateCopied = true; return true },
+                                 report: { _, _ in lateCopied = true })
         let task = pending.commandTask
         pending.stop()
         release.yield()

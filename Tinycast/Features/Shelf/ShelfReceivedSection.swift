@@ -60,10 +60,15 @@ struct ShelfReceivedSection: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(String(data: entry.item.data, encoding: .utf8) ?? "", forType: .string)
         case .open:
-            Task { await update {
-                try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
-                                                 openWithBundleID: nil, inNewWindow: false)
-            } }
+            Task {
+                do {
+                    try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
+                                                     openWithBundleID: nil, inNewWindow: false)
+                } catch is CancellationError {} catch {
+                    let title = String(localized: "Could Not Open Shelf Item", table: "Notchcast")
+                    core.showMessage(title + "\n" + error.localizedDescription, tone: .danger)
+                }
+            }
         case .save:
             Task { await update {
                 _ = try await store.save(entry, to: .downloadsDirectory)

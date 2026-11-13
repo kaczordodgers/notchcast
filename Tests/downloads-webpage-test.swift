@@ -209,6 +209,14 @@ struct DownloadsWebpageTests {
             "<iframe src='\(privateURL.absoluteString)'></iframe></body></html>"
         try await guardedNavigation.load(malicious, into: guardedView, baseURL: URL(string: "http://example.com")!)
         expect(probe.connections == 0, "WebKit subresources cannot bypass public-address proxy")
+        guardedConfiguration.userContentController.removeAllContentRuleLists()
+        try await guardedNavigation.load(malicious, into: guardedView, baseURL: URL(string: "http://example.com")!)
+        if case .privateAddress? = proxy.refusal {
+            expect(true, "proxy preserves the private-address refusal")
+        } else {
+            expect(false, "proxy preserves the private-address refusal")
+        }
+        expect(probe.connections == 0, "proxy itself refuses loopback with content rules removed")
         guardedView.stopLoading()
         guardedView.navigationDelegate = nil
     }

@@ -18,6 +18,7 @@ final class DownloadQueue {
     @ObservationIgnored private var operations: [String: UUID] = [:]
     @ObservationIgnored private var persistence: Task<Void, Error>?
     @ObservationIgnored private var stopped = false
+    @ObservationIgnored var reportPersistenceFailure: (String) -> Void = { _ in }
 
     init(
         file: URL? = NotchcastIdentity.supportRoot.appending(path: "Notchcast/downloads.json"),
@@ -247,6 +248,7 @@ final class DownloadQueue {
                 self?.persistenceError = nil
             } catch {
                 self?.persistenceError = error.localizedDescription
+                self?.reportPersistenceFailure(error.localizedDescription)
                 throw error
             }
         }
