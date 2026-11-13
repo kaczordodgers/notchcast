@@ -4,12 +4,17 @@ import Observation
 final class MusicCommandFeedback {
     private let music: MusicNowPlayingModule
     private let preferences: NotchcastPreferences
+    private let blocker: MusicLaunchBlocker?
     private var availability: [Bool]?
     private var lastFailure: MusicModel.Failure?
+    private var lastSoloistFailure: SoloistSource.Failure?
+    private var lastBlockerFailure: MusicLaunchBlocker.Failure?
 
-    init(music: MusicNowPlayingModule, preferences: NotchcastPreferences) {
+    init(music: MusicNowPlayingModule, preferences: NotchcastPreferences,
+         blocker: MusicLaunchBlocker? = MusicBlockAppleMusicModule.shared?.blocker) {
         self.music = music
         self.preferences = preferences
+        self.blocker = blocker
         observe()
     }
 
@@ -27,6 +32,17 @@ final class MusicCommandFeedback {
                 }
             }
             lastFailure = failure
+            let soloistFailure = music.soloist.failure
+            if music.model.isEnabled, preferences.isEnabled(.spotifyConnect),
+               let soloistFailure, soloistFailure != lastSoloistFailure {
+                MusicCommands.report()
+            }
+            lastSoloistFailure = soloistFailure
+            let blockerFailure = blocker?.failure
+            if blocker?.isEnabled == true, let blockerFailure, blockerFailure != lastBlockerFailure {
+                MusicCommands.report()
+            }
+            lastBlockerFailure = blockerFailure
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observe() }
         }

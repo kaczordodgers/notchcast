@@ -6,6 +6,8 @@ import Observation
 final class DictationCleanupModule: NotchcastModule {
     private(set) var settings = DictationCleanupSettings()
     var reportFailure: (() -> Void)?
+    var reportFallback: (() -> Void)?
+    @ObservationIgnored private var fallbackReported = false
     private let store: DictationCleanupSettingsStore
     private let install: () -> Void
     private let uninstall: () -> Void
@@ -41,6 +43,7 @@ final class DictationCleanupModule: NotchcastModule {
         do {
             try store.save(updated)
             settings = updated
+            fallbackReported = false
             return true
         } catch {
             reportFailure?()
@@ -48,11 +51,17 @@ final class DictationCleanupModule: NotchcastModule {
         }
     }
 
+    func fellBack() {
+        guard !fallbackReported else { return }
+        fallbackReported = true
+        reportFallback?()
+    }
+
     func apiKey() -> String? {
         do { return try readAPIKey() ?? "" } catch { reportFailure?(); return nil }
     }
 
     func saveAPIKey(_ key: String) {
-        do { try store.saveAPIKey(key) } catch { reportFailure?() }
+        do { try store.saveAPIKey(key); fallbackReported = false } catch { reportFailure?() }
     }
 }

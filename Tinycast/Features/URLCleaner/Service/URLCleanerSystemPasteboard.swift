@@ -9,10 +9,11 @@ final class URLCleanerSystemPasteboard: URLCleanerPasteboard {
     var text: String? { pasteboard.string(forType: .string) }
     var isProtected: Bool {
         let types = Set(pasteboard.types ?? [])
+        let items = pasteboard.pasteboardItems ?? []
         return !types.isDisjoint(with: ClipboardManager.sensitiveTypes)
             || types.contains(ClipboardManager.internalType)
-            || pasteboard.pasteboardItems?.count != 1
-            || !Self.isPlainLink(types)
+            || items.count != 1
+            || !Self.isPlainLink(Set(items[0].types))
     }
 
     // A rewrite replaces the whole item, so an image or rich text beside the link must block it.

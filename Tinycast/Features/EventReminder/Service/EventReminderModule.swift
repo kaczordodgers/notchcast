@@ -7,7 +7,7 @@ extension DayCalendarService: EventReminderSource {
         records(in: interval).map { event, record in
             EventReminderEngine.Event(
                 id: event.id, title: event.title, start: event.start, isAllDay: event.isAllDay, isDeclined: false,
-                offsets: (record.alarms ?? []).filter { $0.absoluteDate == nil }.map(\.relativeOffset),
+                offsets: EventReminderAlarms.offsets(record.alarms ?? [], start: event.start),
                 tint: CGColorSpace(name: CGColorSpace.sRGB).flatMap {
                     record.calendar?.cgColor?.converted(to: $0, intent: .defaultIntent, options: nil)?.components
                 }.map { $0.prefix(3).map(Double.init) },

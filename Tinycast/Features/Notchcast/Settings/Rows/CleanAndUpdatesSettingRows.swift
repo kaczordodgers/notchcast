@@ -81,6 +81,7 @@ struct NotchcastAppUpdatesSettingRow: View {
                 } else {
                     Text("Unknown", tableName: "Notchcast")
                 }
+                if let link = result.settingsLink { Link(destination: link) { Text("Open") } }
             }
         }
 
@@ -92,7 +93,10 @@ struct NotchcastMacUpdateSettingRow: View {
     var body: some View {
         ForEach(MacUpdateStep.allCases, id: \.self) { step in
             if let event = NotchcastCore.macUpdate.progress.first(where: { $0.step == step }) {
-                LabeledContent(step.title, value: event.state.title)
+                LabeledContent(step.title) {
+                    Text(event.state.title)
+                    if let reason = event.state.reason { Text(reason).textSelection(.enabled) }
+                }
             }
         }
 

@@ -77,7 +77,7 @@ final class NotchcastPreferences {
 
 extension NotchcastPreferences {
     static let shared = NotchcastPreferences(suiteName: NotchcastIdentity.current.suiteName())
-    static let archiveHandlersClaimedKey = "archiveHandlersClaimed"
+    nonisolated static let archiveHandlersClaimedKey = "archiveHandlersClaimed"
     nonisolated static let remoteMacAddressKey = "remoteMacAddress"
     nonisolated static let remoteTerminalDirectoryKey = "remoteTerminalDirectory"
     nonisolated static let remoteUpdatePathKey = "remoteUpdatePath"

@@ -4,7 +4,7 @@
 
 import Foundation
 
-enum DialogTone { case success, danger }
+enum DialogTone { case neutral, success, danger }
 
 @MainActor
 final class ModuleTransport: VoiceAskTransport {
@@ -39,8 +39,9 @@ struct VoiceAskModuleTest {
         var stops = 0
         var cancels = 0
         var messages: [(String, DialogTone)] = []
+        var transcript = "fixture question"
         let module = VoiceAskModule(defaults: defaults, begin: { begins += 1 },
-                                    finish: { "fixture question" }, cancel: { cancels += 1 },
+                                    finish: { transcript }, cancel: { cancels += 1 },
                                     message: { messages.append(($0, $1)) })
         module.onStart = { starts += 1 }
         module.onStop = { stops += 1 }
@@ -67,6 +68,18 @@ struct VoiceAskModuleTest {
         try await wait { module.failure != nil }
         precondition(module.failure == "Fake delivery failed" && transport.calls == 2)
         precondition(messages.count == 2 && messages[1].0 == "Fake delivery failed" && messages[1].1 == .danger)
+        module.destination = " \n "
+        module.press(alone: true)
+        precondition(messages.last?.0 == "Set a Voice Ask destination in Settings." && messages.count == 3)
+        precondition(messages.last?.1 == .neutral)
+        module.destination = "fixture"
+        transcript = " \n "
+        module.press(alone: true)
+        try await wait { begins == 3 }
+        module.release()
+        try await wait { messages.count == 4 }
+        precondition(messages.last?.0 == "No speech detected." && messages.last?.1 == .neutral)
+        precondition(transport.calls == 2)
         let previousCancels = cancels
         preferences.set(.voiceAsk, false)
         try await wait { !module.enabled }
@@ -74,7 +87,7 @@ struct VoiceAskModuleTest {
         module.press(alone: true)
         try await Task.sleep(for: .milliseconds(300))
         module.release()
-        precondition(begins == 2 && transport.calls == 2)
+        precondition(begins == 3 && transport.calls == 2 && messages.count == 4)
         print("PASS: switch callbacks, fake recording and delivery, visible failure, disabled input")
     }
 }

@@ -52,7 +52,7 @@ final class DictationHistoryModule: NotchcastModule {
     }
 
     func maintain() async {
-        do { _ = try await recent(limit: 0) }
+        do { try await perform { try $0.maintain() } }
         catch { onFailure?() }
     }
 
