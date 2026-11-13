@@ -201,6 +201,12 @@ struct DownloadsWebpageTests {
         let privateURL = try await probe.start()
         defer { probe.stop() }
         expect((try? PublicWebAddress.validate(privateURL)) == nil, "refuses loopback navigation")
+        do {
+            _ = try await WebpageExtractor().extract(privateURL)
+            expect(false, "extractor refuses loopback")
+        } catch PublicWebAddress.Refusal.privateAddress {
+            expect(true, "extractor preserves private-address refusal")
+        }
         let guardedConfiguration = try await WebpageWebViewConfiguration.make(proxy: proxyConfiguration)
         let guardedView = WKWebView(frame: .zero, configuration: guardedConfiguration)
         let guardedNavigation = FixtureNavigation()
@@ -217,8 +223,32 @@ struct DownloadsWebpageTests {
             expect(false, "proxy preserves the private-address refusal")
         }
         expect(probe.connections == 0, "proxy itself refuses loopback with content rules removed")
+        let slowResource = SlowResource()
+        do {
+            _ = try await WebpageExtractor().extract(base, timeout: .seconds(5), configure: { configuration in
+                configuration.userContentController.removeAllContentRuleLists()
+                configuration.setURLSchemeHandler(slowResource, forURLScheme: "slow-fixture")
+            }) { view in
+                view.loadHTMLString("<html><body><img src='\(privateURL.absoluteString)'>" +
+                    "<img src='slow-fixture://image'></body></html>", baseURL: base)
+            }
+            expect(false, "slow page times out after refused subresource")
+        } catch WebpageExtractor.Failure.timedOut {
+            expect(slowResource.started, "slow subresource keeps page loading")
+            expect(true, "slow page times out after refused subresource")
+        } catch {
+            expect(false, "slow page preserves timeout, got \(error)")
+        }
         guardedView.stopLoading()
         guardedView.navigationDelegate = nil
+    }
+
+    @MainActor
+    final class SlowResource: NSObject, WKURLSchemeHandler {
+        var started = false
+
+        func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) { started = true }
+        func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {}
     }
 
     @MainActor

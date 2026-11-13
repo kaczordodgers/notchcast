@@ -21,6 +21,10 @@ enum NotchcastFeature { case copyPath }
                                 home: "/test", copy: { copied = $0; return true }, report: { reported = $0; tone = $1 })
         await module.commandTask?.value
         precondition(copied == "~/file" && reported == "Copied path")
+        module.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
+                                home: "/test", copy: { _ in false }, report: { reported = $0; tone = $1 })
+        await module.commandTask?.value
+        precondition(reported == "Could not copy to clipboard." && tone == .danger)
         module.stop()
         struct Unknown: Error {}
         let causes: [(any Error, String)] = [

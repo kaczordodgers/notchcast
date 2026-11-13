@@ -247,8 +247,10 @@ final class DownloadQueue {
                 try await Self.write(snapshot, file: file)
                 self?.persistenceError = nil
             } catch {
+                if self?.persistenceError == nil {
+                    self?.reportPersistenceFailure(error.localizedDescription)
+                }
                 self?.persistenceError = error.localizedDescription
-                self?.reportPersistenceFailure(error.localizedDescription)
                 throw error
             }
         }

@@ -64,7 +64,7 @@ struct ShelfReceivedSection: View {
                 do {
                     try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
                                                      openWithBundleID: nil, inNewWindow: false)
-                } catch is CancellationError {} catch {
+                } catch {
                     let title = String(localized: "Could Not Open Shelf Item", table: "Notchcast")
                     core.showMessage(title + "\n" + error.localizedDescription, tone: .danger)
                 }

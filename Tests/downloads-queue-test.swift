@@ -195,7 +195,7 @@ struct DownloadsQueueTest {
         do { try await queue.flush(); expect(false, "write must fail") } catch {}
         expect(reports.count == 1 && reports.last == queue.persistenceError, "failed write reports its cause")
         await queue.stop()
-        expect(reports.count == 2, "shutdown flush reports its failed write")
+        expect(reports.count == 1, "shutdown flush does not repeat an ongoing write failure")
     }
 
     @MainActor
