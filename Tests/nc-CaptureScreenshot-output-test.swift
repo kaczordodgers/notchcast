@@ -3,9 +3,15 @@
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/Date+CaptureFileName.swift
 import AppKit
 
+@MainActor final class ScreenshotModule {
+    static let shared = ScreenshotModule()
+    var didCapture: (NSImage) -> Void = { _ in }
+}
+
 @main
 struct ScreenshotOutputTest {
     static func main() async throws {
+        try await lastCapture()
         let zone = TimeZone(secondsFromGMT: 0)!
         let date = Date(timeIntervalSince1970: 0)
         let stem = "Screenshot 1970-01-01 at 00.00.00"
@@ -89,5 +95,47 @@ struct ScreenshotOutputTest {
             preconditionFailure("Cancelled save must report cancellation")
         }
         print("PASS: cancellation during save preserves clipboard")
+    }
+
+    @MainActor static func lastCapture() async throws {
+        var captured: NSImage?
+        ScreenshotModule.shared.didCapture = { captured = $0 }
+        defer { ScreenshotModule.shared.didCapture = { _ in } }
+        let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 12, pixelsHigh: 8,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+        let png = bitmap.representation(using: .png, properties: [:])!
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        for destination in [ScreenshotRequest.Destination.clipboard, .file(folder: folder), .both(folder: folder)] {
+            captured = nil
+            _ = try await ScreenshotService.output(png, destination: destination,
+                writeClipboard: { _ in true }, clipboardFailure: { _ in })
+            precondition(captured?.size == CGSize(width: 12, height: 8),
+                         "Successful screenshot must deliver the captured image")
+        }
+        let previous = captured
+        do {
+            _ = try await ScreenshotService.output(png, destination: .clipboard,
+                writeClipboard: { _ in false }, clipboardFailure: { _ in })
+            preconditionFailure("Failed clipboard-only capture must throw")
+        } catch ScreenshotRequest.Failure.clipboardFailed {}
+        precondition(captured === previous, "Failed capture must not deliver an image")
+        let cancelled = Task { @MainActor in
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await ScreenshotService.output(png, destination: .clipboard,
+                writeClipboard: { _ in preconditionFailure("Cancelled capture wrote clipboard") },
+                clipboardFailure: { _ in })
+        }
+        do {
+            _ = try await cancelled.value
+            preconditionFailure("Cancelled capture must throw")
+        } catch is CancellationError {}
+        precondition(captured === previous, "Cancelled capture must not deliver an image")
+        _ = try await ScreenshotService.output(png, destination: .both(folder: folder),
+            writeClipboard: { _ in false }, clipboardFailure: { _ in })
+        precondition(captured !== previous, "Saved screenshot survives clipboard failure")
+        print("PASS: successful screenshots deliver captured images; failures and cancellation do not")
     }
 }

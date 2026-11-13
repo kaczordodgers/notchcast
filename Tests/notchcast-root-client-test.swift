@@ -1,7 +1,6 @@
 // notchcast-kit: root platform
 // notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift notchcast/root/install.sh
-// notchcast-reads: Tinycast/Features/Clean/Model/CleanSystem*.swift
 // notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 import Darwin
 import Foundation
@@ -330,16 +329,6 @@ struct RootClientTest {
     static func main() async throws {
         validateCommands()
         try validateBoundaries()
-        for command in RootContract.Command.allCases {
-            let allowed = [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash].contains(command)
-            do {
-                try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: allowed ? 4097 : 0))
-            } catch { precondition(error as? RootHelperClient.Failure == .invalidResponse); continue }
-            preconditionFailure("Disallowed command or oversized request accepted")
-        }
-        for command in [RootContract.Command.version, .cleanSystemList, .cleanSystemTrash] {
-            try RootHelperClient.checkRequest(command, input: Data(repeating: 0, count: 4096))
-        }
         let strict = ProcessInfo.processInfo.environment["LIBDISPATCH_COOPERATIVE_POOL_STRICT"]
         print("Cooperative pool strict: \(strict ?? "unset")")
         if ProcessInfo.processInfo.environment["NOTCHCAST_TEST_HELPER_EXECUTABLE"] == "1" {
@@ -379,7 +368,7 @@ struct RootClientTest {
         for command in RootContract.Command.allCases {
             precondition(RootContract.Command(arguments: command.arguments) == command)
             let read = command.operation == .read
-            let spotlight = [.spotlightOn, .spotlightOff, .cleanSystemList, .cleanSystemTrash].contains(command)
+            let spotlight = [.spotlightOn, .spotlightOff].contains(command)
             precondition(command.operation == (read ? .read : spotlight ? .spotlight : .change))
             precondition(command.operation.timeout == .seconds(read ? 3 : spotlight ? 60 : 12))
             precondition(RootContract.Reply(command: command, output: command.output) != nil)

@@ -210,6 +210,10 @@ struct MachineBackupActionsTest {
             precondition(failure == .toolFailed(11))
         }
         precondition(!coordinator.isBusy)
+        fake.state.withLock { $0.failure = .timedOut }
+        do { try await coordinator.runNow(); fatalError("Timed out") } catch let failure as MachineBackupFailure {
+            precondition(failure == .timedOut, "A restic timeout reaches the caller as a failure, not a cancel")
+        }
         fake.state.withLock { $0.failure = nil; $0.suspended = true }
         let pending = Task { try await coordinator.refreshSnapshots() }
         while !fake.state.withLock({ $0.waiter != nil }) { await Task.yield() }
@@ -253,6 +257,11 @@ struct MachineBackupActionsTest {
         try await Task.sleep(for: .milliseconds(100))
         pending.cancel()
         do { _ = try await pending.value; fatalError("Process cancellation") } catch is CancellationError {}
+        var impatient = MachineBackupRunner()
+        impatient.timeout = .milliseconds(200)
+        do { _ = try await impatient.run(sleeper); fatalError("Process timeout") } catch let error as MachineBackupFailure {
+            precondition(error == .timedOut, "A timed-out tool is a timeout, never a cancellation")
+        }
         let flood = MachineBackupRequest(executable: URL(fileURLWithPath: "/usr/bin/head"),
                                          arguments: ["-c", "16777217", "/dev/zero"])
         do { _ = try await runner.run(flood); fatalError("Output cap") } catch let error as MachineBackupFailure {

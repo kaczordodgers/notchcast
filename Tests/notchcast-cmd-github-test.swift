@@ -30,6 +30,7 @@ struct GitHubTest {
         for (api, expected) in [
             (service("{}", status: 429), GitHubService.Failure.rateLimited),
             (service("{}", status: 403, headers: ["X-RateLimit-Remaining": "0"]), .rateLimited),
+            (service("{}", status: 403, headers: ["Retry-After": "60"]), .rateLimited),
             (service("{}", status: 500), .http(500)),
             (service("{}", status: 403), .http(403)),
             (service("garbled"), .malformedResponse),
@@ -45,6 +46,19 @@ struct GitHubTest {
             _ = try await noToken.starred()
             preconditionFailure("Expected token requirement")
         } catch let error as GitHubService.Failure { precondition(error == .tokenRequired) }
+        let unavailable = GitHubService(fetch: { _ in throw URLError(.notConnectedToInternet) })
+        for (api, scope, expected) in [
+            (service("{}", status: 500), GitHubSearchSession.Scope.repositories,
+             GitHubSearchSession.State.failed(.http(500))),
+            (noToken, .starred, .failed(.tokenRequired)),
+            (unavailable, .repositories, .unavailable)
+        ] {
+            let failed = GitHubSearchSession(service: api, sleep: { _ in })
+            failed.search("swift", scope: scope)
+            for _ in 0..<500 where failed.state == .loading { try await Task.sleep(for: .milliseconds(10)) }
+            precondition(failed.state == expected && failed.results.isEmpty)
+        }
+        print("Verified: search session HTTP/token failures and transport unavailability")
         let stars = GitHubService(fetch: { request in
             precondition(request.url?.path == "/user/starred")
             return (Data("[\(fixture)]".utf8), HTTPURLResponse(url: request.url!, statusCode: 200,
@@ -72,7 +86,7 @@ struct GitHubTest {
         cached.search("swift", scope: .starred)
         for _ in 0..<500 where cached.state == .loading { try await Task.sleep(for: .milliseconds(10)) }
         precondition(calls.withLock { $0 } == 20)
-        print("Verified: starred session cache, refresh invalidation, ten-page cap and HTML5 entities")
+        print("Verified: starred session cache, refresh invalidation, ten-page cap and entities")
         let debounced = GitHubService(fetch: { request in
             let parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
             precondition(parts.queryItems?.first(where: { $0.name == "q" })?.value == "new")

@@ -42,11 +42,18 @@ extension TorrentModule {
         preferences.set(.torrents, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
         NotchcastHost.current.refreshNotchcastCommands = { AppCore.shared.appIndex.refreshNotchcastCommands() }
+        let controller = NotchcastModuleController([.init(requires: [.torrents], module: TorrentModule.shared)],
+            preferences: preferences, modulesChanged: { NotchcastHost.current.refreshNotchcastCommands() })
+        controller.run()
         let before = AppCore.shared.appIndex.refreshes
         preferences.set(.torrents, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(commands.allSatisfy { !$0.isEnabled() })
-        precondition(AppCore.shared.appIndex.refreshes > before)
+        precondition(AppCore.shared.appIndex.refreshes == before + 1 && !TorrentModule.shared.isRunning)
+        preferences.set(.torrents, true)
+        for _ in 0..<100 { await Task.yield() }
+        precondition(commands.allSatisfy { $0.isEnabled() } && TorrentModule.shared.isRunning)
+        precondition(AppCore.shared.appIndex.refreshes == before + 2)
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }
         let magnet = "magnet:?xt=urn:btih:0123456789012345678901234567890123456789"

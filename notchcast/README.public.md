@@ -95,10 +95,9 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 - Mac Link pairs two Macs on the local network: send the clipboard and files, open the other Mac over SSH, run its update, check its dialogs, and get notified when the link drops, with quick fixes.
 
-### Backups, cleaning and updates
+### Backups and updates
 
 - Daily settings backups with a choice of which one to restore, and warnings when a backup fails or goes stale.
-- Clean junk, history and AI data, analyze the disk, purge project build folders and optimize the system. Each one runs only when you click it.
 - Check installed apps for updates, and run macOS maintenance after confirmation.
 
 ### Tweaks, privacy and startup

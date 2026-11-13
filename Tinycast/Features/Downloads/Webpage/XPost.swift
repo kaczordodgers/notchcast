@@ -21,9 +21,12 @@ enum XPost {
 
     static func apiURL(_ source: URL) -> URL? {
         guard WebRules.isWebScheme(source.scheme), WebRules.isXHost(source.host(percentEncoded: false)) else { return nil }
-        let parts = source.pathComponents.filter { $0 != "/" }
+        var parts = source.pathComponents.filter { $0 != "/" }
+        if parts.count >= 4, parts[0] == "i", parts[1] == "web", parts[2] == "status" {
+            parts.remove(at: 1)
+        }
         // x.com/i/article/<id> carries an article id, not the status id fxtwitter needs.
-        guard parts.count >= 3, ["status", "article"].contains(parts[1]),
+        guard parts.count >= 3, ["status", "statuses", "article"].contains(parts[1]),
               parts[0].lowercased() != "i" || parts[1] == "status",
               parts[0].wholeMatch(of: /[A-Za-z0-9_]{1,15}/) != nil, parts[2].wholeMatch(of: /[0-9]{1,20}/) != nil
         else { return nil }
@@ -86,9 +89,9 @@ enum XPost {
             }
             let text = block.text ?? ""
             switch block.type {
-            case "header-one": html += "<h2>\(escape(text))</h2>"
-            case "header-two": html += "<h3>\(escape(text))</h3>"
-            case "header-three": html += "<h4>\(escape(text))</h4>"
+            case "header-one": html += "<h2>\(inline(block, entities))</h2>"
+            case "header-two": html += "<h3>\(inline(block, entities))</h3>"
+            case "header-three": html += "<h4>\(inline(block, entities))</h4>"
             case "unordered-list-item", "ordered-list-item": html += "<li>\(inline(block, entities))</li>"
             case "blockquote": html += "<blockquote><p>\(inline(block, entities))</p></blockquote>"
             case "code-block": html += "<pre><code>\(escape(text))</code></pre>"
