@@ -86,11 +86,11 @@ final class LowDiskManager {
                 } else if self.reportNext {
                     self.onReport?(space)
                 }
-                self.reportNext = false
             } catch {
                 if !Task.isCancelled { Self.log.error("Disk capacity read failed: \(error.localizedDescription)") }
             }
             guard !Task.isCancelled, let self, self.generation == current else { return }
+            self.reportNext = false
             self.reading = nil
             if self.readAgain {
                 self.readAgain = false

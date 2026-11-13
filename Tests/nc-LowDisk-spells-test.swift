@@ -7,10 +7,12 @@ struct LowDiskTests {
         var value = LowDiskEngine.Space(free: 29_000_000_000, total: 200_000_000_000)
         var calls = 0
         var suspended = false
+        var fails = false
         var continuation: CheckedContinuation<LowDiskEngine.Space, Never>?
 
-        func read() async -> LowDiskEngine.Space {
+        func read() async throws -> LowDiskEngine.Space {
             calls += 1
+            if fails { throw CocoaError(.fileReadUnknown) }
             if suspended { return await withCheckedContinuation { continuation = $0 } }
             return value
         }
@@ -42,7 +44,7 @@ struct LowDiskTests {
         let reader = Reader()
         let center = NotificationCenter()
         var notices = 0
-        let manager = LowDiskManager(defaults: defaults, wakeCenter: center, read: { await reader.read() })
+        let manager = LowDiskManager(defaults: defaults, wakeCenter: center, read: { try await reader.read() })
         manager.onNotice = { _ in notices += 1 }
         manager.start()
         manager.start()
@@ -52,7 +54,7 @@ struct LowDiskTests {
         await manager.settled()
         check(notices == 1, "Repeated low reads stay quiet")
         manager.stop()
-        let restarted = LowDiskManager(defaults: defaults, wakeCenter: center, read: { await reader.read() })
+        let restarted = LowDiskManager(defaults: defaults, wakeCenter: center, read: { try await reader.read() })
         restarted.onNotice = { _ in notices += 1 }
         restarted.start()
         await restarted.settled()
@@ -87,7 +89,7 @@ struct LowDiskTests {
         check(LowDiskManager.checkInterval == .seconds(600), "Ten-minute cadence")
         reader.suspended = false
         reader.value = .init(free: 100 * billion, total: 200 * billion)
-        let checked = LowDiskManager(defaults: defaults, wakeCenter: center, read: { await reader.read() })
+        let checked = LowDiskManager(defaults: defaults, wakeCenter: center, read: { try await reader.read() })
         var reported: [LowDiskEngine.Space] = []
         checked.onNotice = { _ in preconditionFailure("Healthy space is not a low-disk notice") }
         checked.onReport = { reported.append($0) }
@@ -99,6 +101,13 @@ struct LowDiskTests {
         checked.refresh()
         await checked.settled()
         check(reported.count == 1, "Background checks of healthy space stay quiet")
+        reader.fails = true
+        checked.check()
+        await checked.settled()
+        reader.fails = false
+        checked.refresh()
+        await checked.settled()
+        check(reported.count == 1, "A failed manual check does not report on a later background refresh")
         checked.stop()
         print("PASS: \(checks) disk threshold, persistence, wake and stale-result checks")
     }
