@@ -3,7 +3,7 @@
 // notchcast-kit: core
 import Foundation
 
-enum DialogTone { case success, danger }
+enum DialogTone { case neutral, success, danger }
 
 @MainActor
 final class FakeTransport: VoiceAskTransport {
