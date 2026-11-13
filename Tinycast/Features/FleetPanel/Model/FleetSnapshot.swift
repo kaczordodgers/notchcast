@@ -27,11 +27,12 @@ struct FleetSnapshot: Codable, Equatable, Sendable {
         private var rows: [Row] { if case let .rows(rows) = self { rows } else { [] } }
     }
 
-    enum Failure: String, Codable, Sendable { case off, failed }
+    enum Failure: String, Codable, Sendable { case off, sourceOff, failed }
     let rows: [Row]
     let failure: Failure?
 
     func column(now: Date, remote: Bool) -> Column {
+        if failure == .sourceOff { return .sourceOff }
         if let failure { return failure == .off ? (remote ? .remoteOff : .sourceOff) : .failed }
         let rank: [Phase: Int] = [.waiting: 0, .working: 1, .finished: 2]
         return .rows(rows.filter { $0.phase != .finished || now.timeIntervalSince($0.updatedAt) <= 1800 }

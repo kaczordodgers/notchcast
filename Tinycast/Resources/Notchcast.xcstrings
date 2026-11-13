@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Other Mac: Agent Threads is off." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderer Mac: Agent Threads ist deaktiviert." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Otro Mac: Agent Threads está desactivado." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autre Mac : Agent Threads est désactivé." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ほかのMac：Agent Threadsがオフです。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac: Agent Threads가 꺼져 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Outro Mac: Agent Threads está desativado." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другой Mac: Agent Threads выключен." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "另一台 Mac：Agent Threads 已关闭。" } }
+      }
+    },
+    "Preview and apply supported setup tweaks from a profile." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unterstützte Einstellungen aus einem Profil prüfen und anwenden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Previsualiza y aplica los ajustes compatibles de un perfil." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prévisualisez et appliquez les réglages pris en charge d’un profil." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロファイル内の対応する設定をプレビューして適用します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로필에서 지원되는 설정을 미리 보고 적용합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Visualize e aplique os ajustes compatíveis de um perfil." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотр и применение поддерживаемых настроек из профиля." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "预览并应用配置文件中支持的设置调整。" } }
+      }
+    },
     "Dictation cleanup failed; pasted the original transcript" : {
       "localizations" : {
         "de" : {
