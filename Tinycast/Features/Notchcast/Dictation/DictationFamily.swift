@@ -68,7 +68,7 @@ final class DictationFamily {
         }
         let process = process
         DictationCoordinator.transcriptStage = { @MainActor [self] raw, language in
-            cleanupEnabled ? await process(raw, language, false, {}) : raw
+            cleanupEnabled ? await process(raw, language, false, { @MainActor in self.cleanupFallback?() }) : raw
         }
     }
 }
