@@ -92,10 +92,39 @@ struct AgentSocketTests {
         check((await send(.init(verb: .status), url)).code == .ok)
         server.stop()
 
+        let committed = Mutex(0)
+        let uncertain = AgentSocketServer(socketURL: url, handlerTimeout: 0.05) { _ in
+            committed.withLock { $0 += 1 }
+            await offPool { Thread.sleep(forTimeInterval: 0.15) }
+            return .init(code: .ok)
+        }
+        try uncertain.start()
+        check((await send(.init(verb: .status), url)).code.rawValue == "timedOutUnknown")
+        check(committed.withLock { $0 } == 1, "fixture must commit before the timeout")
+        uncertain.stop()
+        print("PASS committed action timeout reports unknown outcome")
+
+        let identities = AgentSocketServer(socketURL: url) { request in
+            .init(code: .ok, result: .string(request.id ?? ""))
+        }
+        try identities.start()
+        await offPool {
+            let old = AgentSocketClient.Session()
+            let replacement = AgentSocketClient.Session()
+            let request = AgentRequest(verb: .mcp, id: "same-client")
+            let first = old.send(request, to: url)
+            let second = replacement.send(request, to: url)
+            check(first.code == .ok && second.code == .ok && first.result != second.result,
+                  "reconnected client shares the stale connection's session")
+            check(replacement.send(request, to: url) == second, "session changed within a connection")
+        }
+        identities.stop()
+        print("PASS reconnect isolates session identity from stale cleanup")
+
         let initializations = Mutex(0)
         let persistent = AgentSocketServer(socketURL: url, handlerTimeout: 0.05) { request in
             if case .string = request.parameters { initializations.withLock { $0 += 1 } }
-            if request.id == "slow" {
+            if request.parameters == .object(["slow": .bool(true)]) {
                 try? await Task.sleep(for: .seconds(1))
             }
             return .init(code: .ok)
@@ -116,7 +145,9 @@ struct AgentSocketTests {
             client.session.send(.init(verb: .mcp, id: "fast",
                 parameters: .string(#"{"method":"initialize"}"#)), to: url).code
         } == .ok)
-        check(await offPool { client.session.send(.init(verb: .mcp, id: "slow"), to: url).code } == .failed)
+        check(await offPool {
+            client.session.send(.init(verb: .mcp, id: "slow", parameters: .object(["slow": .bool(true)])), to: url).code
+        }.rawValue == "timedOutUnknown")
         check(await offPool { client.session.send(.init(verb: .mcp, id: "fast"), to: url).code } == .ok)
         check(initializations.withLock { $0 } == 2)
         persistent.stop()
@@ -132,7 +163,7 @@ struct AgentSocketTests {
             return .init(code: .ok)
         }
         try stalled.start()
-        check(await send(.init(verb: .status), url) == .init(code: .failed))
+        check((await send(.init(verb: .status), url)).code.rawValue == "timedOutUnknown")
         stalled.stop()
 
         let cancellation = CancellationFixture()
