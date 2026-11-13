@@ -136,6 +136,16 @@ import AppKit
         assert(adapter.isProtected && !adapter.write("replacement"))
         print("PASS: real pasteboard protects secrets, internal, rich and multiple items; plain URL rewrites")
 
+        put([.URL])
+        adapter.writeObjects = { _ in false }
+        module.clipboardDidChange(adapter)
+        assert(board.string(forType: .string) == raw)
+        assert(board.types?.contains(ClipboardManager.internalType) == false)
+        let restoredCount = board.changeCount
+        module.clipboardDidChange(adapter)
+        assert(board.changeCount == restoredCount)
+        print("PASS: failed write restores the original text unmarked and is not retried")
+
         let source = try String(contentsOfFile: "Tinycast/Features/Clipboard/Service/ClipboardManager.swift", encoding: .utf8)
         let hook = source.range(of: "        pasteboardDidChange?(pb)")!
         let capture = source.range(of: "        if let text = pb.string(forType: .string)")!

@@ -35,8 +35,10 @@ final class URLCleanerModule: NotchcastModule {
         lastChangeCount = pasteboard.changeCount
         guard !pasteboard.isProtected, let text = pasteboard.text else { return }
         let result = URLCleanerPolicy.clean(text, rules: rules)
-        guard !result.removed.isEmpty, pasteboard.write(result.text) else { return }
+        guard !result.removed.isEmpty else { return }
+        let written = pasteboard.write(result.text)
+        // A failed write restores the original, which must not be cleaned again on the next poll.
         lastChangeCount = pasteboard.changeCount
-        lastClean = result
+        if written { lastClean = result }
     }
 }
