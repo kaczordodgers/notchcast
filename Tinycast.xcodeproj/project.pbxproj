@@ -1912,6 +1912,7 @@
 		E4E1403AA9A8ACE4A3D3581C /* MeetingEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B330ABFC83721904159DDF2 /* MeetingEvent.swift */; };
 		E4F0C581AF0025D27B225C46 /* NoiseControlSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB06D24046F9DDFDB8A830ED /* NoiseControlSystem.swift */; };
 		E547690FCBD4BF48E68FF041 /* AppleAppsSourceLicense.txt in Resources */ = {isa = PBXBuildFile; fileRef = 052D3F2A2FDABF6BBF94EC70 /* AppleAppsSourceLicense.txt */; };
+		E5498067626D2B2B242E723D /* SoloistSpeaker+Build.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83243A61BC8C83E0E15011A4 /* SoloistSpeaker+Build.swift */; };
 		E5564A6D4F118F02850314EF /* AgentThreadParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2ADBC1B4A93FB47A605603 /* AgentThreadParser.swift */; };
 		E55B9BA3CAF66AAA7BDA9572 /* TodoCommandAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D0C98139F7211B99B625F4 /* TodoCommandAvailability.swift */; };
 		E573655220F45E598575FC68 /* MenuTreeNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1B528506E4B62440B4863A /* MenuTreeNode.swift */; };
@@ -3347,6 +3348,7 @@
 		82B5E917A4EFDC153C6780E8 /* ModifierKeyDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierKeyDetector.swift; sourceTree = "<group>"; };
 		82DB32B7ACED5BE2BEE7451F /* ClipboardTextHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardTextHelper.swift; sourceTree = "<group>"; };
 		82E0B04AC2FE49B055BD4427 /* DownloadQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadQueue.swift; sourceTree = "<group>"; };
+		83243A61BC8C83E0E15011A4 /* SoloistSpeaker+Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SoloistSpeaker+Build.swift"; sourceTree = "<group>"; };
 		832B5B750CC74B1CFC2487AD /* HTMLDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLDocument.swift; sourceTree = "<group>"; };
 		8342BC98BE37D359581B36EC /* SMCSensorReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCSensorReader.swift; sourceTree = "<group>"; };
 		834824B62383A49098EDDDC5 /* StartupItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupItemService.swift; sourceTree = "<group>"; };
@@ -4575,6 +4577,7 @@
 				B8D8E75914E0C973C9F926B6 /* SoloistSchedule.swift */,
 				804A190C35819B63D47C6586 /* SoloistSource.swift */,
 				F427CF5309F2CD9834FE921E /* SoloistSpeaker.swift */,
+				83243A61BC8C83E0E15011A4 /* SoloistSpeaker+Build.swift */,
 				CF1FF1670A747607237E6C29 /* SoloistSystemEvents.swift */,
 				3AE5A3B7F5444FB36B94E041 /* SpotifyConnectModule.swift */,
 				C52EC112663BF05F947FB42E /* SystemNowPlayingSource.swift */,
@@ -12394,6 +12397,7 @@
 				A3B1BB9B0EE81CB0310D0F18 /* SoloistRefreshState.swift in Sources */,
 				7325F846B9CE5632A0CC81E6 /* SoloistSchedule.swift in Sources */,
 				3A7547320F171F56EC5944A9 /* SoloistSource.swift in Sources */,
+				E5498067626D2B2B242E723D /* SoloistSpeaker+Build.swift in Sources */,
 				41D59E1A191DDC4D2B01C84D /* SoloistSpeaker.swift in Sources */,
 				8BCF41B10CDF368C12B002E6 /* SoloistSpeakerState.swift in Sources */,
 				BC9F41BFC48925D862B36B57 /* SoloistSystemEvents.swift in Sources */,
