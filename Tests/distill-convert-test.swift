@@ -249,14 +249,15 @@ struct DistillConvertTests {
         expect(!exists(changed.appendingPathComponent("document.md")), "stale result is never published")
 
         let retry = try directory("retry", in: root)
-        try write("RETRY SOURCE 3541", "source.txt", in: retry)
-        let denied = DistillConverter(trash: { _ in throw FixtureFailure.trashDenied })
+        try write("RETRY SOURCE 3541", "source.html", in: retry)
+        let html: DistillConverter.HTML = { text, _ in DistillConversion(markdown: text, retainSource: false) }
+        let denied = DistillConverter(html: html, trash: { _ in throw FixtureFailure.trashDenied })
         let failed = try await denied.convert(folder: retry)
-        expect(status("source.txt", in: failed) == .retained && exists(retry.appendingPathComponent("source.txt")),
-               "text retention never calls failing Trash")
-        let recovered = try await DistillConverter(trash: moveTo(trash)).convert(folder: retry)
-        expect(status("source.txt", in: recovered) == .retained, "retry retains text source")
-        expect(output("source.txt", in: failed) == output("source.txt", in: recovered), "retry reuses verified output")
+        expect(isFailed(status("source.html", in: failed)) && exists(retry.appendingPathComponent("source.html")),
+               "Trash failure keeps source and reports failure")
+        let recovered = try await DistillConverter(html: html, trash: moveTo(trash)).convert(folder: retry)
+        expect(status("source.html", in: recovered) == .converted, "retry completes failed Trash operation")
+        expect(output("source.html", in: failed) == output("source.html", in: recovered), "retry reuses verified output")
 
         let edited = try directory("edited-output", in: root)
         try write("ORIGINAL SOURCE", "source.txt", in: edited)
