@@ -88,6 +88,11 @@ struct CleanupTests {
             expect(DictationCleanupGuard.accepts(cleaned, raw: raw, vocabulary: settings.vocabulary), raw)
         }
         let rejected = [
+            ("send no reports today", "Send reports today."),
+            ("send reports without attachments", "Send reports with attachments."),
+            ("I cannot send the report today", "I can send the report today."),
+            ("I don't send the report today", "I do send the report today."),
+            ("I won’t send the report today", "I will send the report today."),
             ("napisz do klaudii", "Napisz do Claude"),
             ("jade jutro do klodzka", "Jadę jutro do Claude"),
             ("mam kłody w ogrodzie", "Mam Claude w ogrodzie"),
