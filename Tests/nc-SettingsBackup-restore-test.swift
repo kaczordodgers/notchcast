@@ -153,14 +153,17 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let complete = try ForkSettingsBackupState.live.snapshot()
         liveDefaults.set(Data("broken".utf8), forKey: "dictationCleanupSettings")
         let oldCPU = NotchcastPreferences.shared.monitorCPU
+        let oldIsland = NotchcastPreferences.shared.isOn(.island)
         do {
-            try ForkSettingsBackupState.live.apply(complete.merging(["monitorCPU": 71]) { _, new in new })
+            try ForkSettingsBackupState.live.apply(complete.merging(["monitorCPU": 71, "island": !oldIsland]) { _, new in new })
             preconditionFailure("partial restore must report the failed record")
         } catch { }
         precondition(NotchcastPreferences.shared.monitorCPU == 71,
                      "a corrupt cleanup record aborted restoration of other settings")
+        precondition(NotchcastPreferences.shared.isOn(.island) != oldIsland,
+                     "a corrupt cleanup record aborted restoration of switches")
         liveDefaults.removeObject(forKey: "dictationCleanupSettings")
-        try ForkSettingsBackupState.live.apply(["monitorCPU": oldCPU])
+        try ForkSettingsBackupState.live.apply(["monitorCPU": oldCPU, "island": oldIsland])
         for feature: NotchcastFeature in [.urlCleaner, .dictationHistory, .captureTrimmer] {
             precondition(complete[feature.rawValue] as? Bool == NotchcastPreferences.shared.isOn(feature), feature.rawValue)
         }
