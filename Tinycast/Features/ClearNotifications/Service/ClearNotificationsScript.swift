@@ -1,5 +1,29 @@
+import Foundation
+
 enum ClearNotificationsScript {
-    static let source = """
+    static var source: String {
+        source(localized: ["Clear Notifications…", "Clear All Notifications", "Clear All", "Close"].map {
+            SystemLanguages.localized($0, bundlePath: "/System/Library/CoreServices/NotificationCenter.app")
+        })
+    }
+
+    static func source(localized: [String]) -> String {
+        let names = localized.map {
+            $0.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+                .replacingOccurrences(of: "\n", with: "\\n").replacingOccurrences(of: "\r", with: "\\r")
+        }
+        return """
+        on matchesName(candidate, names, prefixMatch)
+            repeat with n in names
+                if prefixMatch then
+                    if candidate starts with (n as text) then return true
+                else
+                    if candidate is (n as text) then return true
+                end if
+            end repeat
+            return false
+        end matchesName
+
         on panelOpen()
             tell application "System Events" to tell process "NotificationCenter"
                 return (count of windows) > 0
@@ -45,7 +69,8 @@ enum ClearNotificationsScript {
         on findElement(e, wantRole, wantName, depth)
             tell application "System Events"
                 try
-                    if (role of e as text) is wantRole and (name of e as text) is wantName then return e
+                    if (role of e as text) is wantRole and ¬
+                        my matchesName(name of e as text, wantName, false) then return e
                 end try
                 if depth > 10 then return missing value
                 set kids to UI elements of e
@@ -60,7 +85,7 @@ enum ClearNotificationsScript {
         on clearAllViaMenu()
             tell application "System Events" to tell process "NotificationCenter"
                 set w to window 1
-                set mb to my findElement(w, "AXMenuButton", "Clear Notifications…", 0)
+                set mb to my findElement(w, "AXMenuButton", {"\(names[0])", "Clear Notifications…"}, 0)
                 if mb is missing value then return false
                 perform action "AXPress" of mb
                 repeat 40 times
@@ -69,7 +94,10 @@ enum ClearNotificationsScript {
                 end repeat
                 if (count of menus of mb) = 0 then return false
                 try
-                    click menu item "Clear All Notifications" of menu 1 of mb
+                    set clearItem to my findElement(menu 1 of mb, "AXMenuItem", ¬
+                        {"\(names[1])", "Clear All Notifications"}, 0)
+                    if clearItem is missing value then error "clear-menu-unavailable"
+                    click clearItem
                     return true
                 on error
                     try
@@ -116,13 +144,13 @@ enum ClearNotificationsScript {
             tell application "System Events"
                 set acts to actions of a
                 repeat with ac in acts
-                    if (name of ac) starts with "Name:Clear All" then
+                    if my matchesName(name of ac, {"Name:\(names[2])", "Name:Clear All"}, true) then
                         perform ac
                         return true
                     end if
                 end repeat
                 repeat with ac in acts
-                    if (name of ac) starts with "Name:Close" then
+                    if my matchesName(name of ac, {"Name:\(names[3])", "Name:Close"}, true) then
                         perform ac
                         return true
                     end if
@@ -191,4 +219,5 @@ enum ClearNotificationsScript {
             return initialCount
         end run
         """
+    }
 }

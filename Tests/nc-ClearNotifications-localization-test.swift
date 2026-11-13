@@ -13,11 +13,18 @@ import AppKit
         precondition(polish == ["Wymaż powiadomienia…", "Wymaż wszystkie powiadomienia", "Wymaż wszystko", "Zamknij"])
         let source = ClearNotificationsScript.source(localized: polish)
         for name in polish + keys { precondition(source.contains(name)) }
-        let handlers = String(source.components(separatedBy: "    on run").first!)
+        for strings in [polish, keys, Array(repeating: "quoted\"\\name\n", count: 4)] {
+            let script = NSAppleScript(source: ClearNotificationsScript.source(localized: strings))!
+            var error: NSDictionary?
+            precondition(script.compileAndReturnError(&error), "\(String(describing: error))")
+        }
+        let handlers = String(source.components(separatedBy: "\non run").first!) + "\n"
         let checks = """
         on run
             return my matchesName("Name:Zamknij:123", {"Name:Zamknij", "Name:Close"}, true) and ¬
                 my matchesName("Name:Close:123", {"Name:Zamknij", "Name:Close"}, true) and ¬
+                my matchesName("Name:Wymaż wszystko:123", {"Name:Wymaż wszystko", "Name:Clear All"}, true) and ¬
+                my matchesName("Name:Clear All:123", {"Name:Wymaż wszystko", "Name:Clear All"}, true) and ¬
                 my matchesName("Wymaż wszystko", {"Wymaż wszystko", "Clear All"}, false) and ¬
                 not my matchesName("Unrelated", {"Wymaż wszystko", "Clear All"}, false)
         end run

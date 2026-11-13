@@ -7,7 +7,9 @@ final class NotificationCleanupObserver {
     private var pid: pid_t?
     private var timer: Timer?
     private let policy = NotificationCleanupPolicy(diskEjectionTitles: [
-        "Disk Not Ejected Properly", "Dysk nie został wysunięty prawidłowo"
+        "Disk Not Ejected Properly",
+        SystemLanguages.localized("Disk Not Ejected Properly",
+            bundlePath: "/System/Library/Frameworks/DiskArbitration.framework")
     ])
 
     func start() {

@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/ClearNotifications/Service/*.swift
 // notchcast-sources: Tinycast/Features/ClearNotifications/ClearNotificationsModule.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
+// notchcast-sources: Tinycast/Platform/SystemLanguages.swift
 // notchcast-sources: Tinycast/Features/Answers/Model/*.swift
 // notchcast-sources: Tinycast/Features/Answers/Service/*.swift
 // notchcast-sources: Tinycast/Features/Answers/LauncherAnswersModule.swift
