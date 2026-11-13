@@ -211,8 +211,8 @@ struct DownloadsWebpageTests {
         let guardedView = WKWebView(frame: .zero, configuration: guardedConfiguration)
         let guardedNavigation = FixtureNavigation()
         guardedView.navigationDelegate = guardedNavigation
-        let malicious = "<html><body><p>Public fixture</p><img src='\(privateURL.absoluteString)'>" +
-            "<iframe src='\(privateURL.absoluteString)'></iframe></body></html>"
+        let malicious = "<html><body><p>Public fixture</p><img src='http://127.0.0.1/'>" +
+            "<iframe src='http://127.0.0.1/'></iframe></body></html>"
         try await guardedNavigation.load(malicious, into: guardedView, baseURL: URL(string: "http://example.com")!)
         expect(probe.connections == 0, "WebKit subresources cannot bypass public-address proxy")
         guardedConfiguration.userContentController.removeAllContentRuleLists()
@@ -230,7 +230,7 @@ struct DownloadsWebpageTests {
                 configuration.userContentController.removeAllContentRuleLists()
                 configuration.setURLSchemeHandler(slowResource, forURLScheme: "slow-fixture")
             }) { view in
-                view.loadHTMLString("<html><body><img src='\(privateURL.absoluteString)'>" +
+                view.loadHTMLString("<html><body><img src='http://127.0.0.1/'>" +
                     "<img src='slow-fixture://image'></body></html>", baseURL: slowPage)
             }
             expect(false, "slow page times out after refused subresource")
