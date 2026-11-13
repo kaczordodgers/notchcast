@@ -306,7 +306,7 @@ def print_counters(root, upstream, observed, ours, our_tests, baseline, known):
 def notify(counters, thresholds, cache, hook):
     available = subprocess.run(['bash', '-c',
                                 'if [ -f "$1" ]; then source "$1"; fi; declare -F notchcast_task >/dev/null',
-                                'drift-hook', str(hook)], capture_output=True, text=True)
+                                'drift-hook', str(hook)], capture_output=True, text=True, errors='replace')
     if available.returncode:
         print('no task hook')
         return
@@ -327,18 +327,16 @@ def notify(counters, thresholds, cache, hook):
                 continue
             result = subprocess.run(['bash', '-c',
                                      'if [ -f "$1" ]; then source "$1"; fi\n'
-                                     'if declare -F notchcast_task >/dev/null; then\n'
-                                     '  notchcast_task "$2" "$3"\n'
-                                     'else printf "%s\\n" "no task hook"; exit 3; fi',
+                                     'notchcast_task "$2" "$3"',
                                      'drift-hook', str(hook), f'Notchcast: Reduce {counter}',
                                      f'{counter}, {value}, threshold {threshold}, {key}'],
-                                    capture_output=True, text=True)
+                                    capture_output=True, text=True, errors='replace')
             if result.stdout:
                 print(result.stdout.strip())
             if result.returncode == 0:
                 current[identity] = value
-            elif result.returncode != 3:
-                print(f'task hook failed: {result.stderr.strip()}', file=sys.stderr)
+            else:
+                print(f'task hook failed: {identity} (exit {result.returncode}): {result.stderr.strip()}')
         temporary = cache.with_suffix('.tmp')
         temporary.write_text(json.dumps(current, indent=2, sort_keys=True) + '\n')
         temporary.replace(cache)

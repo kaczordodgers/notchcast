@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Permanent planted violations for each drift gate, using the real CLI and jscpd."""
 import json
+import contextlib
+import importlib.util
+import io
 import os
 from pathlib import Path
 import re
@@ -9,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
@@ -387,6 +391,34 @@ class Gates(unittest.TestCase):
         result = self.run_check('1,2,3', '--report', env=env)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('no task hook', result.stdout)
+
+
+class Notifications(unittest.TestCase):
+    def test_non_utf8_failed_hook_retry(self):
+        spec = importlib.util.spec_from_file_location('drift', CHECK)
+        drift = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(drift)
+        with tempfile.TemporaryDirectory(prefix='drift-hook.') as directory:
+            home = Path(directory)
+            cache = home / 'alerts.json'
+            cache.write_text('{}')
+            hook = home / 'private.env'
+            hook.write_text("printf '\\377' >&2\nnotchcast_task() { printf '\\377' >&2; return 3; }\n")
+            counters = {('file-lines', 'Fixture.swift'): 379}
+            with patch.dict(os.environ, HOME=str(home)):
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    drift.notify(counters, {'file-lines': 349}, cache, hook)
+                self.assertIn('task hook failed: file-lines|Fixture.swift (exit 3): \ufffd', output.getvalue())
+                self.assertEqual(json.loads(cache.read_text()), {})
+                hook.write_text('notchcast_task() { printf "fixture task created\\n"; }\n')
+                for expected in ('fixture task created', ''):
+                    output = io.StringIO()
+                    with contextlib.redirect_stdout(output):
+                        drift.notify(counters, {'file-lines': 349}, cache, hook)
+                    self.assertEqual(output.getvalue().strip(), expected)
+                self.assertEqual(json.loads(cache.read_text()), {'file-lines|Fixture.swift': 379})
+            print('PASS: non-UTF-8 hook failure is visible; failed key retries once')
 
 
 if __name__ == '__main__':
