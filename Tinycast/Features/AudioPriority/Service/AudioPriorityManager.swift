@@ -85,6 +85,8 @@ final class AudioPriorityManager {
     private func refresh(apply: Bool, force: Set<AudioPriorityDevice.Direction> = []) {
         guard let identity = lifetime else { return }
         listen(identity)
+        var failed = !listening
+        var switched = false
         do {
             let devices = try transport.devices()
             inventoryChanged(devices)
@@ -103,10 +105,17 @@ final class AudioPriorityManager {
                     if let target = AudioPriorityPolicy.target(
                         ranking: ranking, connected: available, current: current) {
                         try transport.setDefault(uid: target, for: direction)
-                        clearFailure()
+                        switched = true
                     }
-                } catch { report(error) }
+                } catch {
+                    failed = true
+                    report(error)
+                }
             }
-        } catch { report(error) }
+        } catch {
+            failed = true
+            report(error)
+        }
+        if switched && !failed { clearFailure() }
     }
 }

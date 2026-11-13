@@ -17,15 +17,18 @@ private final class Audio: AudioPriorityTransport {
     var hasInput = false
     var reads = 0
     var failSwitch = false
+    var outputs = ["low", "high"]
+    var inputSwitches = 0
     func devices() -> [AudioPriorityDevice] {
         reads += 1
-        return ["low", "high"].map { .init(uid: $0, name: $0, direction: .output) }
+        return outputs.map { .init(uid: $0, name: $0, direction: .output) }
             + (hasInput ? [.init(uid: "mic", name: "mic", direction: .input)] : [])
     }
     func defaultUID(for direction: AudioPriorityDevice.Direction) -> String? { current }
     func setDefault(uid: String, for direction: AudioPriorityDevice.Direction) throws {
-        if failSwitch { throw Failure() }
+        if failSwitch && direction == .output { throw Failure() }
         if direction == .output { current = uid }
+        if direction == .input { inputSwitches += 1 }
     }
     func start(onChange: @escaping @Sendable () -> Void) throws {
         starts += 1
@@ -93,6 +96,20 @@ struct RecoveryTests {
         store.move("high", by: -1, direction: .output)
         await settle { audio.current == "high" }
         check(store.failure == nil, "successful switch clears previous failure")
+        manager.stop()
+        audio.hasInput = false
+        store.save(.init(enabled: true, uids: ["high", "low", "usb"]), for: .output)
+        store.save(.init(enabled: true, uids: ["mic"]), for: .input)
+        manager.start()
+        audio.current = "low"
+        audio.failSwitch = true
+        audio.outputs.append("usb")
+        audio.hasInput = true
+        let inputSwitches = audio.inputSwitches
+        audio.callback?()
+        await settle { audio.inputSwitches > inputSwitches }
+        check(store.failure != nil, "successful input switch preserves output failure in same refresh")
+        audio.failSwitch = false
         manager.stop()
         audio.failStart = true
         manager.start()
