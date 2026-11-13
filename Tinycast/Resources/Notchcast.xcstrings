@@ -21949,13 +21949,13 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nécessite le maintien en éveil lorsque le capot est fermé."
+            "value" : "Nécessite « Maintenir éveillé » lorsque le capot est fermé."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "蓋を閉じている間はスリープ防止を有効にする必要があります。"
+            "value" : "蓋を閉じている間は「スリープを防止」を有効にする必要があります。"
           }
         },
         "ko" : {
