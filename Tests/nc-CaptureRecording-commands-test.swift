@@ -30,8 +30,16 @@ extension RecordingModule {
         var selection: CaptureAreaSelection?
         let area = CaptureAreaService(hasScreenRecordingAccess: { true }, select: { $0(selection) })
         var refreshes = 0
+        var failures: [String] = []
+        var revealed: URL?
+        var success = false
         let module = RecordingModule(defaults: defaults, defaultFolder: root, commandArea: area,
                                      refreshCommands: { refreshes += 1 },
+                                     report: {
+                                         if $1 { failures.append($0) }
+                                         success = $0 == "Recording saved" && !$1
+                                         messages.append(($0, $1 ? .danger : .success))
+                                     }, reveal: { revealed = $0 },
                                      makeSource: { source }, sleep: {})
         RecordingModule.shared = module
         let preferences = NotchcastPreferences.shared
@@ -42,8 +50,7 @@ extension RecordingModule {
         precondition(commands.allSatisfy { !$0.isEnabled() })
         preferences.set(.recording, true)
         precondition(!RecordingCommands.pause.isEnabled() && !RecordingCommands.stop.isEnabled())
-        var failures: [String] = []
-        await module.executeRecordingCommand(.record(.display(1)), report: { if $1 { failures.append($0) } })
+        await module.executeRecordingCommand(.record(.display(1)))
         precondition(failures == ["Capture is disabled."])
         module.start()
         RecordingCommands.screen.run()
@@ -51,7 +58,7 @@ extension RecordingModule {
         guard case .display = source.target else { preconditionFailure("screen target") }
         precondition(RecordingCommands.pause.isEnabled() && RecordingCommands.stop.isEnabled())
         precondition(refreshes == 1)
-        await module.executeRecordingCommand(.record(.display(2)), report: { if $1 { failures.append($0) } })
+        await module.executeRecordingCommand(.record(.display(2)))
         precondition(failures.last == "A recording is already in progress.")
         RecordingCommands.pause.run()
         await module.commandTask?.value
@@ -60,10 +67,7 @@ extension RecordingModule {
         await module.commandTask?.value
         precondition(module.phase == .recording)
         precondition(refreshes == 3)
-        var revealed: URL?
-        var success = false
-        await module.executeRecordingCommand(.finish,
-            report: { success = $0 == "Recording saved" && !$1 }, reveal: { revealed = $0 })
+        await module.executeRecordingCommand(.finish)
         precondition(success && revealed != nil && FileManager.default.fileExists(atPath: revealed!.path))
         precondition(module.phase == .idle && !RecordingCommands.stop.isEnabled())
         precondition(refreshes == 4)
@@ -111,7 +115,7 @@ extension RecordingModule {
         precondition(RecordingModule.failureMessage(NSError(domain: "start", code: 1)) == "Recording failed.")
         print("PASS off/on during held save preserves enabled state; Record Screen works; success HUD")
         source.denied = true
-        await module.executeRecordingCommand(.record(.display(1)), report: { if $1 { failures.append($0) } })
+        await module.executeRecordingCommand(.record(.display(1)))
         precondition(failures.last == "Screen Recording access is required.")
         precondition(RecordingModule.failureMessage(CaptureFailure.permissionDenied)
             == "Screen Recording access is required.")
@@ -149,9 +153,8 @@ extension RecordingModule {
         recoverySource.onFailure?(RecordingTarget.Failure.targetUnavailable)
         recoverySource.onFailure?(RecordingTarget.Failure.targetUnavailable)
         await recovery.waitUntilIdle()
-        precondition(recoveryReports.count == 2)
-        precondition(recoveryReports[0].0 == "Recording saved" && !recoveryReports[0].1)
-        precondition(recoveryReports[1].0 == "Capture area is unavailable." && recoveryReports[1].1)
+        precondition(recoveryReports.count == 1, "Stream failure must report one saved-take warning")
+        precondition(recoveryReports[0].0 == "Recording stopped early and was saved." && recoveryReports[0].1)
         precondition(recoveredURL.map { FileManager.default.fileExists(atPath: $0.path) } == true)
         precondition(recovery.lastError != nil && recovery.phase == .idle)
         print("PASS stream loss saves and reveals footage, reports one error despite duplicate callbacks")
