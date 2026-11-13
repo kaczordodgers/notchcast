@@ -107,6 +107,8 @@ struct CleanAIDataTest {
         let empty = try await service.clean([])
         precondition(empty.isEmpty)
         let failed = try await service.clean(items.filter { $0.kind == .claude })
+        precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path),
+                     "Clean must not leave private recovery copies")
         precondition(failed.first?.status == .recoveryFailed, String(describing: failed))
         let outcomes = try await service.clean(items.filter { $0.kind == .worktree })
         precondition(outcomes.filter { $0.status == .trashed }.count == 1, String(describing: outcomes))
