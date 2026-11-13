@@ -140,7 +140,12 @@ struct DownloadsWebpageTests {
         expect(markdown("<h2>Heading<a href='#heading'><svg></svg></a></h2>") == "## Heading", "empty permalink dropped")
         expect(markdown("<main>\n <p>One</p>\n <p>Two</p>\n </main>") == "One\n\nTwo", "block whitespace normalized")
         expect(markdown("<a href='/next'><div><h2>Title</h2><p>Read more</p></div></a>") ==
-               "[TitleRead more](<https://example.com/next>)", "block link label stays inline")
+               "[Title Read more](<https://example.com/next>)", "block link label stays inline")
+        expect(markdown("<a href='/p'><figure><img src='/c.png' alt='Cover'></figure></a>") ==
+               "[![Cover](<https://example.com/c.png>)](<https://example.com/p>)", "linked figure keeps image")
+        expect(markdown("<a href='/p'><div><svg><title>Arrow</title></svg><h3>Post</h3>" +
+                        "<p hidden>Hidden</p><p aria-hidden='true'>Invisible</p></div></a>") ==
+               "[Post](<https://example.com/p>)", "card label excludes hidden and SVG content")
     }
 
     static func cancelledResolution() async {
