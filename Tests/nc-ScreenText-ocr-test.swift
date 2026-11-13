@@ -120,7 +120,7 @@ enum ScreenTextTest {
             CGRect(x: 0, y: 0, width: 1200, height: 700).fill()
             NSGraphicsContext.current!.imageInterpolation = .none
             NSImage(cgImage: raster, size: code.extent.size).draw(
-                in: CGRect(x: 100, y: 200, width: 900, height: 350))
+                in: CGRect(x: 100, y: 200, width: name == "CIQRCodeGenerator" ? 350 : 900, height: 350))
             ("Caption below code" as NSString).draw(at: CGPoint(x: 100, y: 50), withAttributes: [
                 .font: NSFont.systemFont(ofSize: 48), .foregroundColor: NSColor.black])
             fixture.unlockFocus()
