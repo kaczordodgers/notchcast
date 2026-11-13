@@ -5,6 +5,7 @@ struct DictationHistoryRepository: Sendable {
     let now: @Sendable () -> Date
     private var history: URL { directory.appendingPathComponent("history.jsonl") }
     private var pending: URL { directory.appendingPathComponent("pending.jsonl") }
+    private var quarantine: URL { directory.appendingPathComponent("quarantine.jsonl") }
 
     func record(raw: String, cleaned: String) throws {
         try prepare()
@@ -17,7 +18,7 @@ struct DictationHistoryRepository: Sendable {
     func recent(limit: Int = 100) throws -> [DictationHistoryEntry] {
         try prepare()
         let cutoff = now().addingTimeInterval(-90 * 86_400)
-        return Array(try loadEntries().filter { $0.date >= cutoff }
+        return Array(try loadEntries().entries.filter { $0.date >= cutoff }
             .sorted { $0.date > $1.date }.prefix(max(0, limit)))
     }
 
@@ -28,7 +29,7 @@ struct DictationHistoryRepository: Sendable {
 
     func deleteAll() throws {
         try prepare()
-        for file in [pending, history] where FileManager.default.fileExists(atPath: file.path) {
+        for file in [pending, history, quarantine] where FileManager.default.fileExists(atPath: file.path) {
             try FileManager.default.removeItem(at: file)
         }
     }
@@ -53,32 +54,52 @@ struct DictationHistoryRepository: Sendable {
     }
 
     private func recover() throws {
-        let entries = try loadEntries()
+        let loaded = try loadEntries()
+        if !loaded.undecodable.isEmpty {
+            var data = FileManager.default.fileExists(atPath: quarantine.path)
+                ? try Data(contentsOf: quarantine) : Data()
+            data.append(loaded.undecodable)
+            try write(data, to: quarantine)
+        }
         let cutoff = now().addingTimeInterval(-90 * 86_400)
-        try write(entries.filter { $0.date >= cutoff }, to: history)
+        try write(loaded.entries.filter { $0.date >= cutoff }, to: history)
         if FileManager.default.fileExists(atPath: pending.path) {
             try FileManager.default.removeItem(at: pending)
         }
     }
 
-    private func loadEntries() throws -> [DictationHistoryEntry] {
-        var entries = try load(history)
-        for entry in try load(pending) where !entries.contains(where: { $0.id == entry.id }) {
-            entries.append(entry)
+    private func loadEntries() throws -> (entries: [DictationHistoryEntry], undecodable: Data) {
+        var loaded = try load(history)
+        let pending = try load(pending)
+        for entry in pending.entries where !loaded.entries.contains(where: { $0.id == entry.id }) {
+            loaded.entries.append(entry)
         }
-        return entries
+        loaded.undecodable.append(pending.undecodable)
+        return loaded
     }
 
-    private func load(_ url: URL) throws -> [DictationHistoryEntry] {
-        guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+    private func load(_ url: URL) throws -> (entries: [DictationHistoryEntry], undecodable: Data) {
+        guard FileManager.default.fileExists(atPath: url.path) else { return ([], Data()) }
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         guard attributes[.type] as? FileAttributeType == .typeRegular else {
             throw CocoaError(.fileReadInvalidFileName)
         }
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
-        return try Data(contentsOf: url).split(separator: 10).compactMap {
-            try? JSONDecoder().decode(DictationHistoryEntry.self, from: Data($0))
+        let data = try Data(contentsOf: url)
+        var entries: [DictationHistoryEntry] = []
+        var undecodable = Data()
+        var start = data.startIndex
+        while start < data.endIndex {
+            let end = data[start...].firstIndex(of: 10).map { $0 + 1 } ?? data.endIndex
+            let line = data[start..<end]
+            do {
+                entries.append(try JSONDecoder().decode(DictationHistoryEntry.self, from: line))
+            } catch {
+                undecodable.append(line)
+            }
+            start = end
         }
+        return (entries, undecodable)
     }
 
     private func write(_ entries: [DictationHistoryEntry], to url: URL) throws {
@@ -87,6 +108,10 @@ struct DictationHistoryRepository: Sendable {
             data.append(try JSONEncoder().encode(entry))
             data.append(10)
         }
+        try write(data, to: url)
+    }
+
+    private func write(_ data: Data, to url: URL) throws {
         let temporary = directory.appendingPathComponent(".stage-" + UUID().uuidString)
         let descriptor = open(temporary.path, O_WRONLY | O_CREAT | O_EXCL, 0o600)
         guard descriptor >= 0 else { throw POSIXError(.EIO) }
