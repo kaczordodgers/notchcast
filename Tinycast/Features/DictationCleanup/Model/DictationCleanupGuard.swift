@@ -14,7 +14,10 @@ enum DictationCleanupGuard {
         let correction = heard.contains("znaczy") || heard.contains("raczej")
             || zip(heard, heard.dropFirst()).contains { $0 == "a" && $1 == "nie" }
         if !correction {
-            for negation in ["nie", "not", "never", "bez"] {
+            for negation in ["nie", "not", "never", "bez", "no", "without", "neither", "nor",
+                             "nobody", "nothing", "nowhere", "none", "cannot", "don", "doesn",
+                             "didn", "isn", "aren", "wasn", "weren", "haven", "hasn", "hadn",
+                             "won", "wouldn", "shouldn", "couldn", "mustn", "needn", "shan", "ain"] {
                 guard heard.filter({ $0 == negation }).count == written.filter({ $0 == negation }).count
                 else { return false }
             }
@@ -73,7 +76,8 @@ enum DictationCleanupGuard {
     }
 
     private static func words(_ text: String) -> [String] {
-        fold(text).split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        fold(text).replacingOccurrences(of: "\\bcan['’]t\\b", with: "cannot", options: .regularExpression)
+            .split { !$0.isLetter && !$0.isNumber }.map(String.init)
     }
 
     private static func isHesitation(_ word: String) -> Bool {
