@@ -85,7 +85,6 @@ struct AppearanceThemesTest {
     static func surfaceFill(defaults: UserDefaults) throws {
         let store = AppearanceStore(defaults: defaults, enabled: true)
         expect(AppearanceThemeColors.surfaceFill == nil, "glass keeps the backdrop")
-        store.surfaceStyle = .black
         expect(!SurfaceSchemeKeeper.pinsDark, "glass keeps the window scheme")
         store.surfaceStyle = .black
         expect(AppearanceThemeColors.surfaceFill != nil, "black fills palette and dialogs")
