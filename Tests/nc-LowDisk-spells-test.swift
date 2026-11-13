@@ -85,6 +85,7 @@ struct LowDiskTests {
         await Task.yield()
         check(restarted.engine.isLow, "Stopped read cannot mutate the spell")
         check(LowDiskManager.checkInterval == .seconds(600), "Ten-minute cadence")
+        reader.suspended = false
         reader.value = .init(free: 100 * billion, total: 200 * billion)
         let checked = LowDiskManager(defaults: defaults, wakeCenter: center, read: { await reader.read() })
         var reported: [LowDiskEngine.Space] = []

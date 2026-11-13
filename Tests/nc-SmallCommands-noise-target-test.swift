@@ -7,7 +7,7 @@ struct NoiseTargetTests {
         typealias Button = NoiseControlEngine.Button
         let both: [NoiseControlEngine.Mode] = [.off, .transparency, .adaptive, .noiseCancellation]
         func buttons(_ modes: [NoiseControlEngine.Mode], selected: NoiseControlEngine.Mode?) -> [Button] {
-            modes.map { Button(mode: $0, selected: selected.map { selected in $0 == selected }) }
+            modes.map { mode in Button(mode: mode, selected: selected.map { mode == $0 }) }
         }
         precondition(NoiseControlEngine.target(in: buttons(both, selected: .noiseCancellation)) == .transparency)
         precondition(NoiseControlEngine.target(in: buttons(both, selected: .transparency)) == .noiseCancellation)
