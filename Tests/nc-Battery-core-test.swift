@@ -12,9 +12,9 @@ struct BatteryCoreTests {
         }
         let now = Date(timeIntervalSince1970: 1000)
         let policy = ChargePolicy(enabled: true)
-        check(policy.decide(percent: 90, charging: true, connected: true) == .init(charging: false, adapter: true),
+        check(policy.decide(percent: 90, charging: true, connected: true) == .init(charging: false),
               "above limit pauses charging with adapter connected")
-        check(policy.decide(percent: 80, charging: false, connected: true).adapter, "restore at limit")
+        check(!policy.decide(percent: 80, charging: false, connected: true).charging, "hold at limit")
         check(!policy.decide(percent: 75, charging: false, connected: true).charging, "margin equality")
         check(policy.decide(percent: 74, charging: false, connected: true).charging, "resume below margin")
         check(policy.decide(percent: nil, charging: false, connected: true) == .release, "missing battery")
@@ -30,7 +30,7 @@ struct BatteryCoreTests {
         check(session.step == nil && session.completedAt == now, "four stages finish")
         session.start()
         session.advance(percent: 100, limit: 80, connected: true, now: now)
-        check(session.decision == .init(charging: false, adapter: true),
+        check(session.decision == .init(charging: false),
               "manual calibration drain keeps the adapter connected")
         session.advance(percent: 10, limit: 80, connected: false, now: now)
         check(session.step == .drainToLow, "manual drain waits for reconnection")
@@ -45,6 +45,13 @@ struct BatteryCoreTests {
         engine.calibration.start()
         check(engine.evaluate(policy: policy, percent: 90, charging: false, connected: true,
                               celsius: 20, now: now).charging, "calibration overrides limit")
+        engine.calibration.cancel()
+        engine.calibration.start()
+        for percent in [100, 10, 100, 90] {
+            _ = engine.evaluate(policy: ChargePolicy(enabled: true, limit: 100), percent: percent,
+                charging: false, connected: true, celsius: 20, now: now, calibrationLimit: 80)
+        }
+        check(engine.calibration.step == .returnToLimit, "calibration respects saved limit with Sailing off")
         engine.calibration.cancel()
         let held = engine.evaluate(policy: policy, percent: 95, charging: true, connected: true,
                                    celsius: 20, now: now)
@@ -64,12 +71,9 @@ struct BatteryCoreTests {
               "lid follows actual hold")
         var calls: [RootContract.Command] = []
         let service = ChargePlanService()
-        try service.apply(.init(charging: false, adapter: false)) { calls.append($0) }
-        check(calls == [.batteryChargingOff], "drain pauses charging without touching adapter")
-        calls = []
+        try service.apply(.init(charging: false)) { calls.append($0) }
+        check(calls == [.batteryAdapterOn, .batteryChargingOff], "every plan restores adapter power")
         enum Injected: Error { case failure }
-        try service.apply(.init(charging: false, adapter: true)) { calls.append($0) }
-        check(calls == [.batteryAdapterOn, .batteryChargingOff], "manual drain leaves adapter connected")
         var released: [UInt32] = []
         do {
             _ = try KeepAwakePlanService().acquire(types: awake.assertionTypes, create: {

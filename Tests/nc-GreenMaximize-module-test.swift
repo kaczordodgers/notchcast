@@ -2,6 +2,11 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Service/*.swift
 // notchcast-kit: core platform input isolated-identity
 // notchcast-sources: Tests/Support/EventTapHubFake.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowPlacementEngine.swift
+// notchcast-sources: Tinycast/Platform/LocalizedResource.swift
+// notchcast-sources: Tinycast/Features/Settings/AppSettingsKey.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowCommand.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowCycle.swift
 import AppKit
 
 func AXIsProcessTrusted() -> Bool { false }

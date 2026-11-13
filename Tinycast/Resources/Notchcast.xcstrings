@@ -1,6 +1,266 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "After relaunch, start calibration again from step 1." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach einem Neustart die Kalibrierung wieder bei Schritt 1 starten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras reiniciar, vuelve a iniciar la calibración desde el paso 1."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après le redémarrage, relancez l’étalonnage à partir de l’étape 1."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再起動後は手順1から調整を開始し直してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 실행한 후 1단계부터 보정을 다시 시작하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Após reiniciar, inicie novamente a calibração no passo 1."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После перезапуска начните калибровку заново с шага 1."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动后，请从第1步重新开始校准。"
+          }
+        }
+      }
+    },
+    "Step 1 of 4: connect power and charge to 100%." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 1 von 4: Netzteil anschließen und auf 100 % laden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 1 de 4: conecta la alimentación y carga al 100 %."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 1 sur 4 : branchez l’alimentation et chargez à 100 %."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順1/4：電源に接続して100%まで充電してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1/4단계: 전원을 연결하고 100%까지 충전하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 1 de 4: ligue à corrente e carregue até 100%."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 1 из 4: подключите питание и зарядите до 100 %."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第1步，共4步：连接电源并充电至100%。"
+          }
+        }
+      }
+    },
+    "Step 2 of 4: unplug to 10%, then reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 2 von 4: Netzteil trennen, bis 10 % entladen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 2 de 4: desconecta hasta el 10 % y vuelve a conectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 2 sur 4 : débranchez jusqu’à 10 %, puis rebranchez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順2/4：電源を外して10%まで使い、再接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2/4단계: 전원을 분리하고 10%까지 사용한 다음 다시 연결하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 2 de 4: desligue da corrente até 10% e volte a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 2 из 4: отключите питание, разрядите до 10 % и подключите снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第2步，共4步：断开电源，使用至10%后重新连接。"
+          }
+        }
+      }
+    },
+    "Step 3 of 4: keep power connected and charge to 100%." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 3 von 4: Netzteil angeschlossen lassen und auf 100 % laden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 3 de 4: mantén la alimentación conectada y carga al 100 %."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 3 sur 4 : gardez l’alimentation branchée et chargez à 100 %."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順3/4：電源を接続したまま100%まで充電してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3/4단계: 전원을 연결한 상태로 100%까지 충전하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 3 de 4: mantenha ligado à corrente e carregue até 100%."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 3 из 4: оставьте питание подключённым и зарядите до 100 %."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第3步，共4步：保持电源连接并充电至100%。"
+          }
+        }
+      }
+    },
+    "Step 4 of 4: unplug to the saved charge limit, then reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 4 von 4: Netzteil trennen, bis zum gespeicherten Ladelimit entladen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 4 de 4: desconecta hasta el límite de carga guardado y vuelve a conectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 4 sur 4 : débranchez jusqu’à la limite de charge enregistrée, puis rebranchez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順4/4：電源を外して保存済みの充電上限まで使い、再接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4/4단계: 전원을 분리하고 저장된 충전 한도까지 사용한 다음 다시 연결하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 4 de 4: desligue da corrente até ao limite de carga guardado e volte a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 4 из 4: отключите питание, разрядите до сохранённого предела и подключите снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第4步，共4步：断开电源，使用至已保存的充电上限后重新连接。"
+          }
+        }
+      }
+    },
     "Dictation cleanup failed; pasted the original transcript" : {
       "localizations" : {
         "de" : {
@@ -6384,49 +6644,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Batterieentladung"
+            "value" : "Ladepause"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarga de batería"
+            "value" : "Pausa de carga"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Décharge de la batterie"
+            "value" : "Pause de la charge"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "バッテリー放電"
+            "value" : "充電の一時停止"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "배터리 방전"
+            "value" : "충전 일시 중지"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarga da bateria"
+            "value" : "Pausa de carga"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Разряд батареи"
+            "value" : "Приостановка зарядки"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "电池放电"
+            "value" : "暂停充电"
           }
         }
       }
@@ -21625,7 +21885,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erfordert aktives Wachhalten bei geschlossenem Deckel."
+            "value" : "Erfordert „Ruhezustand verhindern“ bei geschlossenem Deckel."
           }
         },
         "es" : {
@@ -21661,7 +21921,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "При закрытой крышке требуется активный режим предотвращения сна."
+            "value" : "При закрытой крышке требуется активный режим «Не переходить в сон»."
           }
         },
         "zh-Hans" : {
@@ -51900,7 +52160,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oberhalb des Ladelimits pausieren, ohne das Netzteil zu trennen."
+            "value" : "Das Laden oberhalb des Ladelimits pausieren, ohne das Netzteil zu trennen."
           }
         },
         "es" : {

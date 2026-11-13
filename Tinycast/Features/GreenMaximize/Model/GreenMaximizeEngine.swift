@@ -7,16 +7,12 @@ struct GreenMaximizeEngine: Sendable {
         let applied: CGRect
     }
 
-    static func target(current: CGRect, visible: CGRect, memory: Memory?, gap: CGFloat = 0) -> CGRect? {
+    static func target(current: CGRect, visible: CGRect, memory: Memory?) -> CGRect? {
         guard valid(current), valid(visible) else { return nil }
         if let memory, matches(current, memory.applied), valid(memory.original) {
             return memory.original
         }
-        let inset = gap.isFinite && gap > 0 ? min(gap, min(visible.width, visible.height) / 10) : 0
-        let canvas = visible.insetBy(dx: inset, dy: inset)
-        return CGRect(x: canvas.minX.rounded(), y: canvas.minY.rounded(),
-                      width: canvas.maxX.rounded() - canvas.minX.rounded(),
-                      height: canvas.maxY.rounded() - canvas.minY.rounded())
+        return visible
     }
 
     static func memory(original: CGRect, requested: CGRect, applied: CGRect) -> Memory? {

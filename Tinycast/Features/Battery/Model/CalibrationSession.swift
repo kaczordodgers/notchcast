@@ -28,7 +28,7 @@ struct CalibrationSession: Sendable, Equatable, Codable {
     var decision: ChargePolicy.Decision? {
         switch step {
         case .chargeToFull, .chargeToFullAgain: .release
-        case .drainToLow, .returnToLimit: .init(charging: false, adapter: true)
+        case .drainToLow, .returnToLimit: .init(charging: false)
         case nil: nil
         }
     }

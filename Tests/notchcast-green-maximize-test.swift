@@ -1,6 +1,10 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeEngine.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeClick.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Service/GreenMaximizeRefresh.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowPlacementEngine.swift
+// notchcast-sources: Tinycast/Platform/LocalizedResource.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowCommand.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowCycle.swift
 import ApplicationServices
 import CoreGraphics
 import Foundation
@@ -10,22 +14,10 @@ struct GreenMaximizeTest {
     static func main() {
         let original = CGRect(x: 200, y: 150, width: 700, height: 500)
         let visible = CGRect(x: -1920, y: 25, width: 1920, height: 1055)
-        precondition(GreenMaximizeEngine.target(current: original, visible: visible, memory: nil, gap: 10)
+        precondition(GreenMaximizeEngine.target(current: original,
+            visible: WindowPlacementEngine.canvas(visible, gap: WindowPlacementEngine.sanitizedGap(10, in: visible)),
+            memory: nil)
             == visible.insetBy(dx: 10, dy: 10))
-        let inset = visible.insetBy(dx: 10, dy: 10)
-        let insetMemory = GreenMaximizeEngine.memory(original: original, requested: inset, applied: inset)
-        precondition(GreenMaximizeEngine.target(current: inset, visible: visible, memory: insetMemory, gap: 20)
-            == original, "changing the gap still restores the original window")
-        precondition(GreenMaximizeEngine.target(current: original, visible: visible, memory: nil, gap: -10)
-            == visible)
-        precondition(GreenMaximizeEngine.target(current: original, visible: visible, memory: nil, gap: .infinity)
-            == visible)
-        let capped = visible.insetBy(dx: 105.5, dy: 105.5)
-        let rounded = CGRect(x: capped.minX.rounded(), y: capped.minY.rounded(),
-            width: capped.maxX.rounded() - capped.minX.rounded(),
-            height: capped.maxY.rounded() - capped.minY.rounded())
-        precondition(GreenMaximizeEngine.target(current: original, visible: visible, memory: nil, gap: 2000)
-            == rounded, "gap uses the same small-screen cap and edge rounding as managed layouts")
         precondition(GreenMaximizeEngine.target(current: original, visible: visible, memory: nil) == visible)
         let memory = GreenMaximizeEngine.memory(original: original, requested: visible, applied: visible)
         precondition(memory != nil)
