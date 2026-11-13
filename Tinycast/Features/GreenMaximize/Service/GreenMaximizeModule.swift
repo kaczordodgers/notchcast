@@ -138,7 +138,6 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func refresh() {
-        refreshPointerZones()
         let mouse = NSEvent.mouseLocation
         refreshPointer(CGPoint(x: mouse.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - mouse.y))
         guard refreshID == nil else { refreshAgain = true; return }
@@ -222,10 +221,7 @@ final class GreenMaximizeModule: NotchcastModule {
     private func refreshPointer(_ point: CGPoint) {
         guard tap.isActive else { return }
         pointerPoint = point
-        refreshPointerZones()
-        let inside = shared.value.withLock { value in
-            value.pointerGate.zones.contains { $0.contains(point) }
-        }
+        let inside = refreshPointerZones(at: point)
         guard inside else {
             shared.value.withLock { $0.pointerSnapshot = nil }
             return
@@ -252,7 +248,7 @@ final class GreenMaximizeModule: NotchcastModule {
         }
     }
 
-    private func refreshPointerZones() {
+    private func refreshPointerZones(at point: CGPoint) -> Bool {
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
             kCGNullWindowID) as? [[String: Any]] ?? []
         let zones = windows.compactMap { info -> CGRect? in
@@ -262,7 +258,10 @@ final class GreenMaximizeModule: NotchcastModule {
             else { return nil }
             return GreenMaximizeClick.PointerGate.zone(bounds: rect, layer: layer)
         }
-        shared.value.withLock { $0.pointerGate.zones = zones }
+        return shared.value.withLock { value in
+            if value.pointerGate.replace(zones: zones, at: point) { value.pointerSnapshot = nil }
+            return value.pointerGate.zone != nil
+        }
     }
 }
 

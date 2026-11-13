@@ -6,6 +6,8 @@ Distill has one store: its `DownloadQueue` file. "Add to Distill" cleans and ded
 
 Unknown web hosts and Spotify go to the webpage saver, which the caller always supplies. Browser cookies are off. All child commands use `DownloadRunContext.spawn`, which owns process-group cancellation and failure details. Supply a queue with `maxConcurrent: 1` for serial Distill batches. The context supplies the destination; the runner's `timestamps` closure is read when a job begins and enables chunk times.
 
+Convert Distill Folder may create Markdown beside a text transcript. Text sources are always retained, including when reusing a receipt from an older conversion.
+
 ## File transcription API for Convert
 
 Create a transcriber from the existing app-owned Dictation model store on the main actor:

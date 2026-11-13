@@ -82,6 +82,31 @@ struct AppearanceThemesTest {
     }
 
     @MainActor
+    static func surfaceFill(defaults: UserDefaults) throws {
+        let store = AppearanceStore(defaults: defaults, enabled: true)
+        expect(AppearanceThemeColors.surfaceFill == nil, "glass keeps the backdrop")
+        expect(!SurfaceSchemeKeeper.pinsDark, "glass keeps the window scheme")
+        store.surfaceStyle = .black
+        expect(AppearanceThemeColors.surfaceFill != nil, "black fills palette and dialogs")
+        expect(SurfaceSchemeKeeper.pinsDark, "black pins Dark")
+        store.surfaceStyle = .matte
+        expect(AppearanceThemeColors.surfaceFill != nil, "matte fills palette and dialogs")
+        expect(SurfaceSchemeKeeper.pinsDark, "matte pins Dark")
+        store.setEnabled(false)
+        expect(store.effectiveSurfaceStyle == .glass && AppearanceThemeColors.surfaceFill == nil,
+               "appearance off renders glass")
+        expect(!SurfaceSchemeKeeper.pinsDark, "appearance off keeps the window scheme")
+        store.setEnabled(true)
+        store.surfaceStyle = .glass
+        expect(AppearanceThemeColors.surfaceFill == nil, "glass again")
+        expect(!SurfaceSchemeKeeper.pinsDark, "glass again keeps the scheme")
+        expect(AppearanceSurfaceStyle.glass.fill(dark: true) == nil, "glass has no fill")
+        expect(AppearanceSurfaceStyle.black.fill(dark: false)?.alpha == 1, "black is opaque")
+        expect(AppearanceSurfaceStyle.matte.fill(dark: true)?.alpha == 0.42, "matte dark")
+        expect(AppearanceSurfaceStyle.matte.fill(dark: false)?.white == 1, "matte light")
+    }
+
+    @MainActor
     static func storage(defaults: UserDefaults) throws {
         let store = AppearanceStore(defaults: defaults)
         expect(store.light == nil && store.dark == nil && store.imported.isEmpty, "fresh store")
@@ -267,7 +292,7 @@ struct AppearanceThemesTest {
     static func main() throws {
         try parsing()
         listings()
-        for test in [storage, imports, previewAndColors] {
+        for test in [storage, imports, previewAndColors, surfaceFill] {
             let domain = "nc-Appearance-tests-\(UUID().uuidString)"
             guard let defaults = UserDefaults(suiteName: domain) else { fatalError("private defaults") }
             defer { defaults.removePersistentDomain(forName: domain) }

@@ -14,4 +14,12 @@ enum AppearanceSurfaceStyle: String, CaseIterable, Identifiable, Sendable {
         case .matte: String(localized: "Matte", table: "Notchcast")
         }
     }
+
+    func fill(dark: Bool) -> (white: Double, alpha: Double)? {
+        switch self {
+        case .glass: nil
+        case .black: (0, 1)
+        case .matte: dark ? (0, 0.42) : (1, 0.68)
+        }
+    }
 }

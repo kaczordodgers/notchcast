@@ -27,6 +27,7 @@ nonisolated enum ArchiveProcess {
         let result = Mutex(Result(listing: captureListing ? ArchiveListing() : nil))
         var request = ProcessRunner.Request(executable: tool, arguments: arguments, environment: environment)
         request.stopsGroup = true
+        request.groupCleanup = .drainThenKill
         request.stopLadder = .interrupting(kill: .seconds(3))
         request.onData = { data in
             try result.withLock { result in
@@ -63,7 +64,7 @@ nonisolated enum ArchiveProcess {
         ticker.cancel()
         await ticker.value
         return try result.withLock { result in
-            result.status = output.signaled ? 128 + output.status : output.status
+            result.status = output.exitCode
             if captureListing, result.status == 0 { try result.listing?.finish() }
             return result
         }

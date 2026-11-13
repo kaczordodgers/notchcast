@@ -1,11 +1,12 @@
-import Foundation
+import AppKit
 
 extension RemoteScreenModule {
     nonisolated static let launcherCommand = NotchcastCommand(
         slug: "remote-screen", name: String(localized: "Remote Screen", table: "Notchcast"), sfSymbol: "display", feature: .remoteScreen,
         run: { Task { do {
             guard let module = RemoteScreenModule.shared else { throw RemoteScreenRequest.Failure.unavailable }
-            try await module.coordinator.show(.init(host: "peer.local"), preferredClientInstalled: false)
+            let installed = module.launcher.preferredClientInstalled
+            try await module.coordinator.show(.init(host: "peer.local"), preferredClientInstalled: installed)
         } catch {
             let message = switch error {
             case RemoteScreenRequest.Failure.peerDisabled: String(localized: "Remote Screen is off on the other Mac.", table: "Notchcast")

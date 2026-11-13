@@ -124,6 +124,7 @@ struct KatanaTests {
         try await lockTransactions()
         try await audio()
         try await repository()
+        try toneNames()
         for path in CommandLine.arguments.dropFirst() {
             let url = URL(filePath: path)
             let tones = try KatanaToneImporter.read(Data(contentsOf: url), fileExtension: url.pathExtension)
@@ -202,6 +203,21 @@ struct KatanaTests {
             KatanaTone.Region(region: known.region, bytes: KatanaGen3Defaults.image()[known.region]!)
         }
         return try KatanaTone(regions: regions, knob: [1, 2, 3, 4, 5], knobSolo: [0])
+    }
+
+    static func toneNames() throws {
+        let first = try tone()
+        let twin = try KatanaTone(regions: first.regions, knob: [5, 4, 3, 2, 1], knobSolo: [0])
+        expect(twin.name == first.name && twin != first, "Two distinct tones share one name")
+        expect(try KatanaModule.tone(named: first.name, in: [first]) == first, "A unique name loads its tone")
+        for library in [[first, twin], []] {
+            do {
+                _ = try KatanaModule.tone(named: first.name, in: library)
+                fatalError("Ambiguous or missing tone name resolved")
+            } catch {
+                expect(error as? AgentReply.Code == .badRequest, "Ambiguous or missing name is a bad request")
+            }
+        }
     }
 
     static func imports() throws {

@@ -48,6 +48,7 @@ STUB
 cat > "$seed/Scripts/run-tests.sh" <<'STUB'
 #!/bin/bash
 BIN="$TMPDIR/tinycast-harness-fixture"
+[ ! -e "$FIXTURE/slow" ] || { echo $$ > "$FIXTURE/started"; sleep 20; }
 mkdir -p "$BIN"
 ran=
 status=0
@@ -248,3 +249,34 @@ land 1 2
 [ "$status" -eq 0 ] && grep -q 'landing is held for #2' "$FIXTURE/output" && [ "$(landed)" = 'Notchcast: Add C (#2)' ] \
     && [ "$(cat "$FIXTURE/hold")" = "$held" ] || fail "under a hold for #2 the train landed '$(landed)'"
 echo 'PASS: under a hold for one of its PRs the train lands only that PR and leaves the hold'
+
+# Last: a killed lander can leave children behind.
+for signal in TERM HUP; do
+    fixture
+    open_pr 1 pr-b 'Add B' src/b.txt
+    : > "$FIXTURE/slow"
+    bash notchcast/land.sh 1 > "$FIXTURE/output" 2>&1 &
+    lander=$!
+    for _ in $(seq 600); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+    [ -s "$FIXTURE/started" ] || fail "the $signal lander never reached its harnesses"
+    [ -s "$FIXTURE/hold" ] || fail "no hold while the harnesses ran"
+    kill -"$signal" "$lander"
+    status=0
+    wait "$lander" || status=$?
+    [ "$status" -ne 0 ] && [ ! -e "$FIXTURE/hold" ] || fail "a $signal left the hold behind (exit $status)"
+done
+echo 'PASS: a lander killed by TERM or HUP during its harnesses releases its hold'
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+: > "$FIXTURE/slow"
+bash notchcast/land.sh 1 > "$FIXTURE/output" 2>&1 &
+lander=$!
+for _ in $(seq 600); do [ -s "$FIXTURE/started" ] && break; sleep 0.1; done
+[ -s "$FIXTURE/started" ] || fail 'the lander never reached its harnesses'
+kill -KILL "$lander" "$(cat "$FIXTURE/started")"  # the harness too, or it writes into the next fixture
+wait "$lander" || true
+[ -s "$FIXTURE/hold" ] || fail 'a SIGKILL ran the EXIT trap'
+rm "$FIXTURE/slow"
+land 1
+[ "$status" -eq 0 ] && [ "$(landed)" = 'Notchcast: Add B (#1)' ] && [ ! -e "$FIXTURE/hold" ] || fail 'the hold of a killed lander refused the next one'
+echo 'PASS: the next lander on the Mac takes over the hold of one killed by SIGKILL'

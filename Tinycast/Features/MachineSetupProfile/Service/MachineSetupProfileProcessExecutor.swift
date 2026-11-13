@@ -50,6 +50,7 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
         guard !isRoot() else { throw Failure.rootExecution }
         let ids = plan.profile.tweaks.sorted()
         for (index, id) in ids.enumerated() {
+            var dockRestore: [String]?
             if id == "system.firewall" {
                 report.append(Step(id: id, status: .needsHelper))
                 continue
@@ -69,6 +70,8 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
                     let result = try process("/usr/bin/defaults",
                                              ["write", "com.apple.dock", "autohide", "-bool", "true"])
                     guard result.status == 0 else { throw Failure.stepFailed }
+                    dockRestore = current.status == 1 ? ["delete", "com.apple.dock", "autohide"]
+                        : ["write", "com.apple.dock", "autohide", "-bool", "false"]
                     let restarted = try process("/usr/bin/killall", ["Dock"])
                     guard restarted.status == 0 else { throw Failure.stepFailed }
                     let verified = try process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
@@ -78,6 +81,16 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
                     report.append(Step(id: id, status: .applied))
                 }
             } catch {
+                if let dockRestore {
+                    do {
+                        let restored = try process("/usr/bin/defaults", dockRestore)
+                        guard restored.status == 0 else { throw Failure.stepFailed }
+                        let restarted = try process("/usr/bin/killall", ["Dock"])
+                        guard restarted.status == 0 else { throw Failure.stepFailed }
+                    } catch {
+                        report.append(Step(id: "dock.autohide.rollback", status: .failed))
+                    }
+                }
                 report.append(Step(id: id, status: .failed))
                 report.append(contentsOf: ids.dropFirst(index + 1).map { Step(id: $0, status: .notRun) })
                 throw Failure.stepFailed

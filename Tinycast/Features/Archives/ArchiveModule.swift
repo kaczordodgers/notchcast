@@ -66,6 +66,11 @@ final class ArchiveModule: NotchcastModule {
         updateDefaultApplication()
     }
 
+    func stopForTermination(_ phase: NotchcastTerminationPhase) async {
+        guard phase == .beforeMacUpdate else { return }
+        await prepareForTermination()
+    }
+
     func prepareForTermination() async {
         recoveryTask?.cancel()
         isRunning = false
