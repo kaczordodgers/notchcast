@@ -326,8 +326,13 @@ final class CleanModule: NotchcastModule {
             defer { sqlite3_close(database) }
             sqlite3_busy_timeout(database, Int32(min(max(timeout, 0) * 1000, Double(Int32.max))))
             if clear {
+                guard sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil) == SQLITE_OK
+                else { throw Failure.toolFailed }
+                defer { sqlite3_exec(database, "ROLLBACK", nil, nil, nil) }
                 try Task.checkCancellation()
                 guard sqlite3_exec(database, "DELETE FROM LSQuarantineEvent", nil, nil, nil) == SQLITE_OK
+                else { throw Failure.toolFailed }
+                guard sqlite3_exec(database, "COMMIT", nil, nil, nil) == SQLITE_OK
                 else { throw Failure.toolFailed }
             }
             var statement: OpaquePointer?

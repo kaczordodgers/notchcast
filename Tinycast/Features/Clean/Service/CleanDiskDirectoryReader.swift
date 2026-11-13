@@ -156,8 +156,8 @@ enum CleanDiskDirectoryReader {
             | attrgroup_t(ATTR_CMN_ERROR) | attrgroup_t(ATTR_CMN_NAME)
             | attrgroup_t(ATTR_CMN_DEVID) | attrgroup_t(ATTR_CMN_OBJTYPE)
             | attrgroup_t(ATTR_CMN_FLAGS) | attrgroup_t(ATTR_CMN_FILEID)
-        attributes.dirattr = attrgroup_t(ATTR_DIR_MOUNTSTATUS) | attrgroup_t(ATTR_DIR_ALLOCSIZE)
-        attributes.fileattr = attrgroup_t(ATTR_FILE_LINKCOUNT) | attrgroup_t(ATTR_FILE_ALLOCSIZE)
+        attributes.dirattr = attrgroup_t(ATTR_DIR_ALLOCSIZE)
+        attributes.fileattr = attrgroup_t(ATTR_FILE_ALLOCSIZE)
         return attributes
     }
 
@@ -221,15 +221,9 @@ enum CleanDiskDirectoryReader {
                 inode = value
             }
             var size: Int64 = 0
-            if returned.dirattr & attrgroup_t(ATTR_DIR_MOUNTSTATUS) != 0 {
-                guard read(UInt32.self) != nil else { return nil }
-            }
             if returned.dirattr & attrgroup_t(ATTR_DIR_ALLOCSIZE) != 0 {
                 guard let value = read(Int64.self) else { return nil }
                 size = value
-            }
-            if returned.fileattr & attrgroup_t(ATTR_FILE_LINKCOUNT) != 0 {
-                guard read(UInt32.self) != nil else { return nil }
             }
             if returned.fileattr & attrgroup_t(ATTR_FILE_ALLOCSIZE) != 0 {
                 guard let value = read(Int64.self) else { return nil }

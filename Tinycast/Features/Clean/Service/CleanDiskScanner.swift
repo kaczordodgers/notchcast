@@ -37,6 +37,7 @@ struct CleanDiskScanner: Sendable {
         nodes[0].subtreeFingerprint = fingerprint(rootInfo)
         var seen: Set<String> = ["\(directory.device):\(rootInfo.st_ino)"]
         var regularFiles = [Int]()
+        var unsupportedEntries = [Int]()
         var limited = false
         while let index = pending.popLast() {
             try Task.checkCancellation()
@@ -61,7 +62,7 @@ struct CleanDiskScanner: Sendable {
                         path: nodes[index].path.appendingPathComponent(entry.name),
                         parent: index, directory: isDirectory, device: entry.device,
                         inode: entry.inode, allocatedSize: unique ? entry.allocatedSize : 0))
-                    if entry.kind != .file && entry.kind != .directory { nodes[child].unreadable = true }
+                    if entry.kind != .file && entry.kind != .directory { unsupportedEntries.append(child) }
                     var info = stat()
                     if lstat(nodes[child].path.path, &info) == 0,
                        UInt64(info.st_ino) == entry.inode,
@@ -93,6 +94,7 @@ struct CleanDiskScanner: Sendable {
                 nodes[parent].subtreeFingerprint.append(nodes[index].subtreeFingerprint)
             }
         }
+        for index in unsupportedEntries { nodes[index].unreadable = true }
         let largest = regularFiles
             .sorted { nodes[$0].allocatedSize > nodes[$1].allocatedSize }
             .prefix(max(0, limits.largestFiles))

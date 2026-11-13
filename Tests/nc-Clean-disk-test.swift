@@ -36,6 +36,10 @@ struct CleanDiskTest {
         try manager.createSymbolicLink(at: root.appendingPathComponent("escape"),
                                       withDestinationURL: sandbox)
         let denied = root.appendingPathComponent("denied")
+        let readable = root.appendingPathComponent("readable")
+        try manager.createDirectory(at: readable, withIntermediateDirectories: true)
+        let nestedLink = readable.appendingPathComponent("link")
+        try manager.createSymbolicLink(at: nestedLink, withDestinationURL: sandbox)
         try manager.createDirectory(at: denied, withIntermediateDirectories: true)
         precondition(chmod(denied.path, 0) == 0)
         defer { chmod(denied.path, 0o700) }
@@ -48,6 +52,9 @@ struct CleanDiskTest {
         precondition(!scan.nodes.contains { $0.path.lastPathComponent == "sentinel" })
         precondition(scan.nodes.contains { $0.path.path == denied.path && $0.unreadable })
         precondition(scan.nodes[0].unreadable)
+        precondition(scan.nodes.first { $0.path == readable }?.unreadable == false,
+                     "A readable folder containing a symlink must remain selectable")
+        precondition(scan.nodes.first { $0.path == nestedLink }?.unreadable == true)
         precondition(scan.nodes.first { $0.path.lastPathComponent == "escape" }?.unreadable == true)
         var info = stat()
         precondition(lstat(file.path, &info) == 0)
@@ -55,7 +62,7 @@ struct CleanDiskTest {
         precondition(files.reduce(0) { $0 + $1.allocatedSize } == UInt64(info.st_blocks) * 512)
         precondition(lstat(sparse.path, &info) == 0)
         precondition(scan.nodes.first { $0.path == sparse }?.allocatedSize == UInt64(info.st_blocks) * 512)
-        precondition(scan.nodes[0].allocatedSize == scan.nodes.dropFirst().reduce(0) {
+        precondition(scan.nodes[0].allocatedSize == scan.nodes.filter { $0.parent == 0 }.reduce(0) {
             $0 + $1.allocatedSize
         })
         var sentinelInfo = stat()
