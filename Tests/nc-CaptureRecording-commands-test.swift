@@ -138,6 +138,23 @@ extension RecordingModule {
             .filter { $0.pathExtension == "mp4" }.count
         precondition(afterCountdown == publishedAfter + 2 && countdown.phase == .idle)
         print("PASS countdown switch-off writes nothing; paused switch-off publishes")
+        var recoveryReports: [(String, Bool)] = []
+        var recoveredURL: URL?
+        let recoverySource = ScreenRecordingSource()
+        let recovery = RecordingModule(defaults: defaults, defaultFolder: root,
+            report: { recoveryReports.append(($0, $1)) }, reveal: { recoveredURL = $0 },
+            makeSource: { recoverySource }, sleep: {})
+        recovery.start()
+        try await recovery.record(.display(1))
+        recoverySource.onFailure?(RecordingTarget.Failure.targetUnavailable)
+        recoverySource.onFailure?(RecordingTarget.Failure.targetUnavailable)
+        await recovery.waitUntilIdle()
+        precondition(recoveryReports.count == 2)
+        precondition(recoveryReports[0].0 == "Recording saved" && !recoveryReports[0].1)
+        precondition(recoveryReports[1].0 == "Capture area is unavailable." && recoveryReports[1].1)
+        precondition(recoveredURL.map { FileManager.default.fileExists(atPath: $0.path) } == true)
+        precondition(recovery.lastError != nil && recovery.phase == .idle)
+        print("PASS stream loss saves and reveals footage, reports one error despite duplicate callbacks")
         print("PASS phase refresh hook, readable failures, switch-off publishes active take")
         print("PASS screen/area targets, cancelled selection, pause/resume, published URL reveal")
         print("PASS disabled/busy/permission danger failures, switch and idle availability")
@@ -150,6 +167,7 @@ extension RecordingModule {
     var denied = false
     var holdStop = false
     var stopContinuation: CheckedContinuation<Void, Never>?
+    var onFailure: (@MainActor (any Error) -> Void)?
     func prepare(_ target: RecordingTarget, frameRate: Int) async throws -> RecordingFormat {
         if denied { throw RecordingTarget.Failure.permissionDenied }
         self.target = target
@@ -157,6 +175,7 @@ extension RecordingModule {
     }
     func start(writer: any RecordingWriting, onFailure: @escaping @MainActor (any Error) -> Void) async throws {
         starts += 1
+        self.onFailure = onFailure
         writer.begin(at: .zero)
     }
     func stop() async throws {

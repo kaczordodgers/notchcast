@@ -31,14 +31,13 @@ Permissions pane has no Screen Recording row. The engine asks for access only wh
 ## Recording
 
 `RecordingModule.shared` is the registered module. Enabling prepares the on-demand engine without
-capturing or requesting access. Disabling cancels countdown, startup, recording or finalization and
-discards its temporary file. It works independently of Island and adds no launcher command or page.
+capturing or requesting access. Disabling cancels countdown or startup and discards its temporary file. Disabling during recording or pause saves the footage; finalization is allowed to complete. It works independently of Island.
 
 Call `record(.area(selection.rect))`, `record(.window(id))` or `record(.display(id))` to start after a
 three-second countdown. Area rectangles use CaptureArea's global Quartz points. `phase` reports the
 countdown and recording state; `setPaused(_:)` pauses or resumes, `finish()` saves and returns the MP4
 URL, and `cancel()` discards. Await `waitUntilIdle()` after cancellation before starting another take.
-Errors throw from start/finish; unexpected stream and cleanup errors also appear in `lastError`.
+Errors throw from start/finish; unexpected stream failures save the footage through the normal saved-report and Finder reveal path, then report the stream error once. Stream and cleanup errors also appear in `lastError`.
 
 The writer uses H.264 with AAC system audio, no microphone, the pointer visible and clicks hidden.
 Pauses remove time from both tracks. Frame rate is 30 or 60, defaulting to 60; the folder defaults to

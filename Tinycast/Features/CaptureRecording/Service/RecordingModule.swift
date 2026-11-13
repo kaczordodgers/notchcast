@@ -1,3 +1,4 @@
+import AppKit
 import CoreMedia
 import Foundation
 import Observation
@@ -42,6 +43,8 @@ final class RecordingModule: NotchcastModule {
     @ObservationIgnored let commandArea: CaptureAreaService
     @ObservationIgnored var commandTask: Task<Void, Never>?
     @ObservationIgnored private let refreshCommands: () -> Void
+    @ObservationIgnored private let report: (String, Bool) -> Void
+    @ObservationIgnored private let reveal: (URL) -> Void
     @ObservationIgnored private var shutdownTask: Task<Void, Never>?
     private var storedFrameRate: Int
     @ObservationIgnored private let defaults: UserDefaults
@@ -65,6 +68,8 @@ final class RecordingModule: NotchcastModule {
         defaultFolder: URL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0],
         commandArea: CaptureAreaService = CaptureAreaService(),
         refreshCommands: @escaping () -> Void = { NotchcastHost.current.refreshNotchcastCommands() },
+        report: @escaping (String, Bool) -> Void = { NotchcastHost.current.showMessage($0, $1 ? .danger : .success) },
+        reveal: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
         makeSource: @escaping @MainActor () -> any RecordingSource = { ScreenRecordingSource() },
         makeWriter: @escaping WriterFactory = { try await RecordingWriter.create(url: $0, format: $1) },
         sleep: @escaping @Sendable () async throws -> Void = { try await Task.sleep(for: .seconds(1)) },
@@ -75,6 +80,8 @@ final class RecordingModule: NotchcastModule {
         self.defaults = defaults
         self.commandArea = commandArea
         self.refreshCommands = refreshCommands
+        self.report = report
+        self.reveal = reveal
         self.makeSource = makeSource
         self.makeWriter = makeWriter
         self.sleep = sleep
@@ -166,12 +173,13 @@ final class RecordingModule: NotchcastModule {
                 try validate(identity)
                 try await source.start(writer: writer) { [weak self] error in
                     guard let self, self.operation == identity else { return }
-                    self.lastError = error
+                    guard self.recoveryTask == nil else { return }
                     self.recoveryTask = Task { [self] in
                         defer { recoveryTask = nil }
                         _ = await startTask?.result
                         guard operation == identity, phase == .recording || phase == .paused else { return }
-                        do { _ = try await finish() } catch { lastError = error }
+                        lastError = error
+                        await finishAndReport(streamError: error)
                     }
                 }
                 try validate(identity)
@@ -245,6 +253,22 @@ final class RecordingModule: NotchcastModule {
             await cleanSession(session.identity)
             cleanupTask = nil
         }
+    }
+
+    func finishAndReport(
+        streamError: (any Error)? = nil,
+        report: ((String, Bool) -> Void)? = nil,
+        reveal: ((URL) -> Void)? = nil
+    ) async {
+        let report = report ?? self.report
+        do {
+            let url = try await finish()
+            try Task.checkCancellation()
+            report(String(localized: "Recording saved", table: "Notchcast"), false)
+            (reveal ?? self.reveal)(url)
+            if let streamError { report(Self.failureMessage(streamError), true) }
+        } catch is CancellationError {
+        } catch { report(Self.failureMessage(error), true) }
     }
 
     func waitUntilIdle() async {

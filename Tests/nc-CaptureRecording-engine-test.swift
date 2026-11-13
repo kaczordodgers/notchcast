@@ -13,12 +13,14 @@ import Foundation
 
 enum DialogTone { case danger, neutral, success }
 import Synchronization
+import ScreenCaptureKit
 
 @main
 struct RecordingTests {
     @MainActor
     static func main() async throws {
         try timelineAndNaming()
+        try streamFrames()
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -32,6 +34,34 @@ struct RecordingTests {
 
     private static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
         precondition(condition(), message)
+    }
+
+    private static func streamFrames() throws {
+        let writer = FrameWriter()
+        let tap = RecordingStreamTap(writer: writer, onFailure: { _ in preconditionFailure("unexpected failure") })
+        let stream = SCStream(filter: SCContentFilter(), configuration: SCStreamConfiguration(), delegate: nil)
+        let sample = try video(at: 0)
+        tap.stream(stream, didOutputSampleBuffer: sample, of: .screen)
+        precondition(writer.frames.withLock { $0 } == 0)
+        let attachments = CMSampleBufferGetSampleAttachmentsArray(sample, createIfNecessary: true)! as NSArray
+        let attachment = attachments[0] as! NSMutableDictionary
+        for status in [SCFrameStatus.idle, .blank, .suspended, .started, .stopped, .complete] {
+            attachment[SCStreamFrameInfo.status.rawValue] = status.rawValue
+            tap.stream(stream, didOutputSampleBuffer: sample, of: .screen)
+        }
+        precondition(writer.frames.withLock { $0 } == 1)
+        tap.stream(stream, didOutputSampleBuffer: sample, of: .audio)
+        precondition(writer.frames.withLock { $0 } == 2)
+        print("PASS stream tap rejects missing/incomplete frames and accepts complete video and audio")
+    }
+
+    private final class FrameWriter: RecordingWriting {
+        let frames = Mutex(0)
+        func begin(at time: CMTime) {}
+        func append(_ sample: CMSampleBuffer, track: RecordingFormat.Track) throws { frames.withLock { $0 += 1 } }
+        func setPaused(_ paused: Bool, at time: CMTime) {}
+        func finish(at time: CMTime) async throws {}
+        func cancel() async {}
     }
 
     private static func timelineAndNaming() throws {
@@ -141,6 +171,11 @@ struct RecordingTests {
             preconditionFailure("permission denial")
         } catch RecordingTarget.Failure.permissionDenied { }
         expect(requests == 1, "injected grant denial never reads the screen")
+        do {
+            _ = try await denied.prepare(.display(1), frameRate: 24)
+            preconditionFailure("invalid frame rate")
+        } catch RecordingTarget.Failure.invalidTarget { }
+        expect(requests == 1, "invalid frame rate is rejected before permission request")
     }
 
     @MainActor

@@ -56,18 +56,15 @@ extension RecordingModule {
 
     func executeRecordingCommand(
         _ command: Command,
-        report: (String, Bool) -> Void = { NotchcastHost.current.showMessage($0, $1 ? .danger : .success) },
-        reveal: (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
+        report: @escaping (String, Bool) -> Void = { NotchcastHost.current.showMessage($0, $1 ? .danger : .success) },
+        reveal: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
     ) async {
         do {
             switch command {
             case .record(let target): try await record(target)
             case .pause: try setPaused(phase != .paused)
             case .finish:
-                let url = try await finish()
-                try Task.checkCancellation()
-                report(String(localized: "Recording saved", table: "Notchcast"), false)
-                reveal(url)
+                await finishAndReport(report: report, reveal: reveal)
             }
         } catch is CancellationError {
         } catch { report(Self.failureMessage(error), true) }
