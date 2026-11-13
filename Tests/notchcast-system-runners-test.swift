@@ -15,10 +15,10 @@ struct SystemRunnerTests {
         }
         let help = try SystemToolsProcessRunner().run("/bin/launchctl", arguments: ["help"])
         precondition(help.contains("launchctl"))
-        let domains = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["domains"])
+        let domains = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["domains"], timeout: 60)
         precondition(domains.contains("com.apple"))
         do {
-            _ = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"])
+            _ = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"], timeout: 60)
             preconditionFailure("A failing tool must throw")
         } catch TweaksProcessRunner.Failure.failed(let status) { precondition(status == 1) }
         let item = StartupItem(label: "example.agent", kind: .userAgent,

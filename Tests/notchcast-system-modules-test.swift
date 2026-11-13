@@ -8,6 +8,7 @@
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-kit: core platform host
+// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Features/Notchcast/Core/SystemLanguages+Bundle.swift
 import Foundation
 
 enum DialogTone { case success, danger }

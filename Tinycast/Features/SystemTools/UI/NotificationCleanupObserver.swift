@@ -1,3 +1,4 @@
+// notchcast-foreign-strings: these match Notification Center's own labels, not Notchcast text.
 import AppKit
 import ApplicationServices
 
@@ -7,8 +8,13 @@ final class NotificationCleanupObserver {
     private var pid: pid_t?
     private var timer: Timer?
     private let policy = NotificationCleanupPolicy(diskEjectionTitles: [
-        "Disk Not Ejected Properly", "Dysk nie został wysunięty prawidłowo"
-    ])
+        "Disk Not Ejected Properly",
+        SystemLanguages.localized("Disk Not Ejected Properly",
+            bundlePath: "/System/Library/Frameworks/DiskArbitration.framework")
+    ], localizedClose: SystemLanguages.localized("Close",
+        bundlePath: "/System/Library/CoreServices/NotificationCenter.app"),
+       localizedClearAll: SystemLanguages.localized("Clear All",
+        bundlePath: "/System/Library/CoreServices/NotificationCenter.app"))
 
     func start() {
         stop()
@@ -99,7 +105,7 @@ final class NotificationCleanupObserver {
         }
         guard let title = titles.compactMap({ $0 }).first(where: policy.diskEjectionTitles.contains) else { return nil }
         return .init(identifier: title, title: title,
-                     isIndividualAlert: !names.contains(where: { $0.hasPrefix("Name:Clear All") }), actions: names)
+                     isIndividualAlert: !policy.isStack(actions: names), actions: names)
     }
 
     private func string(_ element: AXUIElement, _ attribute: String) -> String? {

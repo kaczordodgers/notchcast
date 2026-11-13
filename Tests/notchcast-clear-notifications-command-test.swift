@@ -1,4 +1,5 @@
 // notchcast-kit: host
+// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Features/Notchcast/Core/SystemLanguages+Bundle.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ClearNotifications/Model/*.swift Tinycast/Features/ClearNotifications/Service/*.swift Tinycast/Features/ClearNotifications/ClearNotificationsModule*.swift
@@ -29,9 +30,24 @@ enum NotchcastFeature { case clearNotifications }
         let command = ClearNotificationsModule.launcherCommand
         precondition(command.feature == .clearNotifications && command.isEnabled())
         module.clearFromLauncher()
-        await module.commandTask?.value
-        precondition(calls.withLock { $0 } == 1)
+        let first = module.commandTask
+        module.clearFromLauncher()
+        precondition(module.commandTask == first)
+        await first?.value
+        precondition(calls.withLock { $0 } == 1 && module.commandTask == nil)
         precondition(AppCore.shared.messages.last == "Notifications cleared: 7")
+        module.clearFromLauncher()
+        let cancelled = module.commandTask
+        module.stop()
+        precondition(module.commandTask == nil, "stop releases the command slot immediately")
+        module.start()
+        module.clearFromLauncher()
+        let replacement = module.commandTask
+        precondition(replacement != nil && replacement != cancelled)
+        await cancelled?.value
+        await replacement?.value
+        precondition(module.commandTask == nil && calls.withLock { $0 } == 2)
+        AppCore.shared.messages.removeLast()
         module.stop()
         struct Unknown: Error {}
         let causes: [(any Error, String)] = [
@@ -56,14 +72,15 @@ enum NotchcastFeature { case clearNotifications }
         AppCore.shared.messages.removeLast(causes.count)
         module.clearFromLauncher()
         await module.commandTask?.value
-        precondition(calls.withLock { $0 } == 1)
+        precondition(calls.withLock { $0 } == 2)
         precondition(AppCore.shared.messages.count == 1)
         let entries = ClearNotificationsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.clearNotifications] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === ClearNotificationsModule.shared)
         command.run()
         await ClearNotificationsModule.shared.commandTask?.value
-        precondition(ClearNotificationsModule.shared.commandTask != nil && AppCore.shared.messages.count == 1)
+        precondition(ClearNotificationsModule.shared.commandTask == nil && AppCore.shared.messages.count == 1)
+        print("Verified a second launcher action while one runs is ignored")
         print("Verified launcher action reaches fake runner, reports count, refuses stopped module")
         print("Verified the command reaches the registered module, which refuses until started")
         print("Verified each failure reports its own message")

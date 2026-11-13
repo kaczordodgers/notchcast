@@ -85,7 +85,7 @@ struct AboutView: View {
 
     private var links: some View {
         Section {
-            ForEach(AboutLink.all) { link in
+            ForEach(AboutLink.all.filter { $0.id == "github" }) { link in
                 AboutLinkRow(link: link)
             }
         } header: {
