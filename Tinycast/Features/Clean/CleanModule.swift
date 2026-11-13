@@ -89,7 +89,8 @@ final class CleanModule: NotchcastModule {
                 transport: trash, git: GitReader(), now: { .now },
                 chatIdle: {
                     do { return try await CleanTool.idle($0) } catch { return nil }
-                }, copy: { try FileManager().copyItem(at: $0, to: $1) })
+                })
+            try service.cleanupLegacyRecovery(defaults: NotchcastIdentity.current.defaults)
             let items = try await service.scan()
             trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, $0.size) }))
             return .init(items: items.map {

@@ -2,10 +2,15 @@ import Foundation
 
 struct AITrash: CleanTrashTransport {
     let receipts: URL
+    var fails = false
     func trash(_ url: URL) throws {
+        if fails { throw CocoaError(.fileWriteNoPermission) }
         try Data(url.path.utf8).write(to: receipts.appendingPathComponent(UUID().uuidString))
         if url.deletingLastPathComponent().lastPathComponent == "wt" {
             try FileManager().moveItem(at: url, to: receipts.appendingPathComponent("trashed-worktree"))
+        }
+        if url.lastPathComponent == ".clean-ai-recovery" {
+            try FileManager().moveItem(at: url, to: receipts.appendingPathComponent("legacy-recovery"))
         }
     }
 }
@@ -82,9 +87,7 @@ struct CleanAIDataTest {
         let pruneReceipt = base.appendingPathComponent("pruned")
         let policy = CleanAIDataPolicy(home: home, age: CleanAIDataPolicy.defaultAge)
         let service = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
-            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: { _, destination in
-                try Data("corrupted".utf8).write(to: destination)
-            })
+            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true })
         let items = try await service.scan()
         let recorded = try manager.contentsOfDirectory(atPath: receipts.path)
         precondition(recorded.isEmpty)
@@ -109,7 +112,7 @@ struct CleanAIDataTest {
         let failed = try await service.clean(items.filter { $0.kind == .claude })
         precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path),
                      "Clean must not leave private recovery copies")
-        precondition(failed.first?.status == .recoveryFailed, String(describing: failed))
+        precondition(failed.first?.status == .trashed, String(describing: failed))
         let outcomes = try await service.clean(items.filter { $0.kind == .worktree })
         precondition(outcomes.filter { $0.status == .trashed }.count == 1, String(describing: outcomes))
         precondition(outcomes.filter { $0.status == .refused }.count == 4)
@@ -157,21 +160,46 @@ struct CleanAIDataTest {
                 print("PASS: reported metadata change before removal: \(name)")
             }
         }
-        let recovering = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
-            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: {
-                try FileManager().copyItem(at: $0, to: $1)
-            })
+        let recovering = service
         let recovered = try await recovering.clean(items.filter { $0.kind == .claude })
         precondition(recovered.first?.status == .trashed)
-        let backup = try Data(contentsOf: recovered[0].recovery!)
-        precondition(backup == bytes)
+        precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path))
+        let failing = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts, fails: true),
+            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true })
+        let failures = try await failing.clean(items.filter { $0.kind == .claude })
+        guard case .failed = failures.first?.status else { preconditionFailure("Expected trash failure") }
+        try bytes.write(to: chat)
+        let changed = try await service.clean(items.filter { $0.kind == .claude })
+        precondition(changed.first?.status == .changed)
+        precondition(!manager.fileExists(atPath: home.appendingPathComponent(".clean-ai-recovery").path))
+        let suite = "CleanAIDataTest-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let legacy = home.appendingPathComponent(".clean-ai-recovery")
+        try manager.createDirectory(at: legacy, withIntermediateDirectories: false)
+        try bytes.write(to: legacy.appendingPathComponent("old-chat"))
+        do {
+            try failing.cleanupLegacyRecovery(defaults: defaults)
+            preconditionFailure("Expected legacy trash failure")
+        } catch {
+            precondition(!defaults.bool(forKey: "cleanAIRecoveryRemoved"))
+            precondition(manager.fileExists(atPath: legacy.path))
+        }
+        try service.cleanupLegacyRecovery(defaults: defaults)
+        precondition(!manager.fileExists(atPath: legacy.path))
+        let saved = try Data(contentsOf: receipts.appendingPathComponent("legacy-recovery/old-chat"))
+        precondition(saved == bytes)
+        try failing.cleanupLegacyRecovery(defaults: defaults)
+        precondition(defaults.bool(forKey: "cleanAIRecoveryRemoved"))
+        print("PASS: legacy recovery moved intact to Trash once; no new recovery copies")
         let sidecar = chat.deletingPathExtension()
+        try manager.setAttributes([.modificationDate: old], ofItemAtPath: chat.path)
         try manager.createDirectory(at: sidecar, withIntermediateDirectories: false)
         let sidecarScan = try await recovering.scan()
         precondition(sidecarScan.contains {
             $0.path.lastPathComponent == chat.lastPathComponent && !$0.selectable && $0.refusal == .sessionSidecars
         }, String(describing: sidecarScan))
         print("PASS: only trashed metadata removed; missing sibling preserved; relative gitdir accepted")
-        print("PASS: indexed stores and sidecars refused; recovery verified; unsafe paths refused")
+        print("PASS: indexed stores and sidecars refused; unsafe paths refused")
     }
 }
