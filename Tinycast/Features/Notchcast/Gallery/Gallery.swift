@@ -106,7 +106,9 @@ enum GalleryPages {
         window.hasShadow = false
         window.backgroundColor = .windowBackgroundColor
         window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
-        let hosting = NSHostingView(rootView: view.environment(\.colorScheme, dark ? .dark : .light))
+        let root = SurfaceSchemeKeeper.pinsDark
+            ? AnyView(view) : AnyView(view.environment(\.colorScheme, dark ? .dark : .light))
+        let hosting = NSHostingView(rootView: root)
         hosting.sizingOptions = []
         window.contentView = hosting
         hosting.frame = CGRect(origin: .zero, size: size)

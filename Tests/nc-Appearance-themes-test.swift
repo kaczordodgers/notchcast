@@ -86,15 +86,21 @@ struct AppearanceThemesTest {
         let store = AppearanceStore(defaults: defaults, enabled: true)
         expect(AppearanceThemeColors.surfaceFill == nil, "glass keeps the backdrop")
         store.surfaceStyle = .black
+        expect(!SurfaceSchemeKeeper.pinsDark, "glass keeps the window scheme")
+        store.surfaceStyle = .black
         expect(AppearanceThemeColors.surfaceFill != nil, "black fills palette and dialogs")
+        expect(SurfaceSchemeKeeper.pinsDark, "black pins Dark")
         store.surfaceStyle = .matte
         expect(AppearanceThemeColors.surfaceFill != nil, "matte fills palette and dialogs")
+        expect(SurfaceSchemeKeeper.pinsDark, "matte pins Dark")
         store.setEnabled(false)
         expect(store.effectiveSurfaceStyle == .glass && AppearanceThemeColors.surfaceFill == nil,
                "appearance off renders glass")
+        expect(!SurfaceSchemeKeeper.pinsDark, "appearance off keeps the window scheme")
         store.setEnabled(true)
         store.surfaceStyle = .glass
         expect(AppearanceThemeColors.surfaceFill == nil, "glass again")
+        expect(!SurfaceSchemeKeeper.pinsDark, "glass again keeps the scheme")
         expect(AppearanceSurfaceStyle.glass.fill(dark: true) == nil, "glass has no fill")
         expect(AppearanceSurfaceStyle.black.fill(dark: false)?.alpha == 1, "black is opaque")
         expect(AppearanceSurfaceStyle.matte.fill(dark: true)?.alpha == 0.42, "matte dark")
