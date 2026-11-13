@@ -257,22 +257,13 @@ extension NotchcastSettingsModule {
                 .feature(.machineSetupProfile, settings: []),
             ]),
         ]
-        case .cleanAndUpdates: [
-            .init(title: LocalizedStringResource("Clean", table: "Notchcast"), items: [
-                .feature(.cleanJunk, settings: [.cleanAndUpdatesJunk]),
-                .feature(.cleanHistory, settings: [.cleanAndUpdatesHistory]),
-                .feature(.cleanAIData, settings: [.cleanAndUpdatesAIData]),
-                .feature(.cleanDisk, settings: [.cleanAndUpdatesDisk]),
-                .feature(.cleanPurge, settings: [.cleanAndUpdatesPurge]),
-                .feature(.cleanOptimize, settings: [.cleanAndUpdatesOptimize]),
-                .feature(.cleanSystem, settings: [.cleanAndUpdatesSystem]),
-            ]),
+        case .updates: [
             .init(title: LocalizedStringResource("Updates", table: "Notchcast"), items: [
-                .feature(.appUpdates, settings: [.cleanAndUpdatesAppUpdates]),
-                .feature(.macUpdate, settings: [.cleanAndUpdatesMacUpdate]),
+                .feature(.appUpdates, settings: [.updatesAppUpdates]),
+                .feature(.macUpdate, settings: [.updatesMacUpdate]),
             ]),
             .init(title: LocalizedStringResource("Cleaning", table: "Notchcast"), items: [
-                .feature(.cleaningMode, settings: [.cleanAndUpdatesCleaningMode]),
+                .feature(.cleaningMode, settings: [.updatesCleaningMode]),
             ]),
         ]
         case .tweaks: [
