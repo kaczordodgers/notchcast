@@ -535,6 +535,12 @@ struct ArchivesEngineTest {
         expect(parsed?.mode == .inPlace, "real journal parsed")
         expect(parsed?.recovery.staging == ArchiveFiles.resolvedParent(staging), "real journal destination")
         let output = try await runner.extract(archive, mode: .inPlace)
+        if output.lastPathComponent != "resumed" {
+            let manager = FileManager.default
+            let published = (try? manager.contentsOfDirectory(atPath: output.path).filter { $0 != "resumed" }) ?? []
+            let rootItems = (try? manager.contentsOfDirectory(atPath: root.path)) ?? []
+            fatalError("real resume published \(output.lastPathComponent); extra: \(published); root: \(rootItems)")
+        }
         let file = output.appending(path: "0000.bin")
         expect(try Data(contentsOf: file) == Data(repeating: 120, count: 32768), "real resumed bytes")
         expect(try FileManager.default.contentsOfDirectory(atPath: output.path).count == 2000, "all resumed entries")
