@@ -48,7 +48,7 @@ struct LiveTimerTest {
         instant = now.addingTimeInterval(420)
         store.refresh()
         precondition(store.timers.first { $0.id == later }?.status == .missed)
-        precondition(sounds == 2)
+        precondition(sounds == 3)
         store.cancel(later)
         let sleeping = store.start(1)!
         instant = instant.addingTimeInterval(302)

@@ -11,6 +11,6 @@ extension LiveTimerModule {
         isEnabled: { startCommand.isEnabled() },
         run: {
             let store = LiveTimerModule.shared.store
-            if let timer = store.ringing.first ?? store.nextTimer { store.cancel(timer.id) }
+            store.stopNext()
         })
 }
