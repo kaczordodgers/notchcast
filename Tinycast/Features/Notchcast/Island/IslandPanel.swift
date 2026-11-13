@@ -11,6 +11,7 @@ final class IslandPanel: NSPanel {
     private var closedSize = CGSize.zero
     private var state = IslandClosedState.idle
     var cardButtonFrame = CGRect.zero
+    var secondCardButtonFrame = CGRect.zero
     private var expandedContent = AnyView(EmptyView())
     private var headerContent = AnyView(EmptyView())
     private(set) var launcherFrame: CGRect?
@@ -105,7 +106,7 @@ final class IslandPanel: NSPanel {
     override func sendEvent(_ event: NSEvent) {
         if event.type == .keyDown, onKey?(event) == true { return }
         if event.type == .leftMouseDown, containsPointer {
-            if !open, !hasCancellableMessage, !hasCard { onOpen?(); return }
+            if !open, !hasCard { onOpen?(); return }
             if open { makeKey() }
         }
         super.sendEvent(event)
@@ -116,11 +117,6 @@ final class IslandPanel: NSPanel {
         return super.performKeyEquivalent(with: event)
     }
 
-    private var hasCancellableMessage: Bool {
-        if case .message(let message) = state.main { return message.onCancel != nil }
-        return false
-    }
-
     /// A card's button takes the click; the rest of a card still opens the island.
     private var hasCard: Bool {
         let point = surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)
@@ -128,14 +124,19 @@ final class IslandPanel: NSPanel {
     }
 
     func cardTakesClick(at point: CGPoint) -> Bool {
-        guard case .card = state.main else { return false }
-        return cardButtonFrame.contains(CGPoint(x: point.x, y: surface.bounds.height - point.y))
+        let point = CGPoint(x: point.x, y: surface.bounds.height - point.y)
+        if case .card = state.main, cardButtonFrame.contains(point) { return true }
+        if case .card = state.second, secondCardButtonFrame.contains(point) { return true }
+        return false
     }
 
     func setContent(open: AnyView, closed: IslandClosedState, header: AnyView) {
         let handover = state.key != closed.key && Motion.isEnabled
             && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        if state.key != closed.key { cardButtonFrame = .zero }
+        if state.key != closed.key {
+            cardButtonFrame = .zero
+            secondCardButtonFrame = .zero
+        }
         state = closed
         expandedContent = open
         headerContent = header
@@ -152,7 +153,8 @@ final class IslandPanel: NSPanel {
             guard closedSize != size else { return }
             closedSize = size
             if !self.open { present(animated: true) }
-        }, onButtonFrame: { [weak self] frame in self?.cardButtonFrame = frame })
+        }, onButtonFrame: { [weak self] frame in self?.cardButtonFrame = frame },
+           onSecondButtonFrame: { [weak self] frame in self?.secondCardButtonFrame = frame })
         surface.setContent(open: AnyView(expanded), closed: AnyView(compact
             .environment(\.hasHardwareNotch, hardwareNotch != nil)), handover: handover)
         surface.setAccessibilityValue(closed.spokenSummary)

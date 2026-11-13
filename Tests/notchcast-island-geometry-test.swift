@@ -51,6 +51,15 @@ struct IslandGeometryTests {
     static func screenSelection() {
         let screens = [CGRect(x: -1512, y: 0, width: 1512, height: 982),
                        CGRect(x: 0, y: -400, width: 1920, height: 1080)]
+        expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: screens, pinned: true) == 1,
+               "a pinned island keeps its display when the frame survives")
+        let resized = screens[1].insetBy(dx: 20, dy: 20)
+        expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: [resized], pinned: true) == 0,
+               "a pinned island survives a display frame change")
+        expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: [], pinned: true) == nil,
+               "no visible display closes even a pinned island")
+        expect(IslandGeometry.restoredScreenIndex(previous: screens[1], visibleFrames: [resized], pinned: false) == nil,
+               "an unpinned island closes when its display changes")
         for (point, expected) in [(CGPoint(x: -300, y: 970), 0), (CGPoint(x: 1500, y: 670), 1)] {
             let selected = IslandGeometry.screenIndex(containing: point, frames: screens)
             expect(selected == expected, "only the display under the pointer opens")

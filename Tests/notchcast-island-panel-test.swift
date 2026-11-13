@@ -74,6 +74,7 @@ struct IslandClosedView: View {
     var state: IslandClosedState
     var onSize: (CGSize) -> Void
     var onButtonFrame: (CGRect) -> Void = { _ in }
+    var onSecondButtonFrame: (CGRect) -> Void = { _ in }
     var body: some View { Color.clear }
 }
 
@@ -100,7 +101,15 @@ struct IslandPanelTests {
         assert(panel.cardTakesClick(at: CGPoint(x: 430, y: height - 54)), "the action keeps its click")
         assert(!panel.cardTakesClick(at: CGPoint(x: 300, y: height - 54)), "the title opens the island")
         assert(!panel.cardTakesClick(at: CGPoint(x: 280, y: height - 54)), "the glyph opens the island")
+        panel.setClosedState(.init(main: .message(.init(onCancel: {})), second: .card))
+        panel.secondCardButtonFrame = CGRect(x: 400, y: 80, width: 60, height: 28)
+        assert(panel.cardTakesClick(at: CGPoint(x: 430, y: height - 94)), "the lower card keeps its action")
+        assert(!panel.cardTakesClick(at: CGPoint(x: 300, y: height - 94)), "the lower title opens the island")
+        panel.setClosedState(.init(main: .message(.init(onCancel: {}))))
+        assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 54)),
+               "a cancellable message leaves the closed click to opening")
         panel.setClosedState(.idle)
+        assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 94)), "the lower action cannot survive a swap")
         assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 54)), "an old action frame is inactive")
         panel.close()
     }
