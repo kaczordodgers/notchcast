@@ -50,7 +50,6 @@ struct NotchcastSettingsLinksTests {
         }
         let anchors: [(SettingsAnchor, NotchcastFeature)] = [
             (.notchcastAppearance, .appearance),
-            (.notchcastClean, .cleanJunk),
             (.notchcastCleaning, .cleaningMode),
             (.notchcastAppUpdates, .appUpdates),
             (.notchcastMacUpdate, .macUpdate),

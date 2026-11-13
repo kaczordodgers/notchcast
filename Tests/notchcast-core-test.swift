@@ -42,8 +42,7 @@ struct NotchcastCoreTests {
         }
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
-        for feature: NotchcastFeature in [.audioPriority, .cleanJunk, .cleanHistory, .cleanAIData,
-            .cleanDisk, .cleanPurge, .cleanOptimize, .cleanSystem, .cleaningMode, .appUpdates,
+        for feature: NotchcastFeature in [.audioPriority, .cleaningMode, .appUpdates,
             .macUpdate, .startupItems, .notificationCleanup, .sudoTouchID,
             .aiFeaturesOff, .spotlightOff, .privacyChoices, .typingTweaks,
             .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks, .buildStats] {

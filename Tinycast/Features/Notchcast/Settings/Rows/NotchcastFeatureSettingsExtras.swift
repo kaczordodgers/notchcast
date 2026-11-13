@@ -16,7 +16,6 @@ extension NotchcastFeature {
         switch self {
         case .dockTweaks: .dockTweaks
         case .cleaningMode: .cleaningMode
-        case .cleanAIData: .cleanAIData
         case _ where NotchcastFeature.batteryModule.contains(self): .battery(self)
         case .microphoneMute: .microphoneMute
         case .inUseMarks: .inUseMarks
@@ -29,10 +28,6 @@ extension NotchcastFeature {
 }
 
 private extension NotchcastFeatureSettingsExtras {
-    static var cleanAIData: Self {
-        Self(detail: String(localized: "Codex and OpenCode are report-only.", table: "Notchcast"))
-    }
-
     static var settingsBackup: Self {
         let coordinator = ForkSettingsBackupCoordinator.shared
         guard coordinator.choosing else { return Self() }
