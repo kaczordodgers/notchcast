@@ -1,4 +1,6 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Helper/*.swift -DNOTCHCAST_CLI_TEST
+// notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation
 
 @main
