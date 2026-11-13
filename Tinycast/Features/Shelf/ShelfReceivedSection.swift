@@ -5,6 +5,8 @@ struct ShelfReceivedSection: View {
     @Environment(AppCore.self) private var core
     @State private var entries: [ShelfReceivedEntry] = []
     @State private var busy = false
+    @State private var confirmingClear = false
+    @State private var openFailure: String?
     private var store: ShelfReceivedStore { ShelfModule.shared.store }
 
     var body: some View {
@@ -16,16 +18,31 @@ struct ShelfReceivedSection: View {
             ShelfReceivedRows(entries: entries, action: perform)
             Group {
                 Button(String(localized: "Clear All", table: "Notchcast"), role: .destructive) {
-                    Task {
-                        guard await core.confirm(title: String(localized: "Clear all received items?", table: "Notchcast"),
-                            message: String(localized: "This can't be undone."), symbol: "tray",
-                            confirmTitle: String(localized: "Clear All", table: "Notchcast")) else { return }
-                        await update { try await store.clear() }
-                    }
+                    confirmingClear = true
                 }
             }
         }
         .disabled(busy)
+        .confirmationDialog(
+            String(localized: "Clear all received items?", table: "Notchcast"),
+            isPresented: $confirmingClear,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Clear All", table: "Notchcast"), role: .destructive) {
+                Task { await update { try await store.clear() } }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This can't be undone.")
+        }
+        .alert(
+            String(localized: "Could Not Open Shelf Item", table: "Notchcast"),
+            isPresented: Binding(get: { openFailure != nil }, set: { if !$0 { openFailure = nil } })
+        ) {
+            Button("OK") {}
+        } message: {
+            Text(openFailure ?? "")
+        }
         .task {
             var lastDate: Date?
             var loadedOnce = false
@@ -65,9 +82,7 @@ struct ShelfReceivedSection: View {
                     try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
                                                      openWithBundleID: nil, inNewWindow: false)
                 } catch {
-                    await core.showNotice(
-                        title: String(localized: "Could Not Open Shelf Item", table: "Notchcast"),
-                        message: error.localizedDescription, symbol: "tray", tone: .danger)
+                    openFailure = error.localizedDescription
                 }
             }
         case .save:

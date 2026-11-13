@@ -35,14 +35,12 @@ import Foundation
         try await module.deleteAll()
         let deleted = try await module.recent()
         precondition(deleted.isEmpty && failures == 0)
-        let revisionBeforeMaintain = module.revision
-        await module.maintain()
-        precondition(module.revision > revisionBeforeMaintain)
         try FileManager.default.removeItem(at: directory)
         try Data().write(to: directory)
+        let revisionBeforeFailedMaintain = module.revision
         module.start()
         await module.waitUntilIdle()
-        precondition(failures == 1)
+        precondition(failures == 1 && module.revision > revisionBeforeFailedMaintain)
         module.enqueue(raw: "failure", cleaned: "failure")
         await module.waitUntilIdle()
         precondition(failures == 2)
