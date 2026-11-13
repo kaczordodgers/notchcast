@@ -10,11 +10,9 @@ final class AudioPriorityModule: NotchcastModule {
             store.failure = String(localized: "Could not change the audio device.", table: "Notchcast")
         }
         manager.inventoryChanged = { store.update($0) }
-        manager.succeeded = { store.failure = nil }
         manager.clearFailure = { store.failure = nil }
     }
 
     func start() { manager.start() }
     func stop() { manager.stop() }
-    func refresh() { manager.refresh() }
 }

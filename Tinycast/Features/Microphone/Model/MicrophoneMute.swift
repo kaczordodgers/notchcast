@@ -62,14 +62,14 @@ final class MicrophoneMute {
         setMuted(!muteWanted)
     }
 
-    func setMuted(_ muted: Bool) {
+    func setMuted(_ muted: Bool, unmuteAll: Bool = true) {
         muteWanted = muted
         defaults.set(muted, forKey: key)
         if !running {
             running = true
             audio.start { [weak self] in self?.refresh() }
         }
-        refresh(unmuteUntracked: !muted)
+        refresh(unmuteUntracked: !muted && unmuteAll)
     }
 
     private func refresh(unmuteUntracked: Bool = false) {

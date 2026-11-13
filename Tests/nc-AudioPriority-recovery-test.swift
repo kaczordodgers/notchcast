@@ -4,6 +4,7 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityTransport.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift
 import Foundation
 
 @MainActor
@@ -13,11 +14,15 @@ private final class Audio: AudioPriorityTransport {
     var failStart = false
     var starts = 0
     var current = "low"
+    var hasInput = false
     func devices() -> [AudioPriorityDevice] {
         ["low", "high"].map { .init(uid: $0, name: $0, direction: .output) }
+            + (hasInput ? [.init(uid: "mic", name: "mic", direction: .input)] : [])
     }
     func defaultUID(for direction: AudioPriorityDevice.Direction) -> String? { current }
-    func setDefault(uid: String, for direction: AudioPriorityDevice.Direction) { current = uid }
+    func setDefault(uid: String, for direction: AudioPriorityDevice.Direction) {
+        if direction == .output { current = uid }
+    }
     func start(onChange: @escaping @Sendable () -> Void) throws {
         starts += 1
         callback = onChange
@@ -61,6 +66,15 @@ struct RecoveryTests {
         store.save(.init(enabled: true, uids: ["high", "low"]), for: .output)
         try await Task.sleep(for: .milliseconds(180))
         check(audio.current == "high", "ranking applied without device change")
+        manager.stop()
+        manager.start()
+        audio.current = "low"
+        store.failure = "unresolved"
+        audio.hasInput = true
+        audio.callback?()
+        try await Task.sleep(for: .milliseconds(180))
+        check(audio.current == "low", "new input preserves hand-picked output")
+        check(store.failure == "unresolved", "device event preserves unresolved failure")
         store.move("low", by: -1, direction: .output)
         try await Task.sleep(for: .milliseconds(180))
         check(audio.current == "low", "reordered ranking applied")

@@ -10,6 +10,7 @@ extension DictationCleanupModule {
             install: { DictationFamily.shared.setCleanup(true) },
             uninstall: { DictationFamily.shared.setCleanup(false) })
         DictationFamily.shared.cleanupFallback = { [weak module] in module?.fellBack() }
+        DictationFamily.shared.cleanupSucceeded = { [weak module] in module?.succeeded() }
         return module
     }
 }
