@@ -22,8 +22,8 @@ struct AgentAuditDurationTests {
                 return .null
             }))
         }
-        index.didComplete = { request, reply in
-            guard let entry = request.auditEntry(reply: reply, time: Date()) else { return }
+        index.didComplete = { request, reply, duration in
+            guard let entry = request.auditEntry(reply: reply, time: Date(), duration: duration) else { return }
             do { try await store.append(entry) } catch { preconditionFailure("Audit write failed: \(error)") }
         }
         index.start()

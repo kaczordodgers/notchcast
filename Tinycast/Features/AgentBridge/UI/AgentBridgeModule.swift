@@ -37,8 +37,8 @@ final class AgentBridgeModule: NotchcastModule {
                 let entries = try await audit.entries()
                 return try JSONDecoder().decode(AgentJSON.self, from: JSONEncoder().encode(entries))
             }
-            index.didComplete = { request, reply in
-                guard let entry = request.auditEntry(reply: reply, time: Date()) else { return }
+            index.didComplete = { request, reply, duration in
+                guard let entry = request.auditEntry(reply: reply, time: Date(), duration: duration) else { return }
                 do { try await audit.append(entry) } catch {
                     Logger(subsystem: NotchcastIdentity.current.bundleID, category: "AgentBridge")
                         .error("Unable to append agent audit: \(error)")
