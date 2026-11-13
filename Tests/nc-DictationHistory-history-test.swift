@@ -87,6 +87,7 @@ struct DictationHistoryTests {
         let future = DictationHistoryRepository(directory: directory, now: { date.addingTimeInterval(91 * 86_400) })
         let expired = try future.recent()
         precondition(expired.isEmpty)
+        try future.maintain()
         preferences.set(.dictationHistory, false)
         controller.run()
         precondition(!module.isRunning)

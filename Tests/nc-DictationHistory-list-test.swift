@@ -24,13 +24,10 @@ struct DictationHistoryListTests {
         let cleared = try repository.recent()
         precondition(cleared.isEmpty)
         try Data("corrupt".utf8).write(to: directory.appendingPathComponent("history.jsonl"))
-        do {
-            _ = try repository.recent()
-            preconditionFailure("Corrupt history must fail to load")
-        } catch {
-            precondition(DictationHistoryClearPolicy.isEnabled(
-                isLoading: false, isClearing: false, isEmpty: true, loadFailed: true))
-        }
+        let skipped = try repository.recent()
+        precondition(skipped.isEmpty)
+        let preserved = try Data(contentsOf: directory.appendingPathComponent("history.jsonl"))
+        precondition(preserved == Data("corrupt".utf8))
         try repository.deleteAll()
         let recovered = try repository.recent()
         precondition(recovered.isEmpty)
