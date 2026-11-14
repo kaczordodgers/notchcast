@@ -5,7 +5,7 @@ import Synchronization
 
 nonisolated enum ProcessRunner {
     struct Request: Sendable {
-        enum GroupCleanup: Sendable { case keepAfterExit, killBeforeDrain, drainThenKill }
+        enum GroupCleanup: Sendable { case keepAfterExit, killBeforeDrain }
         enum ErrorOutput: Sendable { case discard, capture(limit: Int), merge }
 
         var executable: URL
@@ -239,9 +239,6 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard state.stop == nil, !state.drained else { return }
                 state.stop = reason
-                if request.groupCleanup == .drainThenKill {
-                    state.drainDeadline = .now + (request.stopLadder.later.last?.after ?? .zero) + .milliseconds(250)
-                }
                 let pid = state.process.processIdentifier
                 let target = request.stopsGroup ? -pid : pid
                 kill(target, request.stopLadder.first)
@@ -257,7 +254,6 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard !state.drained else { return }
                 state.stop = .cancelled
-                if request.groupCleanup == .drainThenKill { state.drainDeadline = .now }
                 let pid = state.process.processIdentifier
                 kill(request.stopsGroup ? -pid : pid, SIGKILL)
             }
@@ -269,13 +265,10 @@ nonisolated enum ProcessRunner {
                     || (state.stop != nil && request.groupCleanup == .keepAfterExit) {
                     kill(-state.process.processIdentifier, SIGKILL)
                 }
-                if request.groupCleanup != .drainThenKill { state.drainDeadline = .now + .milliseconds(250) }
+                state.drainDeadline = .now + .milliseconds(250)
             }
             stdoutStream?.wait()
             stderrStream?.wait()
-            if request.stopsGroup, request.groupCleanup == .drainThenKill {
-                state.withLock { _ = kill(-$0.process.processIdentifier, SIGKILL) }
-            }
             state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() }; $0.timers.removeAll() }
         }
 
