@@ -13,7 +13,6 @@ final class AudioPriorityManager {
     private var listening = false
     var clearFailure: () -> Void = {}
     var inventoryChanged: ([AudioPriorityDevice]) -> Void = { _ in }
-    var succeeded: () -> Void = {}
 
     init(transport: any AudioPriorityTransport, store: any AudioPriorityStore,
          report: @escaping (any Error) -> Void) {
@@ -67,24 +66,27 @@ final class AudioPriorityManager {
         }
     }
 
-    func refresh() { refresh(apply: true, force: true) }
-
     private func trackRankings(_ identity: UUID) {
+        let rankings = Dictionary(uniqueKeysWithValues: AudioPriorityDevice.Direction.allCases.map {
+            ($0, store.ranking(for: $0))
+        })
         withObservationTracking {
             for direction in AudioPriorityDevice.Direction.allCases { _ = store.ranking(for: direction) }
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, self.lifetime == identity else { return }
-                self.refresh()
+                let changed = Set(rankings.keys.filter { rankings[$0] != self.store.ranking(for: $0) })
+                self.refresh(apply: true, force: changed)
                 self.trackRankings(identity)
             }
         }
     }
 
-    private func refresh(apply: Bool, force: Bool = false) {
+    private func refresh(apply: Bool, force: Set<AudioPriorityDevice.Direction> = []) {
         guard let identity = lifetime else { return }
-        clearFailure()
         listen(identity)
+        var failed = !listening
+        var switched = false
         do {
             let devices = try transport.devices()
             inventoryChanged(devices)
@@ -97,16 +99,23 @@ final class AudioPriorityManager {
                 let before = ranking
                 ranking.appendUnknown(uids)
                 if ranking != before { store.save(ranking, for: direction) }
-                guard apply, force || (previous != nil && previous != available) else { continue }
+                guard apply, force.contains(direction) || (previous != nil && previous != available) else { continue }
                 do {
                     let current = try transport.defaultUID(for: direction)
                     if let target = AudioPriorityPolicy.target(
                         ranking: ranking, connected: available, current: current) {
                         try transport.setDefault(uid: target, for: direction)
-                        succeeded()
+                        switched = true
                     }
-                } catch { report(error) }
+                } catch {
+                    failed = true
+                    report(error)
+                }
             }
-        } catch { report(error) }
+        } catch {
+            failed = true
+            report(error)
+        }
+        if switched && !failed { clearFailure() }
     }
 }

@@ -1,5 +1,8 @@
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
+// notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
 import Foundation
+
+@MainActor protocol NotchcastModule { func start(); func stop() }
 
 @MainActor
 final class FakeMicrophone: MicrophoneAudioAccess {
@@ -32,6 +35,10 @@ struct MicrophoneMuteTests {
         restored.stop()
         audio.input.mute = [.init(element: 1, value: 1), .init(element: 2, value: 1)]
         let afterRestore = MicrophoneMute(audio: audio, defaults: defaults)
+        let module = MicrophoneMuteModule(model: afterRestore, showMessage: { _ in }, showFailure: { _ in })
+        module.start()
+        module.stop()
+        precondition(audio.input.isMuted, "Module stop preserves untracked external mute")
         afterRestore.setMuted(false)
         precondition(audio.input.mute.map(\.value) == [0, 0], "Explicit unmute clears external mute")
         afterRestore.stop()
