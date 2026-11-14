@@ -184,14 +184,15 @@ final class PublicWebProxy {
                     connection = try await connect(addresses, port: endpointPort)
                 } catch {
                     // Without a SOCKS failure reply, WebKit retries the closed socket until its 60 s timeout.
-                    try? await send([5, error is PublicWebAddress.Refusal ? 2 : 1, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
+                    let refusal = error as? PublicWebAddress.Refusal
+                    if let refusal { refused(refusal) }
+                    try? await send([5, refusal == nil ? 1 : 2, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
                     throw error
                 }
                 try await send([5, 0, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
                 relay(from: client, to: connection)
                 relay(from: connection, to: client)
             } catch {
-                if let refusal = error as? PublicWebAddress.Refusal { refused(refusal) }
                 close()
             }
         }
