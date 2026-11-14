@@ -1,7 +1,6 @@
 // notchcast-kit: root platform
 // notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift notchcast/root/install.sh
-// notchcast-reads: Tinycast/Features/Clean/Model/CleanSystem*.swift
 // notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 import Darwin
 import Foundation
