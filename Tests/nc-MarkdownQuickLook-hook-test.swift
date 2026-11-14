@@ -10,6 +10,13 @@ import Foundation
 struct QuickLookHookTests {
     @MainActor
     static func main() {
+        for mask in 0..<32 {
+            let accepted = QuickLookSpacePolicy.acceptsInput(
+                currentPanel: mask & 1 != 0, fileSearch: mask & 2 != 0,
+                menuOpen: mask & 4 != 0, editingField: mask & 8 != 0, controlListOpen: mask & 16 != 0)
+            precondition(accepted == (mask == 3))
+        }
+        print("PASS: palette input requires current file-search panel without menus or editing")
         let suite = "nc-space-" + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }

@@ -23,6 +23,7 @@ struct DownloadsWebpageTests {
 
     static func main() async throws {
         converter()
+        try await cancellationDuringDNS()
         addresses()
         frontMatter()
         failureDescriptions()
@@ -92,6 +93,9 @@ struct DownloadsWebpageTests {
     }
 
     static func converter() {
+        let blocks = markdown("<a href='/next'><div>One</div><p>Two</p></a>")
+        expect(blocks == "One\n\nTwo\n\n[https://example.com/next](<https://example.com/next>)",
+               "block link preserves paragraphs and destination without a multiline label")
         expect(markdown("<h1>Title</h1><h2>Section</h2><h6>Small</h6>").contains("## Section"), "ATX headings")
         expect(markdown("<h6>Small</h6>") == "###### Small", "six heading levels")
         expect(markdown("<p>Hello <strong>bold</strong> and <em>italic</em>.</p>") == "Hello **bold** and *italic*.",
@@ -153,6 +157,29 @@ struct DownloadsWebpageTests {
         expect((try? PublicWebAddress.validate(base)) != nil, "permits public hostname")
     }
 
+    static func cancellationDuringDNS() async throws {
+        let started = AsyncStream<Void>.makeStream()
+        let release = DispatchSemaphore(value: 0)
+        defer { release.signal() }
+        let task = Task {
+            try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in
+                started.continuation.yield(())
+                release.wait()
+                return ["93.184.216.34"]
+            }
+        }
+        var iterator = started.stream.makeAsyncIterator()
+        _ = await iterator.next()
+        task.cancel()
+        do {
+            _ = try await task.value
+            expect(false, "DNS cancellation throws")
+        } catch is CancellationError {
+            expect(true, "DNS cancellation returns while lookup is still blocked")
+        }
+        print("PASS: DNS cancellation returns before blocked lookup completes")
+    }
+
     static func article(title: String = "A title") -> WebpageArticle {
         WebpageArticle(title: title, author: "Example", published: "2026-10-30T12:00:00Z", source: base, baseURL: base,
                        html: "<h1>\(title)</h1><p>A useful article.</p>")
@@ -199,6 +226,19 @@ struct DownloadsWebpageTests {
         expect(!extracted.contains("navigation") && !extracted.contains("footer"),
                "extractor removes chrome")
         expect(extracted.contains("/photo.jpg"), "extractor retains remote images")
+        for (body, blocked) in [
+            ("This site uses cookies. Read our cookie policy.", false),
+            ("Checking your browser. Enable JavaScript and cookies.", true)
+        ] {
+            let page = "<html><head><title>Cookie policy</title></head>" +
+                "<body><article><p>\(body)</p></article></body></html>"
+            try await navigation.load(page, into: view)
+            let result = try await view.callAsyncJavaScript(WebpageExtraction.script, arguments: [:],
+                                                          in: nil, contentWorld: .defaultClient)
+            let fields = try JSONSerialization.jsonObject(with: Data((result as? String ?? "{}").utf8)) as? [String: Any]
+            expect((fields?["blocked"] as? Bool ?? false) == blocked, "cookie mention and actual challenge distinguished")
+        }
+        print("PASS: short legitimate cookie page accepted and browser challenge rejected")
         view.navigationDelegate = nil
         view.stopLoading()
         let proxy = try PublicWebProxy()

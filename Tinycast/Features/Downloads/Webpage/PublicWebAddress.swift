@@ -60,9 +60,26 @@ enum PublicWebAddress {
         return true
     }
 
-    @concurrent
-    static func resolve(_ host: String, port: UInt16) async throws -> [String] {
+    static func resolve(_ host: String, port: UInt16,
+                        lookup: @escaping @Sendable (String, UInt16) throws -> [String] = resolveBlocking
+    ) async throws -> [String] {
         try Task.checkCancellation()
+        let stream = AsyncThrowingStream<[String], any Error> { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                do {
+                    continuation.yield(try lookup(host, port))
+                    continuation.finish()
+                } catch { continuation.finish(throwing: error) }
+            }
+        }
+        for try await addresses in stream {
+            try Task.checkCancellation()
+            return addresses
+        }
+        throw CancellationError()
+    }
+
+    private static func resolveBlocking(_ host: String, port: UInt16) throws -> [String] {
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
         try validate(URL(string: "http://\(name.contains(":") ? "[\(name)]" : name):\(port)/") ?? URL(filePath: "/"))
         var hints = addrinfo()

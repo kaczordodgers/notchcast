@@ -109,7 +109,8 @@ struct HTMLDocument {
         stack[stack.count - 1].children.append(node)
     }
 
-    private static func decode(_ text: String) -> String {
+    nonisolated static func decode(_ text: String) -> String {
+        guard text.contains("&") else { return text }
         let entities = ["amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": " ",
                         "copy": "©", "reg": "®", "hellip": "…", "mdash": "—", "ndash": "–",
                         "lsquo": "‘", "rsquo": "’", "ldquo": "“", "rdquo": "”", "bull": "•", "trade": "™"]

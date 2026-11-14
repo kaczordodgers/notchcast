@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Webpage/HTMLDocument.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
@@ -15,6 +16,9 @@ import Foundation
 @main struct DownloadsMediaTest {
     static func main() async throws {
         let destination = URL(filePath: "/tmp/media")
+        let entities = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n&#x1F600; &#169; &amp; &quot; &nbsp; &amp;lt;"
+        precondition(CaptionText.plainText(entities, automatic: false) == "😀 © & \" &lt;")
+        print("PASS: captions decode numeric and named entities exactly once")
         let source = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
         let native = MediaArguments.download(source: source, destination: destination, format: .video)
         precondition(!native.contains("--downloader") && !native.contains("--cookies-from-browser"))
