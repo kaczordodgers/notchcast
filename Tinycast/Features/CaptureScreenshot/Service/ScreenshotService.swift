@@ -11,6 +11,7 @@ enum ScreenshotService {
         _ request: ScreenshotRequest,
         destination: ScreenshotRequest.Destination,
         pasteboard: NSPasteboard = .general,
+        captureImage: @MainActor @Sendable (ScreenshotRequest) async throws -> CGImage = permittedImage,
         clipboardFailure: (URL) -> Void = { url in
             Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Screenshot")
                 .error("Clipboard write failed; screenshot saved at \(url.path, privacy: .private)")
@@ -18,10 +19,7 @@ enum ScreenshotService {
         isEnabled: @MainActor () -> Bool
     ) async throws -> URL? {
         guard isEnabled() else { throw ScreenshotRequest.Failure.disabled }
-        guard ScreenRecordingAccess.isGrantedOrRequest() else {
-            throw ScreenshotRequest.Failure.permissionDenied
-        }
-        let data = try await png(request)
+        let data = try await png(request, captureImage: captureImage)
         try Task.checkCancellation()
         return try await output(data, destination: destination, writeClipboard: { data in
             let item = NSPasteboardItem()
@@ -60,8 +58,32 @@ enum ScreenshotService {
         return url
     }
 
+    @MainActor
+    private static func permittedImage(_ request: ScreenshotRequest) async throws -> CGImage {
+        guard ScreenRecordingAccess.isGrantedOrRequest() else {
+            throw ScreenshotRequest.Failure.permissionDenied
+        }
+        return try await image(request)
+    }
+
     @concurrent
-    private static func png(_ request: ScreenshotRequest) async throws -> Data {
+    private static func png(
+        _ request: ScreenshotRequest,
+        captureImage: @MainActor @Sendable (ScreenshotRequest) async throws -> CGImage
+    ) async throws -> Data {
+        let image = try await captureImage(request)
+        try Task.checkCancellation()
+        let data = NSMutableData()
+        guard let encoder = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
+            throw ScreenshotRequest.Failure.encodingFailed
+        }
+        CGImageDestinationAddImage(encoder, image, nil)
+        guard CGImageDestinationFinalize(encoder) else { throw ScreenshotRequest.Failure.encodingFailed }
+        return data as Data
+    }
+
+    @concurrent
+    private static func image(_ request: ScreenshotRequest) async throws -> CGImage {
         try Task.checkCancellation()
         let configuration = SCScreenshotConfiguration()
         configuration.showsCursor = false
@@ -105,13 +127,7 @@ enum ScreenshotService {
         }
         try Task.checkCancellation()
         guard let image = output.sdrImage else { throw ScreenshotRequest.Failure.encodingFailed }
-        let data = NSMutableData()
-        guard let encoder = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
-            throw ScreenshotRequest.Failure.encodingFailed
-        }
-        CGImageDestinationAddImage(encoder, image, nil)
-        guard CGImageDestinationFinalize(encoder) else { throw ScreenshotRequest.Failure.encodingFailed }
-        return data as Data
+        return image
     }
 
     @concurrent

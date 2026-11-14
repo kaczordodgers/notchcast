@@ -23,14 +23,15 @@ enum DialogTone { case neutral, danger }
 }
 @MainActor final class ScrollingCaptureSession {
     enum State { case idle, capturing, limitReached }
-    enum Failure: Error { case permissionDenied, invalidRect, displayUnavailable }
+    enum Failure: Error { case permissionDenied, invalidRect, displayUnavailable, invalidFrame }
     var state = State.idle
     var starts = 0
     var stops = 0
     var cancels = 0
+    var limited = false
     func start(rect: CGRect, displayID: UInt32) throws { starts += 1; state = .capturing }
     func cancel() { cancels += 1; state = .idle }
-    func stop() async throws -> Data? { stops += 1; state = .idle; return Data([1, 2, 3]) }
+    func stop() async throws -> Data? { stops += 1; state = limited ? .limitReached : .idle; return Data([1, 2, 3]) }
     static func pngData(for image: Data) async throws -> Data { image }
 }
 @main @MainActor struct ScrollingModuleTest {
@@ -41,7 +42,11 @@ enum DialogTone { case neutral, danger }
         let area = CaptureAreaService()
         let session = ScrollingCaptureSession()
         var output: [Data] = []
-        let module = ScrollingCaptureModule(area: area, session: session, write: { output.append($0); return true })
+        var clipboardSucceeds = true
+        let module = ScrollingCaptureModule(area: area, session: session, write: {
+            output.append($0)
+            return clipboardSucceeds
+        })
         ScrollingCaptureModule.instance = module
         let preferences = NotchcastPreferences.shared
         defer { preferences.engineDefaults.removePersistentDomain(forName: NotchcastIdentity.current.suiteName()) }
@@ -62,6 +67,20 @@ enum DialogTone { case neutral, danger }
         command.run()
         for _ in 0..<100 { await Task.yield() }
         precondition(session.stops == 1 && output == [Data([1, 2, 3])])
+        clipboardSucceeds = false
+        command.run()
+        command.run()
+        for _ in 0..<100 { await Task.yield() }
+        precondition(session.stops == 2)
+        precondition(messages.last == CaptureFailure.clipboardFailed.message && tones.last == .danger)
+        clipboardSucceeds = true
+        session.limited = true
+        command.run()
+        command.run()
+        for _ in 0..<100 { await Task.yield() }
+        precondition(session.stops == 3 && output.count == 3)
+        precondition(messages.last == String(localized: "Scrolling capture reached the 20,000 pixel limit.", table: "Notchcast"))
+        precondition(tones.last == .neutral)
         area.denied = true
         command.run()
         precondition(messages.last == String(localized: "Screen Recording access is required."))
@@ -70,7 +89,7 @@ enum DialogTone { case neutral, danger }
         for _ in 0..<100 { await Task.yield() }
         precondition(session.cancels == 1 && area.stops == 1 && !command.isEnabled())
         command.run()
-        precondition(area.starts == 2)
-        print("PASS: scrolling lifecycle, command output, permission HUD")
+        precondition(area.starts == 4)
+        print("PASS: scrolling lifecycle, command output, clipboard failure, pixel limit, permission HUD")
     }
 }
