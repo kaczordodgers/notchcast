@@ -83,15 +83,16 @@ struct MediaToolsRunner: Sendable {
             return try (0..<document.pageCount).map { index in
                 try Task.checkCancellation()
                 guard let page = document.page(at: index) else { throw Failure.unsupported }
-                if let text = page.string, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    return text
-                }
+                let layer = page.string ?? ""
+                guard Self.letterCount(layer) == 0 || page.pageRef.map(Self.drawsImage) == true else { return layer }
                 let thumbnail = page.thumbnail(of: CGSize(width: 1600, height: 1600), for: .mediaBox)
                 guard let data = thumbnail.tiffRepresentation,
                       let source = CGImageSourceCreateWithData(data as CFData, nil),
                       let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
                 else { throw Failure.unsupported }
-                return try recognize(image)
+                let recognized = try recognize(image)
+                // A stamped header or page number must not stand in for the scanned body under it.
+                return Self.letterCount(recognized) > 2 * Self.letterCount(layer) ? recognized : layer
             }.joined(separator: "\n")
         }
         guard let source = CGImageSourceCreateWithURL(input as CFURL, nil),
@@ -102,6 +103,47 @@ struct MediaToolsRunner: Sendable {
               ] as CFDictionary)
         else { throw Failure.unsupported }
         return try recognize(image)
+    }
+
+    private static func letterCount(_ text: String) -> Int {
+        text.unicodeScalars.count { !CharacterSet.whitespacesAndNewlines.contains($0) }
+    }
+
+    private static func drawsImage(_ page: CGPDFPage) -> Bool {
+        var node = page.dictionary
+        while let dictionary = node {
+            var resources: CGPDFDictionaryRef?
+            if CGPDFDictionaryGetDictionary(dictionary, "Resources", &resources), let resources {
+                return drawsImage(resources: resources, depth: 0)
+            }
+            var parent: CGPDFDictionaryRef?
+            node = CGPDFDictionaryGetDictionary(dictionary, "Parent", &parent) ? parent : nil
+        }
+        return false
+    }
+
+    private static func drawsImage(resources: CGPDFDictionaryRef, depth: Int) -> Bool {
+        var objects: CGPDFDictionaryRef?
+        guard depth < 4, CGPDFDictionaryGetDictionary(resources, "XObject", &objects), let objects else { return false }
+        var found = false
+        CGPDFDictionaryApplyBlock(objects, { _, value, _ in
+            var stream: CGPDFStreamRef?
+            var subtype: UnsafePointer<CChar>?
+            guard CGPDFObjectGetValue(value, .stream, &stream), let stream,
+                  let info = CGPDFStreamGetDictionary(stream),
+                  CGPDFDictionaryGetName(info, "Subtype", &subtype), let subtype else { return true }
+            switch String(cString: subtype) {
+            case "Image": found = true
+            case "Form":
+                var nested: CGPDFDictionaryRef?
+                found = CGPDFDictionaryGetDictionary(info, "Resources", &nested) && nested.map {
+                    drawsImage(resources: $0, depth: depth + 1)
+                } == true
+            default: break
+            }
+            return !found
+        }, nil)
+        return found
     }
 
     private func recognize(_ image: CGImage) throws -> String {

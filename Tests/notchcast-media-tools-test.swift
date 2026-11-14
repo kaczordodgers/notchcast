@@ -45,6 +45,28 @@ struct MediaToolsTest {
         let text = try await runner.run(pdf, tool: .text)
         let extracted = try String(contentsOf: text, encoding: .utf8)
         precondition(extracted.contains("Synthetic media text"))
+
+        let scanned = root.appendingPathComponent("scanned.pdf")
+        var page = CGRect(x: 0, y: 0, width: 600, height: 300)
+        let scan = CGContext(data: nil, width: 1200, height: 600, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+        scan.setFillColor(CGColor(gray: 1, alpha: 1))
+        scan.fill(CGRect(x: 0, y: 0, width: 1200, height: 600))
+        let body = CTLineCreateWithAttributedString(NSAttributedString(string: "Scanned invoice body",
+            attributes: [.font: NSFont.systemFont(ofSize: 72)]) as CFAttributedString)
+        scan.textPosition = CGPoint(x: 60, y: 260)
+        CTLineDraw(body, scan)
+        let stamped = CGContext(scanned as CFURL, mediaBox: &page, nil)!
+        stamped.beginPDFPage(nil)
+        stamped.draw(scan.makeImage()!, in: page)
+        let stamp = CTLineCreateWithAttributedString(NSAttributedString(string: "p1",
+            attributes: [.font: NSFont.systemFont(ofSize: 10)]) as CFAttributedString)
+        stamped.textPosition = CGPoint(x: 570, y: 10)
+        CTLineDraw(stamp, stamped)
+        stamped.endPDFPage()
+        stamped.closePDF()
+        let scannedText = try String(contentsOf: try await runner.run(scanned, tool: .text), encoding: .utf8)
+        precondition(scannedText.contains("Scanned invoice body"), "A stamped scan still gets OCR: \(scannedText)")
         let bad = root.appendingPathComponent("bad.bin")
         try Data([1, 2, 3]).write(to: bad)
         do { _ = try await runner.run(bad, tool: .image()); fatalError("Unsupported input accepted")

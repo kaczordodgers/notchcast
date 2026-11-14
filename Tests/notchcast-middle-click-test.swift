@@ -87,6 +87,18 @@ struct MiddleClickTests {
         clock.now += 0.05
         precondition(!state.frame(device: 1, touches: lifted, at: 0.15), "the press claims the touch")
         precondition(state.press() == .plain, "a click after the fingers lift is a plain click")
+
+        clock.now += 1
+        let two = ThreeFingerState(clock: { clock.now })
+        precondition(!two.frame(device: 1, touches: fingers, at: 0))
+        precondition(!two.frame(device: 2, touches: Array(fingers.prefix(1)), at: 0))
+        clock.now += 0.1
+        precondition(!two.frame(device: 1, touches: fingers, at: 0.1))
+        precondition(!two.frame(device: 2, touches: Array(fingers.prefix(1)), at: 0.1))
+        precondition(two.press() == .plain, "a click while another pad is touched may be that pad's click")
+        precondition(!two.frame(device: 2, touches: [], at: 0.15))
+        precondition(!two.frame(device: 1, touches: fingers, at: 0.15))
+        precondition(two.press() == .middle, "an idle second pad leaves the three-finger press a middle click")
     }
 
     final class Clock: @unchecked Sendable {

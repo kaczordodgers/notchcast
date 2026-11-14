@@ -12,8 +12,9 @@ H.264 quality 0.68, longest side at most 1280 pixels and at most 30 fps, retaini
 audio track as AAC. Target mode retries lower bitrates and publishes only measured output
 within the requested bytes; impossible targets fail. Images are JPEG quality 0.72 with a
 1600-pixel default limit and source metadata removed. GIFs use 720 pixels and 12 fps, capped
-at 120 seconds to bound work. PDF text is read directly, with Vision OCR for scanned pages;
-images use Vision OCR. Cancellation is checked between OCR pages and image operations.
+at 120 seconds to bound work. PDF text is read directly, with Vision OCR for pages with no text layer or that draw an image;
+OCR replaces a page's text layer only when it reads over twice as many characters, so a stamped
+header or page number never hides a scanned body. Images use Vision OCR. Cancellation is checked between OCR pages and image operations.
 
 Behavior references: [media service](https://github.com/vorssaint/vorssaint-utils/blob/main/Sources/Vorssaint/Services/Media/MediaService.swift),
 Copyright (C) 2026 Vorssaint, GPL-3.0-or-later, and the local media conversion reference.

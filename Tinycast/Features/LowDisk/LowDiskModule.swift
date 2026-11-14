@@ -13,6 +13,7 @@ final class LowDiskModule: NotchcastModule {
             Self.postNotice($0)
         }
         manager.onReport = { Self.postNotice($0, isLow: false) }
+        manager.onFailure = { Self.postFailure() }
         manager.start()
     }
 
@@ -20,6 +21,7 @@ final class LowDiskModule: NotchcastModule {
         manager.stop()
         manager.onNotice = nil
         manager.onReport = nil
+        manager.onFailure = nil
         latest = nil
     }
 }
