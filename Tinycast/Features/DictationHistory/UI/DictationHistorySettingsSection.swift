@@ -13,6 +13,7 @@ struct DictationHistorySettingRow: View {
     @State private var isClearing = false
     @State private var loadFailed = false
     @State private var hasQuarantine = false
+    @State private var confirmingClear = false
 
     private var reloadID: String {
         "\(preferences.isOn(.dictationHistory))-\(DictationHistoryModule.shared.revision)"
@@ -29,11 +30,10 @@ struct DictationHistorySettingRow: View {
                 isLoading = true
                 loadFailed = false
                 do {
-                    let loaded = try await DictationHistoryModule.shared.recent(limit: 100)
-                    let quarantine = try await DictationHistoryModule.shared.hasQuarantine()
+                    let loaded = try await DictationHistoryModule.shared.snapshot(limit: 100)
                     try Task.checkCancellation()
-                    entries = loaded
-                    hasQuarantine = quarantine
+                    entries = loaded.entries
+                    hasQuarantine = loaded.hasQuarantine
                 } catch is CancellationError {
                     return
                 } catch {
@@ -43,28 +43,37 @@ struct DictationHistorySettingRow: View {
                 isLoading = false
             }
         Button(role: .destructive) {
-            isClearing = true
-            Task {
-                defer { isClearing = false }
-                guard await core.confirm(
-                    title: String(localized: "Clear dictation history?", table: "Notchcast"),
-                    message: String(localized: "Every past dictation goes. This can't be undone.", table: "Notchcast"),
-                    symbol: "waveform", confirmTitle: String(localized: "Clear History")) else { return }
-                do {
-                    try await DictationHistoryModule.shared.deleteAll()
-                    entries = []
-                    hasQuarantine = false
-                    loadFailed = false
-                }
-                catch {
-                    core.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
-                }
-            }
+            confirmingClear = true
         } label: {
             SettingsRowTitle(.notchcastCaptureAndDictation, "Clear History")
         }
         .disabled(!DictationHistoryClearPolicy.isEnabled(
             isLoading: isLoading, isClearing: isClearing, isEmpty: entries.isEmpty,
             hasQuarantine: hasQuarantine, loadFailed: loadFailed))
+        .confirmationDialog(
+            String(localized: "Clear dictation history?", table: "Notchcast"),
+            isPresented: $confirmingClear,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Clear History"), role: .destructive) { clear() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(String(localized: "Every past dictation goes. This can't be undone.", table: "Notchcast"))
+        }
+    }
+
+    private func clear() {
+        isClearing = true
+        Task {
+            defer { isClearing = false }
+            do {
+                try await DictationHistoryModule.shared.deleteAll()
+                entries = []
+                hasQuarantine = false
+                loadFailed = false
+            } catch {
+                core.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
+            }
+        }
     }
 }
