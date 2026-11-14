@@ -8,6 +8,8 @@ import Darwin
 import Foundation
 import Synchronization
 
+final class Sentinel: Sendable {}
+
 @main
 struct ProcessRunnerTest {
     static let marker = Data("process-runner-test \(UUID())".utf8)
@@ -230,6 +232,19 @@ struct ProcessRunnerTest {
         _ = try await drained.output()
         let late = Task { withUnsafeCurrentTask { $0?.cancel() }; return try await drained.output() }
         check((await failure { try await late.value }) is CancellationError)
+
+        weak var released: Sentinel?
+        do {
+            let held = Sentinel()
+            released = held
+            var timed = request("/bin/echo", ["timer"])
+            timed.timeout = .seconds(1)
+            timed.onLine = { _ in _ = held }
+            _ = try await ProcessRunner.run(timed)
+        }
+        try await Task.sleep(for: .milliseconds(1_500))
+        check(released == nil)
+        print("PASS: a finished run releases its timeout timer and what it captured")
 
         let blocking = try ProcessRunner.runBlocking(request("/bin/echo", ["sync"]))
         check(blocking.status == 0 && blocking.stdout == Data("sync\n".utf8))
