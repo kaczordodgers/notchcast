@@ -13,6 +13,7 @@ enum DialogTone {}
 @MainActor final class LowDiskManager {
     var onNotice: ((LowDiskEngine.Space) -> Void)?
     var onReport: ((LowDiskEngine.Space) -> Void)?
+    var onFailure: (() -> Void)?
     func start() {}
     func stop() {}
 }
@@ -41,8 +42,9 @@ enum DialogTone {}
         disk.manager.onNotice?(space)
         precondition(disk.latest == space)
         precondition(IslandHUDRouter.messages.last?.hasPrefix("Low disk space:") == true)
+        precondition(disk.manager.onFailure != nil, "A failed manual check reaches the island")
         disk.stop()
-        precondition(disk.manager.onNotice == nil)
+        precondition(disk.manager.onNotice == nil && disk.manager.onFailure == nil)
         let registered = SystemNoticesModule.register()
         precondition(registered.count == 1 && registered[0].module === SystemNoticesModule.shared)
         precondition(registered[0].requires == [.island, .systemNotices] && registered[0].requiresAny.isEmpty)

@@ -226,7 +226,9 @@ final class GreenMaximizeModule: NotchcastModule {
     private func refreshPointer(_ point: CGPoint) {
         guard tap.isActive else { return }
         pointerPoint = point
-        let inside = refreshPointerZones(at: point)
+        let (inside, changed) = refreshPointerZones(at: point)
+        // A query in flight read the old zone; its rect may belong to a window that has since moved.
+        if changed { pointerID = nil }
         guard inside else {
             shared.value.withLock { $0.pointerSnapshot = nil }
             return
@@ -253,7 +255,7 @@ final class GreenMaximizeModule: NotchcastModule {
         }
     }
 
-    private func refreshPointerZones(at point: CGPoint) -> Bool {
+    private func refreshPointerZones(at point: CGPoint) -> (inside: Bool, changed: Bool) {
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
             kCGNullWindowID) as? [[String: Any]] ?? []
         let zones = windows.compactMap { info -> CGRect? in
@@ -264,8 +266,9 @@ final class GreenMaximizeModule: NotchcastModule {
             return GreenMaximizeClick.PointerGate.zone(bounds: rect, layer: layer)
         }
         return shared.value.withLock { value in
-            if value.pointerGate.replace(zones: zones, at: point) { value.pointerSnapshot = nil }
-            return value.pointerGate.zone != nil
+            let changed = value.pointerGate.replace(zones: zones, at: point)
+            if changed { value.pointerSnapshot = nil }
+            return (value.pointerGate.zone != nil, changed)
         }
     }
 }

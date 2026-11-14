@@ -14,6 +14,7 @@ final class LowDiskManager {
     private(set) var isRunning = false
     var onNotice: ((LowDiskEngine.Space) -> Void)?
     var onReport: ((LowDiskEngine.Space) -> Void)?
+    var onFailure: (() -> Void)?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let read: Read
     @ObservationIgnored private let interval: Duration
@@ -88,6 +89,9 @@ final class LowDiskManager {
                 }
             } catch {
                 if !Task.isCancelled { Self.log.error("Disk capacity read failed: \(error.localizedDescription)") }
+                if !Task.isCancelled, let self, self.generation == current, self.isRunning, self.reportNext {
+                    self.onFailure?()
+                }
             }
             guard !Task.isCancelled, let self, self.generation == current else { return }
             self.reportNext = false

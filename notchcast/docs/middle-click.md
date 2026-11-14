@@ -1,7 +1,8 @@
 # Trackpad Middle Click
 
 The Notchcast switch defaults on and works independently of the island. Accessibility is required.
-Three-finger taps and physical presses produce middle clicks. Converted presses preserve drags and
+Three-finger taps and physical presses produce middle clicks. A click carries no device, so a press
+while fingers rest on another trackpad stays a plain click. Converted presses preserve drags and
 release pairing; stopping the module releases a held middle button. Synthetic events are tagged.
 
 This follows the Orion source variant: Three Finger Drag pauses recognition rather than moving it

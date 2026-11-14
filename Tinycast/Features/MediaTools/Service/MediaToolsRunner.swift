@@ -52,7 +52,7 @@ struct MediaToolsRunner: Sendable {
         case .gif: try await gif(input, output: staged)
         case let .image(dimension): try image(input, output: staged, dimension: dimension)
         case .text:
-            let text = try extract(input)
+            let text = try await extract(input)
             try text.write(to: staged, atomically: false, encoding: .utf8)
         }
         try Task.checkCancellation()
@@ -77,22 +77,24 @@ struct MediaToolsRunner: Sendable {
         guard CGImageDestinationFinalize(destination) else { throw Failure.encoding }
     }
 
-    private func extract(_ input: URL) throws -> String {
+    private func extract(_ input: URL) async throws -> String {
         if input.pathExtension.lowercased() == "pdf" {
             guard let document = PDFDocument(url: input), !document.isLocked else { throw Failure.unsupported }
-            return try (0..<document.pageCount).map { index in
+            var pages: [String] = []
+            for index in 0..<document.pageCount {
                 try Task.checkCancellation()
                 guard let page = document.page(at: index) else { throw Failure.unsupported }
-                if let text = page.string, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    return text
+                let layer = page.string ?? ""
+                guard Self.letterCount(layer) == 0 || page.pageRef.map(Self.drawsImage) == true else {
+                    pages.append(layer)
+                    continue
                 }
-                let thumbnail = page.thumbnail(of: CGSize(width: 1600, height: 1600), for: .mediaBox)
-                guard let data = thumbnail.tiffRepresentation,
-                      let source = CGImageSourceCreateWithData(data as CFData, nil),
-                      let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
-                else { throw Failure.unsupported }
-                return try recognize(image)
-            }.joined(separator: "\n")
+                guard let image = page.pageRef.flatMap(Self.rasterize) else { throw Failure.unsupported }
+                let recognized = try await recognize(image)
+                // A stamped header or page number must not stand in for the scanned body under it.
+                pages.append(Self.letterCount(recognized) > 2 * Self.letterCount(layer) ? recognized : layer)
+            }
+            return pages.joined(separator: "\n")
         }
         guard let source = CGImageSourceCreateWithURL(input as CFURL, nil),
               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
@@ -101,15 +103,92 @@ struct MediaToolsRunner: Sendable {
                 kCGImageSourceThumbnailMaxPixelSize: 3200,
               ] as CFDictionary)
         else { throw Failure.unsupported }
-        return try recognize(image)
+        return try await recognize(image)
     }
 
-    private func recognize(_ image: CGImage) throws -> String {
+    private static func rasterize(_ page: CGPDFPage) -> CGImage? {
+        let box = page.getBoxRect(.mediaBox)
+        guard box.width > 0, box.height > 0 else { return nil }
+        let quarterTurn = page.rotationAngle % 180 != 0
+        let scale = CGFloat(imageLimit) / max(box.width, box.height)
+        let width = Int((quarterTurn ? box.height : box.width) * scale)
+        let height = Int((quarterTurn ? box.width : box.height) * scale)
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+            bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)
+        else { return nil }
+        context.setFillColor(CGColor(gray: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.translateBy(x: CGFloat(width) / 2, y: CGFloat(height) / 2)
+        context.rotate(by: -CGFloat(page.rotationAngle) * .pi / 180)
+        context.scaleBy(x: scale, y: scale)
+        context.translateBy(x: -box.midX, y: -box.midY)
+        context.drawPDFPage(page)
+        return context.makeImage()
+    }
+
+    private static func letterCount(_ text: String) -> Int {
+        text.unicodeScalars.count { !CharacterSet.whitespacesAndNewlines.contains($0) }
+    }
+
+    private static func drawsImage(_ page: CGPDFPage) -> Bool {
+        var node = page.dictionary
+        while let dictionary = node {
+            var resources: CGPDFDictionaryRef?
+            if CGPDFDictionaryGetDictionary(dictionary, "Resources", &resources), let resources {
+                return drawsImage(resources: resources, depth: 0)
+            }
+            var parent: CGPDFDictionaryRef?
+            node = CGPDFDictionaryGetDictionary(dictionary, "Parent", &parent) ? parent : nil
+        }
+        return false
+    }
+
+    private static func drawsImage(resources: CGPDFDictionaryRef, depth: Int) -> Bool {
+        var objects: CGPDFDictionaryRef?
+        guard depth < 4, CGPDFDictionaryGetDictionary(resources, "XObject", &objects), let objects else { return false }
+        var found = false
+        CGPDFDictionaryApplyBlock(objects, { _, value, _ in
+            var stream: CGPDFStreamRef?
+            var subtype: UnsafePointer<CChar>?
+            guard CGPDFObjectGetValue(value, .stream, &stream), let stream,
+                  let info = CGPDFStreamGetDictionary(stream),
+                  CGPDFDictionaryGetName(info, "Subtype", &subtype), let subtype else { return true }
+            switch String(cString: subtype) {
+            case "Image": found = true
+            case "Form":
+                var nested: CGPDFDictionaryRef?
+                found = CGPDFDictionaryGetDictionary(info, "Resources", &nested) && nested.map {
+                    drawsImage(resources: $0, depth: depth + 1)
+                } == true
+            default: break
+            }
+            return !found
+        }, nil)
+        return found
+    }
+
+    private func recognize(_ image: CGImage) async throws -> String {
         try Task.checkCancellation()
+        // Vision blocks its caller while it waits on its own tasks, so it must not hold a pool thread.
+        let text = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, any Error>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                continuation.resume(with: Result { try Self.read(image) })
+            }
+        }
+        try Task.checkCancellation()
+        return text
+    }
+
+    private static func read(_ image: CGImage) throws -> String {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
-        try VNImageRequestHandler(cgImage: image).perform([request])
-        try Task.checkCancellation()
+        do {
+            try VNImageRequestHandler(cgImage: image).perform([request])
+        } catch {
+            // Virtual Macs cannot run the accurate model on any device; the fast one still reads.
+            request.recognitionLevel = .fast
+            try VNImageRequestHandler(cgImage: image).perform([request])
+        }
         return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
     }
 

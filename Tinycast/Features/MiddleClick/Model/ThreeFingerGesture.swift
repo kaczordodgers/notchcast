@@ -89,6 +89,7 @@ final class ThreeFingerState: @unchecked Sendable {
         var gesture = ThreeFingerGesture()
         var lastFrame: TimeInterval = 0
         var threeSince: TimeInterval?
+        var touching = false
     }
 
     private let lock = NSLock()
@@ -106,6 +107,7 @@ final class ThreeFingerState: @unchecked Sendable {
             var pad = pads[device] ?? Pad()
             let tapped = pad.gesture.frame(touches, at: time)
             pad.lastFrame = now
+            pad.touching = touches.contains(where: \.down)
             if !pad.gesture.threeDown {
                 pad.threeSince = nil
             } else if pad.threeSince == nil {
@@ -122,8 +124,13 @@ final class ThreeFingerState: @unchecked Sendable {
             let newest = pads.values.filter { $0.gesture.threeDown }.map(\.lastFrame).max() ?? -.infinity
             let threePad = pads.filter { $0.value.gesture.threeDown }
                 .max { $0.value.lastFrame < $1.value.lastFrame }
+            // The click carries no device: with fingers on another pad it may have come from there.
+            let otherPadTouched = pads.contains { device, pad in
+                device != threePad?.key && pad.touching
+                    && now - pad.lastFrame <= MiddleClickGuards.fingerFreshness
+            }
             let result = MiddleClickGuards.press(
-                threeDown: threePad != nil, frameAge: now - newest,
+                threeDown: threePad != nil && !otherPadTouched, frameAge: now - newest,
                 settledFor: threePad?.value.threeSince.map { now - $0 } ?? 0, sinceLastMiddle: lastMiddle.map { now - $0 })
             if result != .bounce, let device = threePad?.key { pads[device]?.gesture.claimClick() }
             return result

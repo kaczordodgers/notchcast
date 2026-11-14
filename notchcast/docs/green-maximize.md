@@ -24,6 +24,8 @@ Only their top-left 100×40 pt zones qualify: three observed 16 pt buttons plus 
 fit within 100 pt, with 40 pt covering the title-bar height. Outside these zones the pointer
 snapshot clears and no pointer AX read runs, including on the idle timer. The tap checks cached
 geometry only and hops to main when zone membership changes, coalescing motion within a zone.
+The 1 s refresh re-gates a still pointer against fresh bounds; a zone change drops any pointer
+read still in flight, so a window that moved away cannot be maximized from its old rect.
 The window under the
 pointer supplies a second snapshot, including its exact AX handle and pid, so background traffic
 lights work without activating the app first. Actions target the captured window rather than

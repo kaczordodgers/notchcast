@@ -101,13 +101,19 @@ struct LowDiskTests {
         checked.refresh()
         await checked.settled()
         check(reported.count == 1, "Background checks of healthy space stay quiet")
+        var failures = 0
+        checked.onFailure = { failures += 1 }
         reader.fails = true
+        checked.refresh()
+        await checked.settled()
+        check(failures == 0, "A failed background read stays quiet")
         checked.check()
         await checked.settled()
+        check(failures == 1, "A failed manual check reports the failure")
         reader.fails = false
         checked.refresh()
         await checked.settled()
-        check(reported.count == 1, "A failed manual check does not report on a later background refresh")
+        check(reported.count == 1 && failures == 1, "A failed manual check does not report on a later background refresh")
         checked.stop()
         print("PASS: \(checks) disk threshold, persistence, wake and stale-result checks")
     }
