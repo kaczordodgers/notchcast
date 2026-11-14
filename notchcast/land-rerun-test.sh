@@ -43,7 +43,7 @@ head=$(git rev-parse HEAD)
 git update-ref refs/remotes/origin/main "$base"
 export PATH="$scratch/bin:$PATH"
 # The loop starts after a green first pass: the train is one PR whose chain build and harnesses are stubbed.
-train=(1) check=0 rerun=0 pushes=0 hold_owner=1
+train=(1) check=0 rerun=0 pushes=0 hold_owner=1 covered=
 refuse() { echo "REFUSED: $*"; exit 1; }
 build_chain() { echo rebuilt >> "$scratch/rebuilt"; tip=$head; }
 harnesses() { refuse 'selected harness detects removed API in disjoint file'; }

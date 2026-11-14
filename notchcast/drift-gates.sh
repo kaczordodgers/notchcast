@@ -4,7 +4,9 @@ refuse() { echo "REFUSED: $*" >&2; exit 1; }
 prepare_drift_tools() {
     drift_tools="$scratch/gates-$1"
     mkdir -p "$drift_tools"
-    git archive "$1" notchcast | tar -x -C "$drift_tools"
+    # A file, not a pipe: tar exits at the end marker, and git archive then dies of SIGPIPE.
+    git archive -o "$drift_tools.tar" "$1" notchcast
+    tar -xf "$drift_tools.tar" -C "$drift_tools"
     drift_tools="$drift_tools/notchcast"
     if [ ! -f "$drift_tools/check-drift.py" ]; then
         drift_tools="$top/notchcast"
