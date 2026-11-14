@@ -6,8 +6,6 @@ enum NotchcastAppProof {
               let name = ProcessInfo.processInfo.environment["NOTCHCAST_PROOF"] else { return false }
         let checks: [String: @Sendable () async throws -> Void] = [
             "spotify-key": spotifyKey,
-            "archive-compress": archiveCompress,
-            "archive-fallback": archiveFallback,
         ]
         guard let check = checks[name] else {
             print("PROOF FAIL \(name): unknown check")
@@ -23,7 +21,6 @@ enum NotchcastAppProof {
                 exit(1)
             }
         }
-        // The shipped archive flows report progress on the main actor, so the main queue has to run.
         dispatchMain()
     }
 

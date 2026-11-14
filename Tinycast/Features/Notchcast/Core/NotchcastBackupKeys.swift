@@ -18,7 +18,6 @@ extension NotchcastFeature.BackupKeys {
         .musicLastPlayer,
         .spotifyConnect,
         .microphoneMute,
-        .archives,
         .keepAwake,
         .batteryChargeLimit,
         .agentActions,

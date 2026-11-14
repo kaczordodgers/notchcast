@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/NetMerge/Model/*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Webpage/HTMLDocument.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
@@ -8,7 +9,6 @@
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
-// notchcast-sources: Tinycast/Features/Downloads/Webpage/HTMLDocument.swift
 import Foundation
 
 @main

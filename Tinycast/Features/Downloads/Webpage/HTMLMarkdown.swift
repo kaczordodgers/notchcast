@@ -58,7 +58,10 @@ enum HTMLMarkdown {
             if trimmed.contains(/\n[ \t]*\n/) || trimmed.replacingOccurrences(of: "  \n", with: "").contains("\n") {
                 return content + "\n\n[\(escape(url))](<\(url)>)\n\n"
             }
-            return "[\(trimmed)](<\(url)>)"
+            let label = content.contains("\n") && !trimmed.contains("\n")
+                ? trimmed.replacingOccurrences(of: "^(#{1,6} |> ?)", with: "", options: .regularExpression)
+                : trimmed
+            return "[\(label)](<\(url)>)"
         case "img":
             guard let url = absolute(imageSource(node), baseURL: baseURL, image: true) else { return "" }
             return "![\(escape(node.attributes["alt"] ?? ""))](<\(url)>)"

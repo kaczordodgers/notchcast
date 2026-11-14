@@ -53,8 +53,6 @@ struct AudioPriorityTests {
         let store = MemoryStore()
         var failures = 0
         let manager = AudioPriorityManager(transport: transport, store: store) { _ in failures += 1 }
-        var successes = 0
-        manager.succeeded = { successes += 1 }
         transport.inventory(outputs: ["low"])
         manager.start()
         manager.start()
@@ -62,7 +60,7 @@ struct AudioPriorityTests {
         let reads1 = transport.readCount
         transport.inventory(outputs: ["low", "high"])
         await settle { transport.readCount > reads1 }
-        precondition(transport.writes == ["high"] && successes == 1)
+        precondition(transport.writes == ["high"] && transport.defaults[.output] == "high")
         let reads2 = transport.readCount
         transport.inventory(outputs: ["low"])
         await settle { transport.readCount > reads2 }
@@ -102,7 +100,7 @@ struct AudioPriorityTests {
         let reads9 = transport.readCount
         transport.callback?()
         await settle { transport.readCount > reads9 }
-        precondition(failures == 1 && transport.writes.count == 4 && successes == 3)
+        precondition(failures == 1 && transport.writes.count == 4 && transport.defaults[.output] == "low")
         let lateCallback = transport.callback
         manager.stop()
         manager.stop()

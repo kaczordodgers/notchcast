@@ -1,7 +1,10 @@
 import Darwin
 import Foundation
+import os
 
-enum PublicWebAddress {
+nonisolated enum PublicWebAddress {
+    typealias Lookup = @Sendable (String, UInt16) throws -> [String]
+
     static let localNames = ["localhost"]
     /// Also the source of WebKit's local-name content rules, so the two lists cannot drift.
     static let localSuffixes = [".localhost", ".local"]
@@ -60,28 +63,27 @@ enum PublicWebAddress {
         return true
     }
 
-    static func resolve(_ host: String, port: UInt16,
-                        lookup: @escaping @Sendable (String, UInt16) throws -> [String] = resolveBlocking
-    ) async throws -> [String] {
+    static func resolve(_ host: String, port: UInt16, lookup: @escaping Lookup = lookup) async throws -> [String] {
         try Task.checkCancellation()
-        let stream = AsyncThrowingStream<[String], any Error> { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                do {
-                    continuation.yield(try lookup(host, port))
-                    continuation.finish()
-                } catch { continuation.finish(throwing: error) }
-            }
-        }
-        for try await addresses in stream {
-            try Task.checkCancellation()
-            return addresses
-        }
-        throw CancellationError()
-    }
-
-    private static func resolveBlocking(_ host: String, port: UInt16) throws -> [String] {
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
         try validate(URL(string: "http://\(name.contains(":") ? "[\(name)]" : name):\(port)/") ?? URL(filePath: "/"))
+        let resolution = Resolution()
+        let addresses = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                guard resolution.install(continuation) else { return }
+                DispatchQueue.global(qos: .utility).async {
+                    resolution.finish(Result { try lookup(name, port) })
+                }
+            }
+        } onCancel: {
+            resolution.finish(.failure(CancellationError()))
+        }
+        guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
+        guard addresses.allSatisfy(isPublicIP) else { throw Refusal.privateAddress }
+        return addresses
+    }
+
+    static func lookup(_ name: String, _ port: UInt16) throws -> [String] {
         var hints = addrinfo()
         hints.ai_socktype = SOCK_STREAM
         hints.ai_protocol = IPPROTO_TCP
@@ -98,12 +100,39 @@ enum PublicWebAddress {
             }
             guard let address = String(bytes: buffer.prefix(while: { $0 != 0 }).map({ UInt8(bitPattern: $0) }),
                                        encoding: .utf8) else { throw Refusal.resolutionFailed }
-            guard isPublicIP(address) else { throw Refusal.privateAddress }
             if !addresses.contains(address) { addresses.append(address) }
             current = entry.pointee.ai_next
         }
-        guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
         return addresses
+    }
+
+    nonisolated private final class Resolution: Sendable {
+        enum State {
+            case idle
+            case waiting(CheckedContinuation<[String], any Error>)
+            case finished
+        }
+
+        let state = OSAllocatedUnfairLock(initialState: State.idle)
+
+        func install(_ continuation: CheckedContinuation<[String], any Error>) -> Bool {
+            let installed = state.withLock { state in
+                guard case .idle = state else { return false }
+                state = .waiting(continuation)
+                return true
+            }
+            if !installed { continuation.resume(throwing: CancellationError()) }
+            return installed
+        }
+
+        func finish(_ result: Result<[String], any Error>) {
+            let continuation = state.withLock { state -> CheckedContinuation<[String], any Error>? in
+                defer { state = .finished }
+                if case .waiting(let continuation) = state { return continuation }
+                return nil
+            }
+            continuation?.resume(with: result)
+        }
     }
 
     private static func isNumeric(_ host: String) -> Bool {

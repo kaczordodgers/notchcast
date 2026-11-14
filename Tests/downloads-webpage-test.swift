@@ -23,8 +23,14 @@ struct DownloadsWebpageTests {
 
     static func main() async throws {
         converter()
-        try await cancellationDuringDNS()
         addresses()
+        await cancelledResolution()
+        do {
+            _ = try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in ["127.0.0.1"] }
+            expect(false, "custom DNS lookup cannot bypass private-address refusal")
+        } catch PublicWebAddress.Refusal.privateAddress {
+            expect(true, "custom DNS lookup cannot bypass private-address refusal")
+        }
         frontMatter()
         failureDescriptions()
         contentRules()
@@ -32,12 +38,14 @@ struct DownloadsWebpageTests {
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
         try await extraction()
+        let started = ContinuousClock.now
         do {
-            _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1.nip.io/")!)
+            _ = try await WebpageExtractor { _, _ in ["127.0.0.1"] }.extract(URL(string: "http://example.com/")!)
             expect(false, "private DNS destination is refused")
         } catch let refusal as PublicWebAddress.Refusal {
             expect(refusal.localizedDescription == PublicWebAddress.Refusal.privateAddress.localizedDescription,
                    "proxy preserves private-address refusal")
+            expect(started.duration(to: .now) < .seconds(15), "private-address refusal fails the page promptly")
         }
         if let directory = ProcessInfo.processInfo.environment["TINYCAST_WEBPAGE_TEST_DIRECTORY"] {
             try await files(URL(filePath: directory, directoryHint: .isDirectory))
@@ -101,16 +109,15 @@ struct DownloadsWebpageTests {
                "block link preserves pre closing fence")
         expect(markdown("<a href='/x'>one<br>two</a>") == "[one  \ntwo](<https://example.com/x>)",
                "inline link retains hard break")
-        expect(markdown("<p>See <a href='/x'>one<br><br>two</a> now</p>") ==
-               "See one  \n\ntwo\n\n[https://example.com/x](<https://example.com/x>)\n\n now",
-               "double hard break keeps link destination on a separate line")
-        expect(markdown("<p>See <a href='/x'>one<br>\n<br>two</a> now</p>") ==
-               "See one  \n\ntwo\n\n[https://example.com/x](<https://example.com/x>)\n\n now",
-               "double hard break with whitespace keeps link destination on a separate line")
+        for html in ["one<br><br>two", "one<br>\n<br>two"] {
+            expect(markdown("<p>See <a href='/x'>\(html)</a> now</p>") ==
+                   "See one  \n\ntwo\n\n[https://example.com/x](<https://example.com/x>)\n\n now",
+                   "double hard break keeps link destination on a separate line")
+        }
         expect(!markdown("<p>A&#0;B&#x0;C</p>").contains("\u{0}"),
                "zero numeric entities do not introduce NUL")
-        let blocks = markdown("<a href='/next'><div>One</div><p>Two</p></a>")
-        expect(blocks == "One\n\nTwo\n\n[https://example.com/next](<https://example.com/next>)",
+        expect(markdown("<a href='/next'><div>One</div><p>Two</p></a>") ==
+               "One\n\nTwo\n\n[https://example.com/next](<https://example.com/next>)",
                "block link preserves paragraphs and destination without a multiline label")
         expect(markdown("<h1>Title</h1><h2>Section</h2><h6>Small</h6>").contains("## Section"), "ATX headings")
         expect(markdown("<h6>Small</h6>") == "###### Small", "six heading levels")
@@ -152,6 +159,54 @@ struct DownloadsWebpageTests {
         expect(markdown("<img alt=\"\" src=\"/empty-alt.png\">").contains("empty-alt.png"), "empty quoted attribute")
         expect(markdown("<h2>Heading<a href='#heading'><svg></svg></a></h2>") == "## Heading", "empty permalink dropped")
         expect(markdown("<main>\n <p>One</p>\n <p>Two</p>\n </main>") == "One\n\nTwo", "block whitespace normalized")
+        expect(markdown("<a href='/next'><div><h2>Title</h2><p>Read more</p></div></a>") ==
+               "## Title\n\nRead more\n\n[https://example.com/next](<https://example.com/next>)",
+               "block link preserves heading")
+        expect(markdown("<a href='/p'><div><p>1. Intro</p><p>- 20%</p></div></a>") ==
+               "1. Intro\n\n- 20%\n\n[https://example.com/p](<https://example.com/p>)",
+               "block link preserves literal list prefixes")
+        expect(markdown("<a href='/p'><div><p>Title</p><p>---</p></div></a>") ==
+               "Title\n\n---\n\n[https://example.com/p](<https://example.com/p>)", "block link preserves literal divider")
+        expect(markdown("<a href='/p'><ul><li>Two<br>more</li></ul></a>") ==
+               "[- Two  \n  more](<https://example.com/p>)", "block link preserves indentation and break spaces")
+        expect(markdown("<a href='/p'><figure><img src='/c.png' alt='Cover'></figure></a>") ==
+               "[![Cover](<https://example.com/c.png>)](<https://example.com/p>)", "linked figure keeps image")
+        expect(markdown("<a href='/p'><div><svg><title>Arrow</title></svg><h3>Post</h3>" +
+                        "<p hidden>Hidden</p><p aria-hidden='true'>Invisible</p></div></a>") ==
+               "[Post](<https://example.com/p>)", "card label excludes hidden and SVG content")
+    }
+
+    static func cancelledResolution() async {
+        let release = DispatchSemaphore(value: 0)
+        let deadline = DispatchWorkItem { @Sendable in
+            fatalError("DNS cancellation did not complete within three seconds")
+        }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: deadline)
+        defer {
+            deadline.cancel()
+            release.signal()
+        }
+        var fetch: Task<[String], any Error>?
+        await withCheckedContinuation { started in
+            fetch = Task {
+                try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in
+                    started.resume()
+                    release.wait()
+                    return ["127.0.0.1"]
+                }
+            }
+        }
+        guard let fetch else { return }
+        let clock = ContinuousClock()
+        let start = clock.now
+        fetch.cancel()
+        do {
+            _ = try await fetch.value
+            expect(false, "cancelled DNS cannot publish its late result")
+        } catch {
+            expect(error is CancellationError && start.duration(to: clock.now) < .seconds(1),
+                   "DNS cancellation returns before blocked lookup finishes")
+        }
     }
 
     static func addresses() {
@@ -171,34 +226,6 @@ struct DownloadsWebpageTests {
             expect(!accepted, "refuses URL \(value)")
         }
         expect((try? PublicWebAddress.validate(base)) != nil, "permits public hostname")
-    }
-
-    static func cancellationDuringDNS() async throws {
-        let started = AsyncStream<Void>.makeStream()
-        let release = DispatchSemaphore(value: 0)
-        defer { release.signal() }
-        let deadline = DispatchWorkItem { @Sendable in
-            fatalError("DNS cancellation did not complete within three seconds")
-        }
-        DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: deadline)
-        defer { deadline.cancel() }
-        let task = Task {
-            try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in
-                started.continuation.yield(())
-                release.wait()
-                return ["93.184.216.34"]
-            }
-        }
-        var iterator = started.stream.makeAsyncIterator()
-        _ = await iterator.next()
-        task.cancel()
-        do {
-            _ = try await task.value
-            expect(false, "DNS cancellation throws")
-        } catch is CancellationError {
-            expect(true, "DNS cancellation returns while lookup is still blocked")
-        }
-        print("PASS: DNS cancellation returns before blocked lookup completes")
     }
 
     static func article(title: String = "A title") -> WebpageArticle {
@@ -247,6 +274,15 @@ struct DownloadsWebpageTests {
         expect(!extracted.contains("navigation") && !extracted.contains("footer"),
                "extractor removes chrome")
         expect(extracted.contains("/photo.jpg"), "extractor retains remote images")
+        for (text, blocked) in [("This short article explains how cookies work in a browser.", false),
+                                ("Verify you are human", true)] {
+            try await navigation.load("<html><head><title>Browser guide</title></head><body><main>\(text)</main></body></html>",
+                                      into: view)
+            let value = try await view.callAsyncJavaScript(WebpageExtraction.script, arguments: [:],
+                                                          in: nil, contentWorld: .defaultClient)
+            let fields = try JSONSerialization.jsonObject(with: Data((value as? String ?? "{}").utf8)) as? [String: Any]
+            expect((fields?["blocked"] as? Bool ?? false) == blocked, "cookie article passes and human check blocks")
+        }
         for (body, blocked) in [
             ("This site uses cookies. Read our cookie policy.", false),
             ("Checking your browser. Enable JavaScript and cookies.", true)

@@ -31,7 +31,7 @@ extension RecordingModule {
 
     func recordScreen() {
         guard let displayID = NSScreen.underCursor?.displayID else {
-            NotchcastHost.current.showMessage(Self.failureMessage(RecordingTarget.Failure.targetUnavailable), .danger)
+            report(Self.failureMessage(RecordingTarget.Failure.targetUnavailable), true)
             return
         }
         performRecordingCommand(.record(.display(displayID)))
@@ -45,7 +45,7 @@ extension RecordingModule {
                 guard let self, self.enabled, let selection else { return }
                 self.performRecordingCommand(.record(.area(selection.rect)))
             }
-        } catch { NotchcastHost.current.showMessage(Self.failureMessage(error), .danger) }
+        } catch { report(Self.failureMessage(error), true) }
     }
 
     func performRecordingCommand(_ command: Command) {
@@ -54,17 +54,13 @@ extension RecordingModule {
         }
     }
 
-    func executeRecordingCommand(
-        _ command: Command,
-        report: @escaping (String, Bool) -> Void = { NotchcastHost.current.showMessage($0, $1 ? .danger : .success) },
-        reveal: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
-    ) async {
+    func executeRecordingCommand(_ command: Command) async {
         do {
             switch command {
             case .record(let target): try await record(target)
             case .pause: try setPaused(phase != .paused)
             case .finish:
-                await finishAndReport(report: report, reveal: reveal)
+                await finishAndReport()
             }
         } catch is CancellationError {
         } catch { report(Self.failureMessage(error), true) }

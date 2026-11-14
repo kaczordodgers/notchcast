@@ -54,6 +54,10 @@ struct MediaToolsTest {
         try await fixture(video)
         let output = try await runner.run(video, tool: .video())
         let asset = AVURLAsset(url: output)
+        let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+        precondition(audioTracks.count == 1, "Video encoding must preserve audio")
+        let audioDuration = try await audioTracks[0].load(.timeRange).duration.seconds
+        precondition(audioDuration >= 0.9, "Encoded audio must cover the fixture")
         let track = try await asset.loadTracks(withMediaType: .video).first!
         let size = try await track.load(.naturalSize)
         let fps = try await track.load(.nominalFrameRate)
@@ -79,7 +83,9 @@ struct MediaToolsTest {
     }
 
     static func fixture(_ url: URL) async throws {
-        let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+        let silent = url.deletingPathExtension().appendingPathExtension("silent.mov")
+        let audio = url.deletingPathExtension().appendingPathExtension("caf")
+        let writer = try AVAssetWriter(outputURL: silent, fileType: .mov)
         let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
             AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: 1440, AVVideoHeightKey: 800,
         ])
@@ -98,5 +104,30 @@ struct MediaToolsTest {
         receiver.finish()
         await writer.finishWriting()
         precondition(writer.status == .completed)
+        let format = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 44100)!
+        buffer.frameLength = 44100
+        for channel in 0..<2 {
+            for frame in 0..<44100 {
+                buffer.floatChannelData![channel][frame] = Float(sin(Double(frame) * 2 * .pi * 440 / 44100)) * 0.1
+            }
+        }
+        do {
+            let file = try AVAudioFile(forWriting: audio, settings: format.settings)
+            try file.write(from: buffer)
+        }
+        let composition = AVMutableComposition()
+        for (source, type) in [(silent, AVMediaType.video), (audio, AVMediaType.audio)] {
+            let asset = AVURLAsset(url: source)
+            let track = try await asset.loadTracks(withMediaType: type).first!
+            let destination = composition.addMutableTrack(withMediaType: type,
+                preferredTrackID: kCMPersistentTrackID_Invalid)!
+            try destination.insertTimeRange(CMTimeRange(start: .zero, duration: CMTime(seconds: 1, preferredTimescale: 44100)),
+                of: track, at: .zero)
+        }
+        let export = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetPassthrough)!
+        try await export.export(to: url, as: .mov)
+        let fixtureAudio = try await AVURLAsset(url: url).loadTracks(withMediaType: .audio)
+        precondition(fixtureAudio.count == 1)
     }
 }

@@ -1,5 +1,7 @@
 # Shelf core
 
+Receives run in order through one queue; Send Clipboard sends copied files (up to 64), an HTTP(S) link or text, and refuses folders and items above 24 KiB.
+
 The shelf switch is off by default and requires Mac Link. Show Shelf opens its received-items
 section in Settings → Notchcast → Two Macs. Items appear newest first, with Copy for text and
 links, Open for links, Save to Downloads for files, Remove and confirmed Clear All.

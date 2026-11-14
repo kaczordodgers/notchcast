@@ -24,6 +24,11 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
     private var continuation: CheckedContinuation<Void, any Error>?
     private var operationID: UUID?
     private var loaded = false
+    private let lookup: PublicWebAddress.Lookup
+
+    init(lookup: @escaping PublicWebAddress.Lookup = PublicWebAddress.lookup) {
+        self.lookup = lookup
+    }
 
     func extract(_ source: URL) async throws -> WebpageArticle {
         guard operationID == nil else { throw Failure.inUse }
@@ -32,7 +37,7 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
         let id = UUID()
         operationID = id
         let proxy: PublicWebProxy
-        do { proxy = try PublicWebProxy() } catch { operationID = nil; throw error }
+        do { proxy = try PublicWebProxy(lookup: lookup) } catch { operationID = nil; throw error }
         defer {
             webView?.stopLoading()
             webView?.navigationDelegate = nil

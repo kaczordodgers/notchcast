@@ -4,7 +4,7 @@ enum ShelfEngine {
     static let maximumItemBytes = 24 * 1024
     static let maximumItems = 64
 
-    enum Failure: Error { case oversized, invalidItem, peerDown, stopped, full }
+    enum Failure: Error { case oversized, invalidItem, peerDown, stopped }
 
     static func validate(_ item: ShelfItem) throws {
         guard item.data.count <= maximumItemBytes else { throw Failure.oversized }

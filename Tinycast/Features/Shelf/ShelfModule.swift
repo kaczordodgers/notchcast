@@ -7,7 +7,7 @@ final class ShelfModule: NotchcastModule {
     var linkStatus: (any ShelfLinkStatus)?
     var transport: (any ShelfTransport)?
     let store: ShelfReceivedStore
-    private var receiving = false
+    private var receiving: Task<URL, Error>?
 
     init(directory: URL = URL.cachesDirectory
         .appendingPathComponent(NotchcastIdentity.current.bundleID)
@@ -34,13 +34,14 @@ final class ShelfModule: NotchcastModule {
 
     func receive(_ item: ShelfItem) async throws -> URL {
         guard isRunning else { throw ShelfEngine.Failure.stopped }
-        guard !receiving else { throw ShelfEngine.Failure.full }
-        receiving = true
-        defer { receiving = false }
+        let previous = receiving
         let operation = generation
-        let url = try await store.receive(item)
-        try Task.checkCancellation()
-        guard isRunning, generation == operation else { throw ShelfEngine.Failure.stopped }
-        return url
+        let task = Task {
+            if let previous { _ = await previous.result }
+            guard isRunning, generation == operation else { throw ShelfEngine.Failure.stopped }
+            return try await store.receive(item)
+        }
+        receiving = task
+        return try await task.value
     }
 }

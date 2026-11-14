@@ -66,7 +66,6 @@ final class CoreAudioPriorityTransport: AudioPriorityTransport {
     }
 
     func start(onChange: @escaping @Sendable () -> Void) throws {
-        guard listeners.count != 3 else { return }
         for selector in [kAudioHardwarePropertyDevices, kAudioHardwarePropertyDefaultOutputDevice,
                          kAudioHardwarePropertyDefaultInputDevice] {
             guard !listeners.contains(where: { $0.0.mSelector == selector }) else { continue }

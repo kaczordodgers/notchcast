@@ -5,6 +5,7 @@ import Network
 final class PublicWebProxy {
     private(set) var refusal: PublicWebAddress.Refusal?
     private let listener: NWListener
+    private let lookup: PublicWebAddress.Lookup
     private let username = UUID().uuidString
     private let password = UUID().uuidString + UUID().uuidString
     private var tunnels: [UUID: Tunnel] = [:]
@@ -12,10 +13,11 @@ final class PublicWebProxy {
     private var startContinuation: CheckedContinuation<ProxyConfiguration, any Error>?
     private var stopped = false
 
-    init() throws {
+    init(lookup: @escaping PublicWebAddress.Lookup = PublicWebAddress.lookup) throws {
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
         listener = try NWListener(using: parameters)
+        self.lookup = lookup
     }
 
     func start() async throws -> ProxyConfiguration {
@@ -65,7 +67,7 @@ final class PublicWebProxy {
     private func accept(_ connection: NWConnection) {
         guard !stopped, tunnels.count < 32, remainingBytes > 0 else { connection.cancel(); return }
         let id = UUID()
-        let tunnel = Tunnel(connection: connection, username: username, password: password,
+        let tunnel = Tunnel(connection: connection, username: username, password: password, lookup: lookup,
                             consume: { [weak self] count in
             guard let self, !self.stopped, count <= self.remainingBytes else { return false }
             self.remainingBytes -= count
@@ -82,6 +84,7 @@ final class PublicWebProxy {
         private var upstream: NWConnection?
         private let username: String
         private let password: String
+        private let lookup: PublicWebAddress.Lookup
         private let consume: (Int) -> Bool
         private let finished: () -> Void
         private let refused: (PublicWebAddress.Refusal) -> Void
@@ -90,12 +93,13 @@ final class PublicWebProxy {
         private var connectContinuation: CheckedContinuation<Void, any Error>?
         private var closed = false
 
-        init(connection: NWConnection, username: String, password: String,
+        init(connection: NWConnection, username: String, password: String, lookup: @escaping PublicWebAddress.Lookup,
              consume: @escaping (Int) -> Bool, refused: @escaping (PublicWebAddress.Refusal) -> Void,
              finished: @escaping () -> Void) {
             client = connection
             self.username = username
             self.password = password
+            self.lookup = lookup
             self.consume = consume
             self.finished = finished
             self.refused = refused
@@ -170,16 +174,25 @@ final class PublicWebProxy {
                 let host = try await destination(request[3])
                 let portBytes = try await read(2)
                 let port = UInt16(portBytes[0]) * 256 + UInt16(portBytes[1])
-                let addresses = try await PublicWebAddress.resolve(host, port: port)
-                guard !closed, let endpointPort = NWEndpoint.Port(rawValue: port) else {
-                    throw CancellationError()
+                let connection: NWConnection
+                do {
+                    let addresses = try await PublicWebAddress.resolve(host, port: port, lookup: lookup)
+                    try Task.checkCancellation()
+                    guard !closed, let endpointPort = NWEndpoint.Port(rawValue: port) else {
+                        throw CancellationError()
+                    }
+                    connection = try await connect(addresses, port: endpointPort)
+                } catch {
+                    // Without a SOCKS failure reply, WebKit retries the closed socket until its 60 s timeout.
+                    let refusal = error as? PublicWebAddress.Refusal
+                    if let refusal { refused(refusal) }
+                    try? await send([5, refusal == nil ? 1 : 2, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
+                    throw error
                 }
-                let connection = try await connect(addresses, port: endpointPort)
                 try await send([5, 0, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
                 relay(from: client, to: connection)
                 relay(from: connection, to: client)
             } catch {
-                if let refusal = error as? PublicWebAddress.Refusal { refused(refusal) }
                 close()
             }
         }

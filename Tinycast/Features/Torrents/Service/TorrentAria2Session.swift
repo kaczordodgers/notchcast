@@ -37,8 +37,10 @@ import Foundation
         try Task.checkCancellation()
         let port = try Self.freePort()
         let secret = UUID().uuidString + UUID().uuidString
+        let configuration = try Self.writeConfiguration(secret: secret, directory: stateDirectory)
+        defer { try? FileManager.default.removeItem(at: configuration.deletingLastPathComponent()) }
         var request = ProcessRunner.Request(executable: executable,
-            arguments: Self.arguments(port: port, secret: secret, stateDirectory: stateDirectory,
+            arguments: Self.arguments(port: port, configuration: configuration, stateDirectory: stateDirectory,
                                       extraArguments: extraArguments),
             environment: ProcessInfo.processInfo.environment,
             directory: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
@@ -111,9 +113,26 @@ import Foundation
         process = nil
     }
 
-    static func arguments(port: UInt16, secret: String, stateDirectory: URL, extraArguments: [String]) -> [String] {
+    static func writeConfiguration(secret: String, directory: URL) throws -> URL {
+        let privateDirectory = directory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: privateDirectory, withIntermediateDirectories: false,
+                                                    attributes: [.posixPermissions: 0o700])
+        } catch {
+            throw TorrentFailure.launchFailed
+        }
+        let file = privateDirectory.appendingPathComponent("aria2.conf")
+        guard FileManager.default.createFile(atPath: file.path, contents: Data("rpc-secret=\(secret)\n".utf8),
+                                             attributes: [.posixPermissions: 0o600]) else {
+            try? FileManager.default.removeItem(at: privateDirectory)
+            throw TorrentFailure.launchFailed
+        }
+        return file
+    }
+
+    static func arguments(port: UInt16, configuration: URL, stateDirectory: URL, extraArguments: [String]) -> [String] {
         extraArguments + [
-            "--no-conf=true", "-j16", "--bt-max-peers=200", "--bt-request-peer-speed-limit=1024M",
+            "--conf-path=\(configuration.path)", "-j16", "--bt-max-peers=200", "--bt-request-peer-speed-limit=1024M",
             "-x16", "-s16", "-k1M", "--follow-torrent=mem", "--bt-save-metadata=false",
             "--file-allocation=none", "--dht-entry-point=dht.transmissionbt.com:6881",
             "--continue=true", "--auto-file-renaming=false", "--allow-overwrite=false", "--check-integrity=true",
@@ -121,7 +140,7 @@ import Foundation
             "--dht-file-path=\(stateDirectory.appendingPathComponent("dht.dat").path)",
             "--dht-file-path6=\(stateDirectory.appendingPathComponent("dht6.dat").path)",
             "--enable-rpc=true", "--rpc-max-request-size=32M", "--rpc-listen-all=false", "--rpc-allow-origin-all=false",
-            "--rpc-listen-port=\(port)", "--rpc-secret=\(secret)", "--disable-ipv6=true",
+            "--rpc-listen-port=\(port)", "--disable-ipv6=true",
             "--stop-with-process=\(getpid())", "--daemon=false", "--quiet=true",
         ]
     }
@@ -131,6 +150,14 @@ import Foundation
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
                                                      attributes: [.posixPermissions: 0o700])
+            for entry in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
+                guard UUID(uuidString: entry.lastPathComponent) != nil else { continue }
+                let attributes = try FileManager.default.attributesOfItem(atPath: entry.path)
+                guard attributes[.type] as? FileAttributeType == .typeDirectory else { continue }
+                let contents = try FileManager.default.contentsOfDirectory(atPath: entry.path)
+                guard contents.isEmpty || contents == ["aria2.conf"] else { continue }
+                try FileManager.default.removeItem(at: entry)
+            }
         } catch {
             throw TorrentFailure.launchFailed
         }

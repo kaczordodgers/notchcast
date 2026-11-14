@@ -32,18 +32,18 @@ struct DictationHistoryTests {
             precondition(unchanged == blank)
         }
         await module.waitUntilIdle()
-        let emptyHistory = try await module.recent()
+        let emptyHistory = try await module.snapshot().entries
         precondition(emptyHistory.isEmpty)
         let raw = await stage("fixture raw", nil)
         DictationCoordinator.transcriptObserver?("fixture raw", raw)
         precondition(raw == "fixture raw")
         await module.waitUntilIdle()
-        let entries = try await module.recent()
+        let entries = try await module.snapshot().entries
         precondition(entries.count == 1 && entries[0].cleaned == "fixture raw")
         try await module.deleteAll()
         family.observeTranscript(raw: "Wyślij raport.", cleaned: "Send the report.")
         await module.waitUntilIdle()
-        let english = try await module.recent()
+        let english = try await module.snapshot().entries
         precondition(english.count == 1 && english[0].cleaned == "Send the report.")
         precondition(english[0].raw == "Wyślij raport.")
         let backup = try directory.resourceValues(forKeys: [.isExcludedFromBackupKey])
@@ -129,7 +129,7 @@ struct DictationHistoryTests {
         let fallback = try repository.recent()
         precondition(fallback.count == 1)
         try await module.deleteAll()
-        let deleted = try await module.recent()
+        let deleted = try await module.snapshot().entries
         precondition(deleted.isEmpty)
         let old = DictationHistoryEntry(id: UUID(), date: date.addingTimeInterval(-91 * 86_400),
                                        raw: "expired", cleaned: "expired")

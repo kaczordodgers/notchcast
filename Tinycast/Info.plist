@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSServices</key>
-	<array>
-		<dict><key>NSMenuItem</key><dict><key>default</key><string>Compress with Notchcast</string></dict><key>NSMessage</key><string>compress</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
-		<dict><key>NSMenuItem</key><dict><key>default</key><string>Compress Small</string></dict><key>NSMessage</key><string>compressSmall</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
-		<dict><key>NSMenuItem</key><dict><key>default</key><string>Compress Fast</string></dict><key>NSMessage</key><string>compressFast</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -107,42 +101,6 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>Archives</string>
-			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
-			<key>LSHandlerRank</key>
-			<string>Alternate</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.zip-archive</string>
-				<string>org.7-zip.7-zip-archive</string>
-				<string>com.rarlab.rar-archive</string>
-				<string>public.tar-archive</string>
-				<string>org.gnu.gnu-zip-tar-archive</string>
-				<string>org.gnu.gnu-zip-archive</string>
-				<string>app.notchcast.split-archive</string>
-				<string>org.tukaani.xz-archive</string>
-				<string>org.tukaani.tar-xz-archive</string>
-				<string>public.bzip2-archive</string>
-				<string>public.tar-bzip2-archive</string>
-				<string>app.notchcast.zstd-archive</string>
-				<string>app.notchcast.zstd-tar-archive</string>
-				<string>public.iso-image</string>
-				<string>com.microsoft.cab</string>
-				<string>com.apple.installer-package-archive</string>
-				<string>com.apple.xar-archive</string>
-				<string>public.cpio-archive</string>
-				<string>com.stuffit.archive.sit</string>
-				<string>com.stuffit.archive.sitx</string>
-				<string>app.notchcast.lzh-archive</string>
-				<string>app.notchcast.arj-archive</string>
-				<string>public.z-archive</string>
-				<string>app.notchcast.arc-archive</string>
-				<string>app.notchcast.zoo-archive</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeName</key>
 			<string>BitTorrent</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
@@ -156,86 +114,6 @@
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.rarlab.rar-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>rar</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.zstd-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>zst</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.zstd-tar-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>tzst</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.lzh-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>lzh</string><string>lha</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.arj-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>arj</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.arc-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>arc</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.zoo-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>zoo</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>app.notchcast.split-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>001</string>
-				</array>
-			</dict>
-		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>org.bittorrent.torrent</string>

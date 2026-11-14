@@ -66,7 +66,7 @@ enum MicrophoneInput { enum Failure: Error { case unavailable } }
     var running = false
     func start() { running = true }
     func stop() { running = false }
-    func setMuted(_ value: Bool) { isMuted = value }
+    func setMuted(_ value: Bool, unmuteAll: Bool = true) { isMuted = value }
     func toggle() { isMuted.toggle() }
 }
 @MainActor final class InUseMarks {

@@ -35,17 +35,23 @@ enum ScrollingScreenSource {
             }
             filter = SCContentFilter(display: display, excludingWindows: excluded + ownWindows)
         }
-        let configuration = SCScreenshotConfiguration()
-        configuration.sourceRect = local
-        configuration.width = max(1, Int((local.width * CGFloat(filter.pointPixelScale)).rounded()))
-        configuration.height = max(1, Int((local.height * CGFloat(filter.pointPixelScale)).rounded()))
-        configuration.showsCursor = false
-        configuration.dynamicRange = .sdr
+        let configuration = configuration(localRect: local, scale: CGFloat(filter.pointPixelScale))
         return {
             let output = try await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration)
             try Task.checkCancellation()
             guard let image = output.sdrImage else { throw ScrollingCaptureSession.Failure.invalidFrame }
             return image
         }
+    }
+
+    @MainActor
+    static func configuration(localRect local: CGRect, scale: CGFloat) -> SCScreenshotConfiguration {
+        let configuration = SCScreenshotConfiguration()
+        configuration.sourceRect = local
+        configuration.width = max(1, Int((local.width * scale).rounded()))
+        configuration.height = max(1, Int((local.height * scale).rounded()))
+        configuration.showsCursor = false
+        configuration.dynamicRange = .sdr
+        return configuration
     }
 }

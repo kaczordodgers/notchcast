@@ -17,9 +17,6 @@ struct NotchcastSettingRowsC: View {
             FinderCutPasteSettingRow()
         case .filesAndClipboardRenameShortcut:
             FinderRenameSettingRow()
-        case .filesAndClipboardArchives:
-            ArchiveToolSettingRow()
-            ArchiveJobsSettingRow()
         case .filesAndClipboardURLCleaner:
             URLCleanerCustomParametersSettingRow(module: NotchcastCore.urlCleaner)
             URLCleanerDisabledParametersSettingRow(module: NotchcastCore.urlCleaner)

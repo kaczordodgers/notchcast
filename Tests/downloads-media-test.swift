@@ -16,9 +16,6 @@ import Foundation
 @main struct DownloadsMediaTest {
     static func main() async throws {
         let destination = URL(filePath: "/tmp/media")
-        let entities = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n&#x1F600; &#169; &amp; &quot; &nbsp; &amp;lt;"
-        precondition(CaptionText.plainText(entities, automatic: false) == "😀 © & \" &lt;")
-        print("PASS: captions decode numeric and named entities exactly once")
         let source = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
         let native = MediaArguments.download(source: source, destination: destination, format: .video)
         precondition(!native.contains("--downloader") && !native.contains("--cookies-from-browser"))
@@ -124,6 +121,8 @@ import Foundation
         precondition(CaptionText.plainText("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n \n", automatic: false) == "")
         let escaped = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nyes &amp; no"
         precondition(CaptionText.plainText(escaped, automatic: false) == "yes & no")
+        let entities = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nIt&#x27;s &amp; &copy; &ldquo;fine&rdquo; &amp;lt;\n"
+        precondition(CaptionText.plainText(entities, automatic: false) == "It's & © “fine” &lt;")
         let srt = "1\n00:00:00,000 --> 00:00:01,000\nHello\n\n2\n00:00:01,000 --> 00:00:02,000\nthere"
         precondition(CaptionText.plainText(srt, automatic: false) == "Hello there")
         precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions", automatic: true) == "")

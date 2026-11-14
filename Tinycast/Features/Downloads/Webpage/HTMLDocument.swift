@@ -110,7 +110,6 @@ struct HTMLDocument {
     }
 
     nonisolated static func decode(_ text: String) -> String {
-        guard text.contains("&") else { return text }
         let entities = ["amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": " ",
                         "copy": "©", "reg": "®", "hellip": "…", "mdash": "—", "ndash": "–",
                         "lsquo": "‘", "rsquo": "’", "ldquo": "“", "rdquo": "”", "bull": "•", "trade": "™"]

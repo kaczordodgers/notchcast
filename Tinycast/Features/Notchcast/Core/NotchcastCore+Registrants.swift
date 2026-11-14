@@ -18,7 +18,6 @@ extension NotchcastCore {
         FinderToolsCoordinator.self,
         PlainPasteModule.self,
         TorrentModule.self,
-        ArchiveModule.self,
         QuickLookCoordinator.self,
         KatanaModule.self,
         TreadmillCoordinator.self,

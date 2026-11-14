@@ -46,6 +46,8 @@ struct DownloadsXPostTests {
     "text":"Use line breaks. Walls of text get skipped. ","type":"blockquote"},
     {"entityRanges":[{"key":9,"length":5,"offset":9}],"inlineStyleRanges":[{"length":4,"offset":0,"style":"Italic"}],
     "text":"Read the guide now","type":"unstyled"},
+    {"entityRanges":[{"key":9,"length":5,"offset":4}],"inlineStyleRanges":[],
+    "text":"The guide","type":"header-three"},
     {"entityRanges":[],"inlineStyleRanges":[],
     "text":"Kept text","type":"future-block"}],
     "entityMap":[{"key":"5","value":{"data":{"markdown":"```\n\nHooks by format\n\nShort posts   → The hook IS the post.\n```"},
@@ -132,6 +134,7 @@ struct DownloadsXPostTests {
                "embedded post as link")
         expect(text.contains("> **Use line breaks.** Walls of text get skipped."), "blockquote keeps bold spacing")
         expect(text.contains("*Read* the [guide](<https://example.com/guide>) now"), "italic and link ranges")
+        expect(text.contains("#### The [guide](<https://example.com/guide>)\n"), "heading keeps its link")
         expect(text.contains("\nKept text\n"), "unknown block keeps its text")
         expect(article.filename == "Ryan - 𝕏 Copywriting Masterclass (Dense Guide)", "article filename")
     }
