@@ -2,6 +2,8 @@ import Darwin
 import Foundation
 
 enum PublicWebAddress {
+    typealias Lookup = @Sendable (String, UInt16) throws -> [String]
+
     static let localNames = ["localhost"]
     /// Also the source of WebKit's local-name content rules, so the two lists cannot drift.
     static let localSuffixes = [".localhost", ".local"]
@@ -61,10 +63,18 @@ enum PublicWebAddress {
     }
 
     @concurrent
-    static func resolve(_ host: String, port: UInt16) async throws -> [String] {
+    static func resolve(_ host: String, port: UInt16, lookup: Lookup = lookup) async throws -> [String] {
         try Task.checkCancellation()
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
         try validate(URL(string: "http://\(name.contains(":") ? "[\(name)]" : name):\(port)/") ?? URL(filePath: "/"))
+        let addresses = try lookup(name, port)
+        try Task.checkCancellation()
+        guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
+        guard addresses.allSatisfy(isPublicIP) else { throw Refusal.privateAddress }
+        return addresses
+    }
+
+    static func lookup(_ name: String, _ port: UInt16) throws -> [String] {
         var hints = addrinfo()
         hints.ai_socktype = SOCK_STREAM
         hints.ai_protocol = IPPROTO_TCP
@@ -81,12 +91,9 @@ enum PublicWebAddress {
             }
             guard let address = String(bytes: buffer.prefix(while: { $0 != 0 }).map({ UInt8(bitPattern: $0) }),
                                        encoding: .utf8) else { throw Refusal.resolutionFailed }
-            guard isPublicIP(address) else { throw Refusal.privateAddress }
             if !addresses.contains(address) { addresses.append(address) }
             current = entry.pointee.ai_next
         }
-        try Task.checkCancellation()
-        guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
         return addresses
     }
 
