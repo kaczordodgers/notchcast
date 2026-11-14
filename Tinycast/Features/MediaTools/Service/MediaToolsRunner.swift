@@ -1,5 +1,4 @@
 import AVFoundation
-import CoreML
 import ImageIO
 import PDFKit
 import UniformTypeIdentifiers
@@ -172,12 +171,14 @@ struct MediaToolsRunner: Sendable {
         try Task.checkCancellation()
         var request = RecognizeTextRequest()
         request.recognitionLevel = .accurate
-        // Without a Neural Engine (virtual Macs) the default model compile fails; the CPU still reads.
-        if !MLComputeDevice.allComputeDevices.contains(where: { if case .neuralEngine = $0 { true } else { false } }),
-           let cpu = request.supportedComputeStageDevices[.main]?.first(where: { if case .cpu = $0 { true } else { false } }) {
-            request.setComputeDevice(cpu, for: .main)
+        let observations: [RecognizedTextObservation]
+        do {
+            observations = try await request.perform(on: image)
+        } catch where !(error is CancellationError) {
+            // Virtual Macs cannot compile the accurate model on any device; the fast one still reads.
+            request.recognitionLevel = .fast
+            observations = try await request.perform(on: image)
         }
-        let observations = try await request.perform(on: image)
         try Task.checkCancellation()
         return observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
     }
