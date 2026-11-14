@@ -25,6 +25,12 @@ struct CalibrationSession: Sendable, Equatable, Codable {
         if self.step == nil { completedAt = now }
     }
 
+    // A native charge limit would stop the charge-to-100 steps short of 100%.
+    func liftsChargeLimit(enabled: Bool, starting: Bool) -> Bool {
+        guard enabled else { return false }
+        return starting || step == .chargeToFull || step == .chargeToFullAgain
+    }
+
     var decision: ChargePolicy.Decision? {
         switch step {
         case .chargeToFull, .chargeToFullAgain: .release
