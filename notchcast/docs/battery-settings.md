@@ -33,8 +33,12 @@ reading releases ownership without writing; an off reading retains ownership unt
 Fans persist uncertain manual writes and failed automatic restores independently of the preference.
 Silent failed restoration and shutdown preserve the selected preference.
 An owned native limit is reissued once after a battery-to-adapter transition.
+While Charge Limit is on, calibration's two charge-to-100% steps turn the owned native limit off
+through the same journal entry, keeping its undo; the next evaluation after a step ends, and
+cancelling or completing calibration, reapplies the selected limit.
 An existing macOS charge limit is read without claiming ownership. Calibration stops on relaunch
 and turns its switch off on completion, recording the completion date.
 Unsupported charging control also turns calibration off and labels it unsupported in Settings.
 
-`Tests/nc-Battery-store-test.swift` uses fake readings, assertions and commands exclusively.
+`Tests/nc-Battery-store-test.swift` and `Tests/nc-Battery-calibration-test.swift` use fake readings,
+assertions and commands exclusively.

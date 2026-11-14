@@ -20,7 +20,7 @@ func runFailureTail(of script: String) throws -> (status: Int32, output: String)
 
 @main struct MachSSHTest {
     static func main() async throws {
-        let ssh = MachSSH(address: "remote") { executable, arguments in
+        let ssh = MachSSH(address: "remote") { executable, arguments, _ in
             assert(executable == "/usr/bin/ssh")
             assert(arguments == ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
                                  "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", "remote", "uptime"])

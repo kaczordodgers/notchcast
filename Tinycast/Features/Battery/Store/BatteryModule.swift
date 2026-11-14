@@ -231,14 +231,16 @@ final class BatteryModule: NotchcastModule {
         let awake = KeepAwakePolicy(enabled: on(.keepAwake) && !awakePaused, until: awakeUntil)
         let holding = awake.evaluate(now: now, onBattery: reading?.onBattery ?? false,
                                      percent: percent) == .hold
+        let lifted = engine.calibration.liftsChargeLimit(enabled: on(.batteryCalibration) && !chargingUnsupported,
+                                                         starting: !calibrationEnabled)
         do {
             if nativeLimitAvailable {
-                guard let verb = on(.batteryChargeLimit)
+                guard let verb = on(.batteryChargeLimit) && !lifted
                     ? RootContract.Command(chargeLimit: preferences.batteryChargePercent)
                     : .chargeLimitOff else { return }
                 if on(.batteryChargeLimit) || journal.effect(.chargeLimit) != nil {
                     limitGeneration += 1
-                    if verb == .chargeLimitOff {
+                    if !on(.batteryChargeLimit) {
                         try await clearNativeLimit(now: now)
                     } else {
                         if !journal.capturedLimit {
@@ -252,9 +254,7 @@ final class BatteryModule: NotchcastModule {
                         try await perform(verb, key: .chargeLimit, undo: undo, now: now)
                     }
                     try Task.checkCancellation()
-                    if verb != .chargeLimitOff && on(.batteryChargeLimit) {
-                        nativeLimit = verb.chargeLimitPercent
-                    }
+                    if on(.batteryChargeLimit) { nativeLimit = verb.chargeLimitPercent }
                 }
             }
         } catch {

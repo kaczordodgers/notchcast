@@ -35,7 +35,7 @@ final class RemoteCalls {
 struct MacRemoteWiringTest {
     static func main() async throws {
         let calls = RemoteCalls()
-        let runner: MachSSH.Runner = { executable, arguments in try await calls.record(executable, arguments) }
+        let runner: MachSSH.Runner = { executable, arguments, _ in try await calls.record(executable, arguments) }
         let shell = MachRemoteShell(ssh: MachSSH(address: "fake-mac", runner: runner))
         _ = try await shell.ssh(command: "uptime", options: []) { _ in }
         _ = try await shell.ssh(command: "uptime", options: []) { _ in }
@@ -45,9 +45,10 @@ struct MacRemoteWiringTest {
         precondition(calls.calls.removeLast() == own + MachSSH.options + ["fake-mac", "printf '%s' 'two words'"],
                      "caller ssh options and command are kept intact")
         var copies: [[String]] = []
-        let copier = MachRemoteShell(ssh: MachSSH(address: "fake-mac") { executable, arguments in
+        let copier = MachRemoteShell(ssh: MachSSH(address: "fake-mac") { executable, arguments, onLine in
             precondition(executable == "/usr/bin/rsync")
             await MainActor.run { copies.append(arguments) }
+            onLine?("copy output")
             return MachSSH.Result(status: 23, output: "copy output\r\n")
         })
         var output: [String] = []
@@ -57,7 +58,7 @@ struct MacRemoteWiringTest {
         precondition(copies == [["-a", "--safe-links", "--progress", "--timeout=30", "-e", remoteShell,
                                   "--", "/tmp/a file's name", "fake-mac:'Downloads/a folder'\\''s stage/'"]],
                      "rsync keeps source argv and quotes the remote destination")
-        precondition(copied.status == 23 && copied.output == "copy output\r\n" && output == [copied.output])
+        precondition(copied.status == 23 && copied.output == "copy output\r\n" && output == ["copy output\n"])
         let suite = "remote-wiring-test." + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)

@@ -6,7 +6,8 @@ struct MachSSH: Sendable {
         let output: String
     }
 
-    typealias Runner = @Sendable (String, [String]) async throws -> Result
+    typealias LineSink = @Sendable (String) -> Void
+    typealias Runner = @Sendable (String, [String], LineSink?) async throws -> Result
     static let options = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
                           "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3"]
     let address: String
@@ -23,9 +24,9 @@ struct MachSSH: Sendable {
     }
 
     // ssh keeps the first value it is given for an option, so a caller's options go first.
-    func run(_ command: String, options: [String] = []) async throws -> Result {
+    func run(_ command: String, options: [String] = [], onLine: LineSink? = nil) async throws -> Result {
         guard Self.isValid(address) else { throw ConfigurationError.address }
-        return try await runner("/usr/bin/ssh", options + Self.options + [address, command])
+        return try await runner("/usr/bin/ssh", options + Self.options + [address, command], onLine)
     }
 
     func terminalScript(directory: String) throws -> String {

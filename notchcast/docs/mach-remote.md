@@ -5,8 +5,9 @@ fork-local preference, empty by default. An invalid or missing address reports a
 Disabling the switch removes the
 command from launcher availability and prevents command execution.
 
-`MachSSH(address:runner:)` accepts an asynchronous injectable process runner.
-`run(_:)` invokes `/usr/bin/ssh` with batch authentication, a five-second connection
+`MachSSH(address:runner:)` accepts an asynchronous injectable process runner, which takes an
+optional line sink for streamed stdout records.
+`run(_:options:onLine:)` invokes `/usr/bin/ssh` with batch authentication, a five-second connection
 timeout and five-second keep-alives (three missed responses). The caller owns the
 task and its cancellation. The system runner terminates its child on cancellation.
 
