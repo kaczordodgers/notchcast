@@ -63,6 +63,7 @@ final class PublicWebProxy {
     }
 
     private func accept(_ connection: NWConnection) {
+        print("TIMING proxy accept \(ProcessInfo.processInfo.systemUptime)")
         guard !stopped, tunnels.count < 32, remainingBytes > 0 else { connection.cancel(); return }
         let id = UUID()
         let tunnel = Tunnel(connection: connection, username: username, password: password,
@@ -170,6 +171,7 @@ final class PublicWebProxy {
                 let host = try await destination(request[3])
                 let portBytes = try await read(2)
                 let port = UInt16(portBytes[0]) * 256 + UInt16(portBytes[1])
+                print("TIMING tunnel resolve \(host) \(ProcessInfo.processInfo.systemUptime)")
                 let addresses = try await PublicWebAddress.resolve(host, port: port)
                 try Task.checkCancellation()
                 guard !closed, let endpointPort = NWEndpoint.Port(rawValue: port) else {
@@ -180,6 +182,7 @@ final class PublicWebProxy {
                 relay(from: client, to: connection)
                 relay(from: connection, to: client)
             } catch {
+                print("TIMING tunnel error \(ProcessInfo.processInfo.systemUptime) \(error)")
                 if let refusal = error as? PublicWebAddress.Refusal { refused(refusal) }
                 close()
             }

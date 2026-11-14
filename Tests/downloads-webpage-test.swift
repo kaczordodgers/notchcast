@@ -22,6 +22,7 @@ struct DownloadsWebpageTests {
     static func markdown(_ html: String) -> String { HTMLMarkdown.convert(html, baseURL: base) }
 
     static func main() async throws {
+        print("TIMING start \(ProcessInfo.processInfo.systemUptime)")
         converter()
         addresses()
         await cancelledResolution()
@@ -31,20 +32,25 @@ struct DownloadsWebpageTests {
         } catch PublicWebAddress.Refusal.privateAddress {
             expect(true, "custom DNS lookup cannot bypass private-address refusal")
         }
+        print("TIMING before frontMatter() \(ProcessInfo.processInfo.systemUptime)")
         frontMatter()
         failureDescriptions()
         contentRules()
+        print("TIMING before try await runnerRefusals() \(ProcessInfo.processInfo.systemUptime)")
         try await runnerRefusals()
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
+        print("TIMING before try await extraction() \(ProcessInfo.processInfo.systemUptime)")
         try await extraction()
         do {
             _ = try await WebpageExtractor().extract(URL(string: "http://127.0.0.1.nip.io/")!)
             expect(false, "private DNS destination is refused")
         } catch let refusal as PublicWebAddress.Refusal {
+            print("TIMING nip refusal caught \(ProcessInfo.processInfo.systemUptime) \(refusal)")
             expect(refusal.localizedDescription == PublicWebAddress.Refusal.privateAddress.localizedDescription,
                    "proxy preserves private-address refusal")
         }
+        print("TIMING before if let directory = ProcessInfo \(ProcessInfo.processInfo.systemUptime)")
         if let directory = ProcessInfo.processInfo.environment["TINYCAST_WEBPAGE_TEST_DIRECTORY"] {
             try await files(URL(filePath: directory, directoryHint: .isDirectory))
         }
@@ -52,6 +58,8 @@ struct DownloadsWebpageTests {
             try await live(URL(filePath: directory, directoryHint: .isDirectory))
         }
         print("downloads-webpage: \(passes) passed, \(failures) failed")
+        print("TIMING end \(ProcessInfo.processInfo.systemUptime)")
+        exit(1)
         if failures > 0 { exit(1) }
     }
 
