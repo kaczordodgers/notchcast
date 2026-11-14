@@ -2,7 +2,7 @@ name: Main harnesses
 
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, 'train/**']
   workflow_dispatch:
     inputs:
       all:

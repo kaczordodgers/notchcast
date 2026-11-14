@@ -17,8 +17,11 @@ CHECK=(npx -y "@enmera/ai-design-check@$DESIGN_CHECK_VERSION")
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 mkdir "$WORK/base" "$WORK/ours"
-git archive "$BASE" "${DIRS[@]}" | tar -x -C "$WORK/base"
-git archive "$TARGET" "${DIRS[@]}" | tar -x -C "$WORK/ours"
+# Files, not pipes: tar exits at the end marker, and git archive then dies of SIGPIPE.
+git archive -o "$WORK/base.tar" "$BASE" "${DIRS[@]}"
+git archive -o "$WORK/ours.tar" "$TARGET" "${DIRS[@]}"
+tar -xf "$WORK/base.tar" -C "$WORK/base"
+tar -xf "$WORK/ours.tar" -C "$WORK/ours"
 # Island and page values come from the island kit (notchcast/check-kit.py).
 python3 "$TOP/notchcast/check-kit.py" --root "$WORK/ours"
 # The baseline file lands in the base copy (the checker writes it to its working directory); its exit code is the

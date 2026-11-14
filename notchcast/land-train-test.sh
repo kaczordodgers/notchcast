@@ -16,7 +16,23 @@ case "$*" in
     'pr view '*'--json headRefOid'*) jq -r .headRefOid "$FIXTURE/pr-$3.json" ;;
     'pr view '*) cat "$FIXTURE/pr-$3.json" ;;
     'pr close '*) echo "$3 ${*: -1}" >> "$FIXTURE/closed" ;;
-    *check-runs*) echo success ;;
+    *check-runs*)
+        sha=$*
+        sha=${sha#*commits/}
+        if grep -qxF "${sha%%/*}" "$FIXTURE/green" 2>/dev/null; then echo success; else echo "${HEAD_CHECKS:-success}"; fi ;;
+    'workflow run '*)
+        [[ -z "${DISPATCH_FAILS:-}" || "$*" != *"--ref $DISPATCH_FAILS "* ]] || { echo 'HTTP 422' >&2; exit 1; }
+        echo "$*" >> "$FIXTURE/dispatched" ;;
+    'run list '*databaseId,status*) ;;
+    # A dispatched train run is red when its branch train/<a>-<b> names a PR in RED_PRS.
+    'run list '*workflow_dispatch*)
+        branch=$*
+        branch=${branch#*-b train/}
+        verdict=success
+        for pr in ${RED_PRS:-}; do
+            [[ "-${branch%% *}-" != *"-$pr-"* ]] || verdict=failure
+        done
+        echo "$verdict" ;;
     *statuses*) ;;
     *actions/artifacts*) if [ -n "${TESTED:-}" ]; then echo '{"artifacts":[{"workflow_run":{"id":7}}]}'; else echo '{"artifacts":[]}'; fi ;;
     *actions/runs/7*) printf '{"name":"PR","path":".github/workflows/pr.yml","conclusion":"success","head_repository":{"full_name":"%s"},"html_url":"https://fixture.invalid/runs/7"}\n' "$FORK_REPO" ;;
@@ -29,7 +45,7 @@ esac
 STUB
 printf '#!/bin/sh\nexit 0\n' > "$scratch/bin/swiftc"
 chmod +x "$scratch/bin/gh" "$scratch/bin/swiftc"
-cp "$root"/notchcast/{land.sh,merge.sh,local-build-status.sh,drift-gates.sh,sync-wait.sh,hold.sh,config.env,fork-point.sh,land-tooling.txt,ci.py,app-proof.py,app-proofs.json} "$seed/notchcast/"
+cp "$root"/notchcast/{land.sh,train.sh,merge.sh,local-build-status.sh,drift-gates.sh,sync-wait.sh,hold.sh,config.env,fork-point.sh,land-tooling.txt,ci.py,app-proof.py,app-proofs.json} "$seed/notchcast/"
 for name in check-feature-shape.py check-drift.py check-drift-test.py; do
     printf '#!/usr/bin/env python3\n' > "$seed/notchcast/$name"
 done
@@ -76,6 +92,7 @@ for name in notchcast-core b c clipboard-text; do
     echo '// fixture' > "$seed/Tests/$name-test.swift"
 done
 echo 'red-with: src/a.txt src/b.txt' > "$seed/Tests/a-test.swift"
+echo 'red-with: src/e.txt' > "$seed/Tests/clipboard-text-test.swift"
 echo 'red-with: src/d.txt' > "$seed/Tests/d-test.swift"
 echo base > "$seed/src/shared.txt"
 echo '# fixture' > "$seed/.gitattributes"
@@ -113,7 +130,7 @@ open_pr() {
     git commit --quiet -m "$title"
     git push --quiet origin "$branch" "$branch:refs/pull/$number/head"
     jq -n --arg head "$(git rev-parse HEAD)" --arg branch "$branch" --arg title "$title" \
-        '{state: "OPEN", isDraft: false, headRefOid: $head, headRefName: $branch, baseRefName: "main", isCrossRepository: false, title: $title, body: ""}' \
+        '{state: "OPEN", isDraft: false, headRefOid: $head, headRefName: $branch, baseRefName: "main", isCrossRepository: false, title: $title, body: "", labels: []}' \
         > "$FIXTURE/pr-$number.json"
     git switch --quiet main
 }
@@ -249,6 +266,161 @@ land 1 2
 [ "$status" -eq 0 ] && grep -q 'landing is held for #2' "$FIXTURE/output" && [ "$(landed)" = 'Notchcast: Add C (#2)' ] \
     && [ "$(cat "$FIXTURE/hold")" = "$held" ] || fail "under a hold for #2 the train landed '$(landed)'"
 echo 'PASS: under a hold for one of its PRs the train lands only that PR and leaves the hold'
+
+# train.sh <pr>...: prints "GREEN <branch> <sha8> on main <base8>: notchcast/land.sh --train-run <sha> <prs>".
+train() {
+    status=0
+    NOTCHCAST_TRAIN_POLL=0 bash notchcast/train.sh "$@" > "$FIXTURE/train-output" 2>&1 || status=$?
+    train_sha=$(sed -n 's/^GREEN .*--train-run \([0-9a-f]*\) .*/\1/p' "$FIXTURE/train-output" | tail -1)
+}
+draft() { jq '.isDraft = true' "$FIXTURE/pr-$1.json" > "$FIXTURE/pr.json" && mv "$FIXTURE/pr.json" "$FIXTURE/pr-$1.json"; }
+label() { jq '.labels += [{name: "land"}]' "$FIXTURE/pr-$1.json" > "$FIXTURE/pr.json" && mv "$FIXTURE/pr.json" "$FIXTURE/pr-$1.json"; }
+untouched() { [ "$(origin rev-parse main)" = "$base" ] && [ ! -e "$FIXTURE/closed" ] && [ ! -e "$FIXTURE/hold" ]; }
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+train 1 2
+[ "$status" -eq 0 ] && [ -n "$train_sha" ] || { cat "$FIXTURE/train-output"; fail 'a green train did not report its run'; }
+[ "$(origin rev-parse refs/heads/train/1-2)" = "$train_sha" ] && [ "$(origin rev-parse "$train_sha~2")" = "$base" ] \
+    && [ "$(origin rev-parse "$train_sha^2")" = "$(jq -r .headRefOid "$FIXTURE/pr-2.json")" ] || fail 'train/1-2 is not main plus each head'
+[ "$(grep -c -- '--ref train/1-2' "$FIXTURE/dispatched")" -eq 4 ] && [ "$(grep -c "base=$base" "$FIXTURE/dispatched")" -eq 3 ] \
+    || fail "dispatched '$(paste -sd'|' "$FIXTURE/dispatched")'"
+echo "$train_sha" > "$FIXTURE/green"
+draft 1
+draft 2
+label 1
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q '^REFUSED: draft #2 has no land label' "$FIXTURE/output" && untouched \
+    || fail 'a draft without the land label landed on a green train run'
+echo 'PASS: a draft without the land label is refused even under a green train run'
+land 1
+[ "$status" -eq 1 ] && grep -q '^REFUSED: PR must be open and ready; a draft lands only on a green train run' "$FIXTURE/output" && untouched \
+    || fail 'a labelled draft landed without a train run'
+echo 'PASS: a labelled draft without --train-run is refused as before'
+label 2
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
+[ "$status" -eq 0 ] && grep -q "train: ${train_sha:0:8} is green on main" "$FIXTURE/output" || fail 'a green train run did not cover its PRs'
+[ "$(landed)" = 'Notchcast: Add B (#1)|Notchcast: Add C (#2)' ] && [ "$(origin rev-parse 'main^{tree}')" = "$(origin rev-parse "$train_sha^{tree}")" ] \
+    || fail "the train run landed '$(landed)'"
+[ -z "$(origin for-each-ref refs/heads/train/)" ] || fail 'the landed train branch was not deleted'
+echo 'PASS: a green train run lands its labelled draft PRs, red on their own heads, as the exact tree it tested, and deletes its branch'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+train 1 2
+echo "$train_sha" > "$FIXTURE/green"
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2 3
+[ "$status" -eq 1 ] && grep -q "does not merge #3's head" "$FIXTURE/output" && grep -q '^REFUSED: [a-z]* is failure on' "$FIXTURE/output" && untouched \
+    || fail 'a train run missing a PR head was not refused by the heads own checks'
+echo 'PASS: a train run missing a PR head covers nothing and the heads own red checks refuse'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+train 1 2
+echo "$train_sha" > "$FIXTURE/green"
+git switch --quiet pr-c
+echo moved > src/c.txt
+git commit --quiet -am 'Move C'
+git push --quiet origin pr-c pr-c:refs/pull/2/head
+jq --arg head "$(git rev-parse HEAD)" '.headRefOid = $head' "$FIXTURE/pr-2.json" > "$FIXTURE/pr.json" && mv "$FIXTURE/pr.json" "$FIXTURE/pr-2.json"
+git switch --quiet main
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q "does not merge #2's head" "$FIXTURE/output" && grep -q '^REFUSED: [a-z]* is failure on' "$FIXTURE/output" && untouched \
+    || fail 'a PR head moved after the train was not refused'
+echo 'PASS: a PR head that moved after the train run is refused as without a train'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+train 1 2
+echo "$train_sha" > "$FIXTURE/green"
+echo moved > src/moved.txt
+git add src/moved.txt
+git commit --quiet -m 'Fixture: main moves'
+git push --quiet origin main
+base=$(git rev-parse HEAD)
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q 'not current main' "$FIXTURE/output" && grep -q '^REFUSED: [a-z]* is failure on' "$FIXTURE/output" && untouched \
+    || fail 'a train run on a stale base was not refused'
+echo 'PASS: a train run whose base is no longer main is refused as without a train'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+train 1 2
+HEAD_CHECKS=failure land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q "${train_sha:0:8} has build failure" "$FIXTURE/output" && untouched || fail 'a red train run was not refused'
+echo 'PASS: a red train run covers nothing and lands nothing'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+RED_PRS=2 train 1 2 3
+[ "$status" -eq 1 ] && grep -q '^RED train/1-2-3: splitting into 1 2 | 3$' "$FIXTURE/train-output" \
+    && grep -q '^RED train/1-2: splitting into 1 | 2$' "$FIXTURE/train-output" && grep -q '^RED #2 alone' "$FIXTURE/train-output" \
+    && grep -q '^GREEN train/3 .* --train-run [0-9a-f]* 3$' "$FIXTURE/train-output" && grep -q '^GREEN train/1 .* --train-run [0-9a-f]* 1$' "$FIXTURE/train-output" \
+    || { cat "$FIXTURE/train-output"; fail 'a red train did not bisect to its red PR'; }
+[ "$(origin for-each-ref --format='%(refname:lstrip=2)' refs/heads/train/ | paste -sd' ' -)" = 'train/1 train/3' ] || fail 'red train branches were kept'
+untouched || fail 'train.sh touched main'
+echo 'PASS: a red train splits in halves onto new trains down to the red PR, keeps only green train branches and lands nothing'
+
+fixture
+open_pr 1 pr-one 'Add one' src/shared.txt
+open_pr 2 pr-two 'Add two' src/shared.txt
+train 1 2
+[ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: src/shared.txt' "$FIXTURE/train-output" || { cat "$FIXTURE/train-output"; fail 'a conflicting train was not refused'; }
+[ -z "$(origin for-each-ref refs/heads/train/)" ] && [ ! -e "$FIXTURE/dispatched" ] && untouched || fail 'a refused train pushed or dispatched'
+echo 'PASS: a train whose merge is refused pushes no branch and dispatches nothing'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+origin update-ref refs/heads/train/3 "$base"
+RED_PRS=2 train 1 2 3
+[ "$status" -eq 1 ] && grep -q '^REFUSED: origin already has train/3' "$FIXTURE/train-output" || { cat "$FIXTURE/train-output"; fail 'a taken split name was not refused'; }
+[ "$(origin for-each-ref --format='%(refname:lstrip=2)' refs/heads/train/)" = train/3 ] && ! grep -q -- '--ref train/1-2 ' "$FIXTURE/dispatched" && untouched \
+    || fail "a split refused on a taken name left '$(origin for-each-ref refs/heads/train/)'"
+echo 'PASS: a split round whose branch name is taken refuses before pushing any half'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+RED_PRS=2 DISPATCH_FAILS=train/3 train 1 2 3
+[ "$status" -eq 1 ] && grep -q 'scrapping train/1-2, which has no verdict' "$FIXTURE/train-output" \
+    && grep -q 'scrapping train/3, which has no verdict' "$FIXTURE/train-output" || { cat "$FIXTURE/train-output"; fail 'a failed dispatch scrapped nothing'; }
+[ -z "$(origin for-each-ref refs/heads/train/)" ] && untouched || fail "a failed dispatch left '$(origin for-each-ref refs/heads/train/)'"
+echo 'PASS: a split round that stops after pushing deletes every half it pushed'
+
+# clipboard-text-test, which the hosted runner skips, is red with src/e.txt; a-test with src/a.txt and src/b.txt.
+fixture
+open_pr 1 pr-a 'Add A' src/a.txt
+open_pr 2 pr-b 'Add B' src/b.txt src/clipboard-text.txt
+train 1 2
+echo "$train_sha" > "$FIXTURE/green"
+land --train-run "$train_sha" 1 2
+[ "$status" -eq 0 ] && grep -q "^harnesses: covered by train ${train_sha:0:8} (tree identical)" "$FIXTURE/output" \
+    || fail 'a covered train did not report its harnesses as covered'
+[ "$(paste -sd'|' "$PASSES")" = clipboard-text-test ] || fail "a covered train ran '$(paste -sd'|' "$PASSES")'"
+[ "$(landed)" = 'Notchcast: Add A (#1)|Notchcast: Add B (#2)' ] || fail "a covered train landed '$(landed)'"
+echo 'PASS: a covered train runs only the harnesses its hosted runner skips, not the ones the train run passed'
+
+fixture
+open_pr 1 pr-a 'Add A' src/a.txt
+open_pr 2 pr-e 'Add E' src/clipboard-text.txt src/e.txt
+train 1 2
+echo "$train_sha" > "$FIXTURE/green"
+land --train-run "$train_sha" 1 2
+[ "$status" -eq 1 ] && grep -q "^REFUSED: train ${train_sha:0:8}: #2 clipboard-text-test failed; nothing lands on that run" "$FIXTURE/output" && untouched \
+    || fail 'a red runner-skipped harness on a train run dropped a PR and landed the rest'
+[ -n "$(origin rev-parse --verify -q refs/heads/train/1-2)" ] || fail 'a refused train lost its branch'
+echo 'PASS: a red pass on a train run bisects to its breaking PR and lands no part of the train'
 
 # Last: a killed lander can leave children behind.
 for signal in TERM HUP; do

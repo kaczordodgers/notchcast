@@ -7,6 +7,9 @@ on:
       checks:
         description: Space-separated checks, or all
         default: all
+      base:
+        description: Base commit to plan against, as a PR's base (notchcast/train.sh); overrides checks
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -28,7 +31,7 @@ jobs:
           persist-credentials: false
       - id: plan
         env:
-          BASE: ${{ github.event.pull_request.base.sha }}
+          BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
           CHECKS: ${{ inputs.checks || 'all' }}
         run: |
           set -o pipefail

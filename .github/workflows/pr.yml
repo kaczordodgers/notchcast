@@ -6,6 +6,10 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   workflow_dispatch:
+    inputs:
+      base:
+        description: Base commit the checks compare against, as a PR's base (notchcast/train.sh)
+        default: ''
 
 permissions:
   contents: read
@@ -55,7 +59,7 @@ jobs:
       - name: Shared PR build lane
         working-directory: src
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           NOTCHCAST_HARNESSES_SHARDED: '1'
         run: bash ../tools/notchcast/ci-build.sh
@@ -94,6 +98,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: A train run names its base
+        if: startsWith(github.ref, 'refs/heads/train/') && inputs.base == ''
+        run: |
+          echo "::error::train branches are dispatched by notchcast/train.sh with -f base=<main sha>"
+          exit 1
       - name: Checks and every harness shard passed
         if: needs.checks.result != 'success' || needs.harnesses.result != 'success'
         run: |

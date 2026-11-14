@@ -10,7 +10,7 @@ cat > "$scratch/bin/git" <<'STUB'
 #!/bin/bash
 case "$1" in
     rev-parse) echo "$FIXTURE" ;;
-    archive) tar -cf - -T /dev/null ;;
+    archive) tar -cf "$3" -T /dev/null ;;
 esac
 STUB
 cat > "$scratch/bin/npx" <<'STUB'
