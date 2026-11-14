@@ -1,7 +1,7 @@
 # Green button maximize
 
 Enabled by default in Settings → Notchcast, independently of the island. Clicking the green
-traffic light fills the display's visible frame in the current Space; clicking again restores
+traffic light fills the display's visible frame, inset by the window gap preference, in the current Space; clicking again restores
 the previous frame. Option-click retains macOS behavior. Full-screen, non-resizable and excluded
 apps pass through. Exclusions are comma-separated bundle identifiers in the same Settings pane.
 
