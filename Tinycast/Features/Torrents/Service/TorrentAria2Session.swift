@@ -146,6 +146,14 @@ import Foundation
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
                                                      attributes: [.posixPermissions: 0o700])
+            for entry in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
+                guard UUID(uuidString: entry.lastPathComponent) != nil else { continue }
+                let attributes = try FileManager.default.attributesOfItem(atPath: entry.path)
+                guard attributes[.type] as? FileAttributeType == .typeDirectory else { continue }
+                let contents = try FileManager.default.contentsOfDirectory(atPath: entry.path)
+                guard contents.isEmpty || contents == ["aria2.conf"] else { continue }
+                try FileManager.default.removeItem(at: entry)
+            }
         } catch {
             throw TorrentFailure.launchFailed
         }

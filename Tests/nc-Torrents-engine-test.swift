@@ -373,8 +373,20 @@ import Foundation
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: tool.path)
         let locator = FakeTool(url: tool)
         let arguments = ["--fixture-root=\(root.path)"]
+        let leftover = try TorrentAria2Session.writeConfiguration(secret: "abandoned", directory: root)
+            .deletingLastPathComponent()
+        let empty = root.appendingPathComponent(UUID().uuidString)
+        let otherState = root.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: empty, withIntermediateDirectories: false)
+        try FileManager.default.createDirectory(at: otherState, withIntermediateDirectories: false)
+        try Data([1]).write(to: otherState.appendingPathComponent("state.dat"))
         var session: TorrentAria2Session? = TorrentAria2Session(stateDirectory: root, locator: locator)
         try await session!.start(extraArguments: arguments)
+        check(!FileManager.default.fileExists(atPath: leftover.path)
+            && !FileManager.default.fileExists(atPath: empty.path), "Prepare removes abandoned configuration directories")
+        check(try Data(contentsOf: otherState.appendingPathComponent("state.dat")) == Data([1]),
+              "Prepare preserves other state")
+        print("PASS: prepare removes abandoned config directories and preserves other state")
         check(try FileManager.default.contentsOfDirectory(atPath: root.path).allSatisfy {
             !FileManager.default.fileExists(atPath: root.appendingPathComponent($0).appendingPathComponent("aria2.conf").path)
         }, "Configuration removed after RPC startup")
