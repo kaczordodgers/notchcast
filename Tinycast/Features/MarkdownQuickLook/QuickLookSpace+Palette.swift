@@ -5,8 +5,9 @@ extension PalettePanel {
     func notchcastPreviewOnSpace(_ event: NSEvent) -> Bool {
         let core = AppCore.shared
         let state = core.palette
-        guard paletteState === state, state.mode == .fileSearch,
-            !state.menuOpen, !state.isEditingField, !state.isControlListOpen
+        guard QuickLookSpacePolicy.acceptsInput(
+            currentPanel: paletteState === state, fileSearch: state.mode == .fileSearch,
+            menuOpen: state.menuOpen, editingField: state.isEditingField, controlListOpen: state.isControlListOpen)
         else { return false }
         let key = event.type == .keyDown ? Int(event.keyCode) : -1
         let rows = core.fileSearch.results

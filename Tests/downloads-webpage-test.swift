@@ -101,6 +101,9 @@ struct DownloadsWebpageTests {
     }
 
     static func converter() {
+        let zeroReferences = markdown("<p>A&#0;B&#x0;C</p>")
+        expect(zeroReferences == "A\u{FFFD}B\u{FFFD}C" && !zeroReferences.contains("\u{0}"),
+               "zero numeric entities become replacement characters without NUL")
         expect(markdown("<h1>Title</h1><h2>Section</h2><h6>Small</h6>").contains("## Section"), "ATX headings")
         expect(markdown("<h6>Small</h6>") == "###### Small", "six heading levels")
         expect(markdown("<p>Hello <strong>bold</strong> and <em>italic</em>.</p>") == "Hello **bold** and *italic*.",
