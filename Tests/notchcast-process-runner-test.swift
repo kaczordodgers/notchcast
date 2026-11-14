@@ -52,7 +52,6 @@ struct ProcessRunnerTest {
         let bytes = Mutex(Data())
         let consuming = Mutex(false)
         var binary = request("/usr/bin/perl", ["-e", #"print pack("C*", 0..255) x 4096"#])
-        binary.groupCleanup = .drainThenKill
         binary.onData = { chunk in
             check(!consuming.withLock { let old = $0; $0 = true; return old })
             try await Task.sleep(for: .milliseconds(1))
