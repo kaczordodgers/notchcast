@@ -367,7 +367,13 @@ struct CaptureEditorEngineTest {
             do {
                 try await task.value
                 preconditionFailure("stale copy")
-            } catch is CancellationError {}
+            } catch {
+                if mutation == 3 {
+                    precondition(error is CancellationError)
+                } else {
+                    precondition(error.localizedDescription == "Could not copy to clipboard.")
+                }
+            }
             precondition(board.changeCount == count)
         }
     }
@@ -379,9 +385,9 @@ struct CaptureEditorEngineTest {
         let source = image()
         for mutation in 0..<3 {
             let gate = RenderGate()
-            var failures = 0
+            var failures: [String] = []
             let editor = CaptureEditorCoordinator(pasteboard: board, render: { _, _ in await gate.render() },
-                reportFailure: { _ in failures += 1 })
+                reportFailure: { failures.append($0.localizedDescription) })
             editor.start()
             try editor.open(image: NSImage(cgImage: source.pixels, size: source.points))
             editor.requestCopy()
@@ -398,7 +404,8 @@ struct CaptureEditorEngineTest {
             gate.finish(Data([1, 2, 3]))
             for _ in 0..<1000 { await Task.yield() }
             precondition(board.changeCount == count)
-            precondition(failures == (mutation == 2 ? 0 : 1), "Stale copy must report failure")
+            precondition(failures == (mutation == 2 ? [] : ["Could not copy to clipboard."]),
+                "Stale copy must report a readable failure; cancellation must stay silent")
             precondition((editor.copyFailure != nil) == (mutation != 2))
             precondition(editor.isOpen == (mutation != 2))
             editor.stop()

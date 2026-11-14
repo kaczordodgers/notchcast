@@ -43,7 +43,7 @@ final class RecordingModule: NotchcastModule {
     @ObservationIgnored let commandArea: CaptureAreaService
     @ObservationIgnored var commandTask: Task<Void, Never>?
     @ObservationIgnored private let refreshCommands: () -> Void
-    @ObservationIgnored private let report: (String, Bool) -> Void
+    @ObservationIgnored let report: (String, Bool) -> Void
     @ObservationIgnored private let reveal: (URL) -> Void
     @ObservationIgnored private var shutdownTask: Task<Void, Never>?
     private var storedFrameRate: Int
@@ -114,17 +114,7 @@ final class RecordingModule: NotchcastModule {
             shutdownTask = Task { [self] in
                 defer { shutdownTask = nil }
                 if phase == .recording || phase == .paused {
-                    do {
-                        _ = try await finish()
-                        if reportSave {
-                            NotchcastHost.current.showMessage(String(localized: "Recording saved", table: "Notchcast"), .success)
-                        }
-                    } catch {
-                        lastError = error
-                        if reportSave {
-                            NotchcastHost.current.showMessage(Self.failureMessage(error), .danger)
-                        }
-                    }
+                    await finishAndReport(report: reportSave ? nil : { _, _ in }, reveal: { _ in })
                 } else {
                     _ = await finishTask?.result
                 }
@@ -264,11 +254,17 @@ final class RecordingModule: NotchcastModule {
         do {
             let url = try await finish()
             try Task.checkCancellation()
-            report(String(localized: "Recording saved", table: "Notchcast"), false)
+            if streamError != nil {
+                report(String(localized: "Recording stopped early and was saved.", table: "Notchcast"), true)
+            } else {
+                report(String(localized: "Recording saved", table: "Notchcast"), false)
+            }
             (reveal ?? self.reveal)(url)
-            if let streamError { report(Self.failureMessage(streamError), true) }
         } catch is CancellationError {
-        } catch { report(Self.failureMessage(error), true) }
+        } catch {
+            lastError = error
+            report(Self.failureMessage(error), true)
+        }
     }
 
     func waitUntilIdle() async {

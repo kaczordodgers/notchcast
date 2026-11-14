@@ -31120,6 +31120,58 @@
         }
       }
     },
+    "Recording stopped early and was saved." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme wurde vorzeitig beendet und gespeichert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La grabación se detuvo antes de tiempo y se guardó."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’enregistrement s’est arrêté prématurément et a été sauvegardé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収録は途中で停止しましたが、保存されました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화가 예정보다 일찍 중지되어 저장되었습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A gravação parou antes do previsto e foi guardada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись остановлена раньше времени и сохранена."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制提前停止并已保存。"
+          }
+        }
+      }
+    },
     "Refresh Agent Session Logs" : {
       "localizations" : {
         "de" : {

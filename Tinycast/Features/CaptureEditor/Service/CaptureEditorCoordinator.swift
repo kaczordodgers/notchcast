@@ -131,7 +131,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
         try Task.checkCancellation()
         guard enabled, isOpen, operation == identity, self.session?.document === session.document,
               session.document.marks == marks, session.document.textEdit == nil,
-              pasteboard.changeCount == clipboardCount else { throw CancellationError() }
+              pasteboard.changeCount == clipboardCount else { throw Failure.clipboard }
         let item = NSPasteboardItem()
         guard item.setData(png, forType: .png) else { throw Failure.clipboard }
         pasteboard.clearContents()
