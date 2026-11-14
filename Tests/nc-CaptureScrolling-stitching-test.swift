@@ -220,7 +220,7 @@ struct CaptureScrollingTests {
         precondition(ScrollingStitcher(first: first, hashes: hashes(first), limit: 0) == nil)
     }
 
-    static func cadenceAndGeometryTests() {
+    @MainActor static func cadenceAndGeometryTests() {
         precondition(ScrollingCaptureCadence.interval(unchangedFor: 0) == 0.2)
         precondition(ScrollingCaptureCadence.interval(unchangedFor: 29.999) == 0.2)
         precondition(ScrollingCaptureCadence.interval(unchangedFor: 30) == 1)
@@ -229,6 +229,13 @@ struct CaptureScrollingTests {
         let rect = CGRect(x: -1400, y: -350, width: 200, height: 300)
         let local = ScrollingScreenSource.localRect(rect, displayFrame: display)
         precondition(local == CGRect(x: 40, y: 50, width: 200, height: 300))
+        let configuration = ScrollingScreenSource.configuration(localRect: local!, scale: 2)
+        precondition(configuration.sourceRect == local!)
+        precondition(configuration.width == 400 && configuration.height == 600)
+        precondition(!configuration.showsCursor && configuration.dynamicRange == .sdr)
+        let rounded = ScrollingScreenSource.configuration(
+            localRect: CGRect(x: 0, y: 0, width: 2.25, height: 0.1), scale: 2)
+        precondition(rounded.width == 5 && rounded.height == 1)
         precondition(ScrollingScreenSource.localRect(.zero, displayFrame: display) == nil)
         precondition(ScrollingScreenSource.localRect(CGRect(x: -1500, y: 0, width: 200, height: 100),
                                                     displayFrame: display) == nil)

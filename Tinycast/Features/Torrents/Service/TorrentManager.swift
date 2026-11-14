@@ -276,7 +276,7 @@ import Observation
 
     private func index(_ id: UUID) -> Int? { jobs.firstIndex { $0.id == id } }
 
-    @concurrent private static func outputFiles(_ status: TorrentStatus, destination: URL) async throws -> [URL] {
+    @concurrent static func outputFiles(_ status: TorrentStatus, destination: URL) async throws -> [URL] {
         let files = (status.files ?? []).map { URL(fileURLWithPath: $0.path).standardizedFileURL }
             .filter { $0.path.hasPrefix(destination.path + "/") }
         if status.status == "complete" || status.seeder == "true" {

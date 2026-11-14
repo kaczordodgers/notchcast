@@ -63,8 +63,6 @@ final class NotchcastPreferences {
 
     var engineDefaults: UserDefaults { defaults }
 
-    var archiveHandlersClaimed: Bool { get { defaults.bool(forKey: Self.archiveHandlersClaimedKey) } set { defaults.set(newValue, forKey: Self.archiveHandlersClaimedKey) } }
-
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
@@ -77,7 +75,6 @@ final class NotchcastPreferences {
 
 extension NotchcastPreferences {
     static let shared = NotchcastPreferences(suiteName: NotchcastIdentity.current.suiteName())
-    nonisolated static let archiveHandlersClaimedKey = "archiveHandlersClaimed"
     nonisolated static let remoteMacAddressKey = "remoteMacAddress"
     nonisolated static let remoteTerminalDirectoryKey = "remoteTerminalDirectory"
     nonisolated static let remoteUpdatePathKey = "remoteUpdatePath"

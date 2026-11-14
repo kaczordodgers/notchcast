@@ -8,6 +8,7 @@ on:
   pull_request:
     branches: [main]
     paths: ["**/*.swift", "notchcast/design-check.sh", "notchcast/config.env", "notchcast/fetch-upstream.sh", ".github/workflows/design.yml"]
+  workflow_dispatch:
 
 permissions:
   contents: read

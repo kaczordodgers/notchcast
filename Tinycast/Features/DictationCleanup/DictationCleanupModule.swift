@@ -57,6 +57,8 @@ final class DictationCleanupModule: NotchcastModule {
         reportFallback?()
     }
 
+    func succeeded() { fallbackReported = false }
+
     func apiKey() -> String? {
         do { return try readAPIKey() ?? "" } catch { reportFailure?(); return nil }
     }

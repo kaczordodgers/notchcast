@@ -3,6 +3,8 @@ import Foundation
 import os
 
 nonisolated enum PublicWebAddress {
+    typealias Lookup = @Sendable (String, UInt16) throws -> [String]
+
     static let localNames = ["localhost"]
     /// Also the source of WebKit's local-name content rules, so the two lists cannot drift.
     static let localSuffixes = [".localhost", ".local"]
@@ -61,8 +63,7 @@ nonisolated enum PublicWebAddress {
         return true
     }
 
-    static func resolve(_ host: String, port: UInt16,
-                        lookup: @escaping @Sendable (String, UInt16) throws -> [String] = lookup) async throws -> [String] {
+    static func resolve(_ host: String, port: UInt16, lookup: @escaping Lookup = lookup) async throws -> [String] {
         try Task.checkCancellation()
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
         try validate(URL(string: "http://\(name.contains(":") ? "[\(name)]" : name):\(port)/") ?? URL(filePath: "/"))
@@ -82,7 +83,7 @@ nonisolated enum PublicWebAddress {
         return addresses
     }
 
-    nonisolated private static func lookup(_ name: String, _ port: UInt16) throws -> [String] {
+    static func lookup(_ name: String, _ port: UInt16) throws -> [String] {
         var hints = addrinfo()
         hints.ai_socktype = SOCK_STREAM
         hints.ai_protocol = IPPROTO_TCP

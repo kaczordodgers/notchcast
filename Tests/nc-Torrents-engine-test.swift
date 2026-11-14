@@ -114,6 +114,7 @@ import Foundation
         let hash = submission.infoHash
         guard let magnet = URL(string: "magnet:?xt=urn:btih:\(hash)&dn=ignored") else { fatalError("Magnet") }
         try modelChecks(data: data, hash: hash)
+        try await outputChecks(root: root)
         try await managerChecks(file: file, magnet: magnet, root: root)
         try await cancellationChecks(magnet: magnet, root: root)
         try await failureChecks(magnet: magnet, root: root)
@@ -122,6 +123,46 @@ import Foundation
         try await sessionChecks(root: root)
         try await smoke(file: file, root: root)
         print("PASS: \(checks) torrent parsing, lifecycle, progress, cancellation, retry and RPC checks")
+    }
+
+    @MainActor static func outputChecks(root: URL) async throws {
+        let destination = root.appendingPathComponent("Downloads")
+        let nested = destination.appendingPathComponent("nested/file")
+        try FileManager.default.createDirectory(at: nested.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data().write(to: nested)
+        let movies = destination.appendingPathComponent("Movies")
+        try FileManager.default.createSymbolicLink(at: movies, withDestinationURL: root)
+        try Data().write(to: root.appendingPathComponent("film.mkv"))
+        let pending = destination.appendingPathComponent("uncreated/pending.bin")
+        let film = movies.appendingPathComponent("film.mkv")
+        let status = TorrentStatus(status: "active", files: [
+            .init(path: nested.path), .init(path: pending.path),
+            .init(path: root.appendingPathComponent("Downloads2/file").path),
+            .init(path: film.path),
+        ])
+        let files = try await TorrentManager.outputFiles(status, destination: destination)
+        check(files.map(\.path) == [nested, pending, film].map(\.path),
+              "Lexical output filter includes nested and symlinked files, excludes siblings")
+        check(!FileManager.default.fileExists(atPath: pending.path), "Pending file remains absent")
+        print("PASS: lexical output filter retains existing, pending and symlinked files; excludes siblings")
+        do {
+            _ = try TorrentAria2Session.writeConfiguration(secret: "unused", directory: nested)
+            check(false, "Configuration directory creation must fail beneath a file")
+        } catch TorrentFailure.launchFailed {
+            print("PASS: configuration directory creation failure reports launchFailed")
+        }
+        let secret = UUID().uuidString
+        let configuration = try TorrentAria2Session.writeConfiguration(secret: secret, directory: root)
+        defer { try? FileManager.default.removeItem(at: configuration.deletingLastPathComponent()) }
+        let attributes = try FileManager.default.attributesOfItem(atPath: configuration.path)
+        check((attributes[.posixPermissions] as? NSNumber)?.intValue == 0o600, "RPC configuration is 0600")
+        let directoryAttributes = try FileManager.default.attributesOfItem(atPath: configuration.deletingLastPathComponent().path)
+        check((directoryAttributes[.posixPermissions] as? NSNumber)?.intValue == 0o700, "RPC directory is 0700")
+        let arguments = TorrentAria2Session.arguments(port: 12345, configuration: configuration,
+                                                     stateDirectory: root, extraArguments: [])
+        check(!arguments.joined().contains(secret) && !arguments.contains { $0.hasPrefix("--rpc-secret") },
+              "Built argv contains no RPC secret")
+        print("PASS: RPC configuration 0600, directory 0700, built argv has no secret")
     }
 
     @MainActor static func modelChecks(data: Data, hash: String) throws {
@@ -291,6 +332,8 @@ import Foundation
         #!/usr/bin/env node
         const fs = require('node:fs'), http = require('node:http');
         const option = name => process.argv.find(arg => arg.startsWith(name + '='))?.split('=')[1];
+        const configuration = option('--conf-path');
+        const secret = fs.readFileSync(configuration, 'utf8').trim().slice('rpc-secret='.length);
         const root = option('--fixture-root'), owner = Number(option('--stop-with-process'));
         fs.writeFileSync(root + '/pid', String(process.pid));
         for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
@@ -308,7 +351,7 @@ import Foundation
           request.on('end', () => {
             const message = JSON.parse(body);
             const valid = message.method === 'aria2.getSessionInfo' &&
-              message.params[0] === 'token:' + option('--rpc-secret');
+              message.params[0] === 'token:' + secret;
             response.end(JSON.stringify({jsonrpc: '2.0', id: message.id,
               result: valid ? {sessionId: 'fixture'} : null}));
           });
@@ -320,8 +363,23 @@ import Foundation
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: tool.path)
         let locator = FakeTool(url: tool)
         let arguments = ["--fixture-root=\(root.path)"]
+        let leftover = try TorrentAria2Session.writeConfiguration(secret: "abandoned", directory: root)
+            .deletingLastPathComponent()
+        let empty = root.appendingPathComponent(UUID().uuidString)
+        let otherState = root.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: empty, withIntermediateDirectories: false)
+        try FileManager.default.createDirectory(at: otherState, withIntermediateDirectories: false)
+        try Data([1]).write(to: otherState.appendingPathComponent("state.dat"))
         var session: TorrentAria2Session? = TorrentAria2Session(stateDirectory: root, locator: locator)
         try await session!.start(extraArguments: arguments)
+        check(!FileManager.default.fileExists(atPath: leftover.path)
+            && !FileManager.default.fileExists(atPath: empty.path), "Prepare removes abandoned configuration directories")
+        check(try Data(contentsOf: otherState.appendingPathComponent("state.dat")) == Data([1]),
+              "Prepare preserves other state")
+        print("PASS: prepare removes abandoned config directories and preserves other state")
+        check(try FileManager.default.contentsOfDirectory(atPath: root.path).allSatisfy {
+            !FileManager.default.fileExists(atPath: root.appendingPathComponent($0).appendingPathComponent("aria2.conf").path)
+        }, "Configuration removed after RPC startup")
         let pid = session!.processIdentifier!
         let fixturePID = try String(contentsOf: root.appendingPathComponent("pid"), encoding: .utf8)
         check(String(pid) == fixturePID && session!.isAlive && kill(pid, 0) == 0, "Real session owns live fixture PID")
@@ -360,6 +418,9 @@ import Foundation
         } catch TorrentFailure.launchFailed {
             check(!missing.isAlive && missing.processIdentifier == nil, "Launch failure stays typed and owns no PID")
         }
+        check(try FileManager.default.contentsOfDirectory(atPath: root.path).allSatisfy {
+            !FileManager.default.fileExists(atPath: root.appendingPathComponent($0).appendingPathComponent("aria2.conf").path)
+        }, "Configuration removed after launch failure")
         print("PASS: real session PID, liveness, INT/TERM/KILL timing, PID-only stop, terminate, deinit, launch failure")
     }
 

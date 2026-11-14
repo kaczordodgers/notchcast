@@ -5,6 +5,10 @@ enum MachineSetupProfileCoordinator {
     struct Outcome: Sendable {
         let steps: [MachineSetupProfileProcessExecutor.Step]
         let succeeded: Bool
+
+        var complete: Bool {
+            succeeded && steps.allSatisfy { [.satisfied, .applied].contains($0.status) }
+        }
     }
 
     static func run(

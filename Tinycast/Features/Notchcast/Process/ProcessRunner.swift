@@ -1,9 +1,11 @@
+import AppKit
 import Darwin
 import Foundation
 import Synchronization
 
 nonisolated enum ProcessRunner {
     struct Request: Sendable {
+        enum GroupCleanup: Sendable { case keepAfterExit, killBeforeDrain, drainThenKill }
         enum ErrorOutput: Sendable { case discard, capture(limit: Int), merge }
 
         var executable: URL
@@ -20,7 +22,8 @@ nonisolated enum ProcessRunner {
         var outputTail: Int?
         var onLine: (@Sendable (String) -> Void)?
         var onData: (@Sendable (Data) async throws -> Void)?
-        var cleansGroupOnExit = false
+        var groupCleanup = GroupCleanup.keepAfterExit
+        var killsOnQuit = false
     }
 
     /// The signals a stopped child gets: `first` at once, each later one at its delay from the stop.
@@ -61,6 +64,8 @@ nonisolated enum ProcessRunner {
         let signaled: Bool
         let stdout: Data
         let stderr: Data
+
+        var exitCode: Int32 { signaled ? 128 + status : status }
     }
 
     enum Failure: Error, Equatable { case timedOut, outputLimit }
@@ -134,6 +139,7 @@ nonisolated enum ProcessRunner {
             var timers: [DispatchWorkItem] = []
             var drained = false
             var drainDeadline: ContinuousClock.Instant?
+            var termination: NotificationToken?
         }
 
         private let request: Request
@@ -209,6 +215,12 @@ nonisolated enum ProcessRunner {
 
         func launch() throws -> ProcessExit {
             try state.withLock { state in
+                if request.killsOnQuit {
+                    let center = NotificationCenter.default
+                    state.termination = NotificationToken(center.addObserver(
+                        forName: NSApplication.willTerminateNotification, object: nil, queue: nil
+                    ) { [weak self] _ in self?.terminate() }, center: center)
+                }
                 let exit = try state.process.runObservingExit()
                 for stream in [stdoutStream, stderrStream].compactMap({ $0 }) {
                     try? stream.pipe.fileHandleForWriting.close()
@@ -227,7 +239,7 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard state.stop == nil, !state.drained else { return }
                 state.stop = reason
-                if request.onData != nil {
+                if request.groupCleanup == .drainThenKill {
                     state.drainDeadline = .now + (request.stopLadder.later.last?.after ?? .zero) + .milliseconds(250)
                 }
                 let pid = state.process.processIdentifier
@@ -245,7 +257,7 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard !state.drained else { return }
                 state.stop = .cancelled
-                if request.onData != nil { state.drainDeadline = .now }
+                if request.groupCleanup == .drainThenKill { state.drainDeadline = .now }
                 let pid = state.process.processIdentifier
                 kill(request.stopsGroup ? -pid : pid, SIGKILL)
             }
@@ -253,17 +265,18 @@ nonisolated enum ProcessRunner {
 
         func drain() {
             state.withLock { state in
-                if request.stopsGroup, request.cleansGroupOnExit || (state.stop != nil && request.onData == nil) {
+                if request.stopsGroup, request.groupCleanup == .killBeforeDrain
+                    || (state.stop != nil && request.groupCleanup == .keepAfterExit) {
                     kill(-state.process.processIdentifier, SIGKILL)
                 }
-                if request.onData == nil { state.drainDeadline = .now + .milliseconds(250) }
+                if request.groupCleanup != .drainThenKill { state.drainDeadline = .now + .milliseconds(250) }
             }
             stdoutStream?.wait()
             stderrStream?.wait()
-            if request.stopsGroup, request.onData != nil {
+            if request.stopsGroup, request.groupCleanup == .drainThenKill {
                 state.withLock { _ = kill(-$0.process.processIdentifier, SIGKILL) }
             }
-            state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() } }
+            state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() }; $0.timers.removeAll() }
         }
 
         func finish() throws -> Output {
@@ -284,7 +297,11 @@ nonisolated enum ProcessRunner {
         }
 
         func dispose() {
-            state.withLock { state in state.timers.forEach { $0.cancel() } }
+            state.withLock { state in
+                state.termination = nil
+                state.timers.forEach { $0.cancel() }
+                state.timers.removeAll()
+            }
             for handle in handles { try? handle.close() }
             try? FileManager.default.removeItem(at: folder)
         }
@@ -297,78 +314,6 @@ nonisolated enum ProcessRunner {
             try handle.seek(toOffset: 0)
             return try handle.read(upToCount: Int(min(size, UInt64(limit)))) ?? Data()
         }
-    }
-}
-
-nonisolated final class ProcessOutputStream: Sendable {
-    let pipe = Pipe()
-    private let limit: Int?
-    private let onLine: (@Sendable (String) -> Void)?
-    private let onData: (@Sendable (Data) async throws -> Void)?
-    private let failure = Mutex<(any Error)?>(nil)
-    private let captured = Mutex(Data())
-    private let readers = DispatchGroup()
-
-    init(limit: Int?, onLine: (@Sendable (String) -> Void)? = nil,
-         onData: (@Sendable (Data) async throws -> Void)? = nil) {
-        self.limit = limit
-        self.onLine = onLine
-        self.onData = onData
-    }
-    var data: Data { captured.withLock { $0 } }
-    var error: (any Error)? { failure.withLock { $0 } }
-    func start(deadline: @escaping @Sendable () -> ContinuousClock.Instant?, failed: @escaping @Sendable () -> Void) {
-        readers.enter()
-        Thread.detachNewThread { @Sendable in
-            defer { self.readers.leave(); try? self.pipe.fileHandleForReading.close() }
-            let descriptor = self.pipe.fileHandleForReading.fileDescriptor
-            var pending = Data()
-            var buffer = [UInt8](repeating: 0, count: 8192)
-            while deadline().map({ ContinuousClock.now < $0 }) ?? true {
-                var event = pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
-                let ready = poll(&event, 1, 50)
-                if ready < 0 && errno == EINTR { continue }
-                if ready == 0 { continue }
-                guard ready > 0 else { break }
-                let count = Darwin.read(descriptor, &buffer, buffer.count)
-                if count < 0 && errno == EINTR { continue }
-                guard count > 0 else { break }
-                if let onData = self.onData {
-                    let chunk = Data(buffer.prefix(count))
-                    let consumed = DispatchSemaphore(value: 0)
-                    Task.detached {
-                        defer { consumed.signal() }
-                        do { try await onData(chunk) } catch {
-                            self.failure.withLock { $0 = error }
-                            failed()
-                        }
-                    }
-                    consumed.wait()
-                    if self.error != nil { break }
-                }
-                self.captured.withLock {
-                    if self.onData == nil || self.limit != nil { $0.append(contentsOf: buffer.prefix(count)) }
-                    if let limit = self.limit { Self.trim(&$0, limit: limit) }
-                }
-                if let onLine = self.onLine {
-                    pending.append(contentsOf: buffer.prefix(count))
-                    while let newline = pending.firstIndex(where: { $0 == 10 || $0 == 13 }) {
-                        let line = String(bytes: pending[..<newline], encoding: .utf8) ?? ""
-                        pending.removeSubrange(...newline)
-                        if !line.isEmpty { onLine(line) }
-                    }
-                    Self.trim(&pending, limit: 65_536)
-                }
-            }
-            if let onLine = self.onLine, !pending.isEmpty {
-                onLine(String(bytes: pending, encoding: .utf8) ?? "")
-            }
-        }
-    }
-    func wait() { readers.wait() }
-    private static func trim(_ data: inout Data, limit: Int) {
-        if data.count > limit { data.removeFirst(data.count - limit) }
-        while let first = data.first, first & 0xC0 == 0x80 { data.removeFirst() }
     }
 }
 

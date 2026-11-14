@@ -5,15 +5,5 @@
     "Tinycast/Features/Music/Service/SoloistKey.swift",
     "Tinycast/Features/AppProof/**",
     "Tinycast/App/TinycastApp.swift"
-  ],
-  "archive-compress": [
-    "Tinycast/Features/Archives/Model/*.swift",
-    "Tinycast/Features/Archives/Service/*.swift",
-    "Tinycast/Features/AppProof/**"
-  ],
-  "archive-fallback": [
-    "Tinycast/Features/Archives/Model/*.swift",
-    "Tinycast/Features/Archives/Service/*.swift",
-    "Tinycast/Features/AppProof/**"
   ]
 }

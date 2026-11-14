@@ -44,6 +44,7 @@ final class BatteryModule: NotchcastModule {
     private(set) var helperInstalled = false
     private(set) var chargingUnsupported = false
     private(set) var nativeLimit: Int?
+    private(set) var calibrationStep: CalibrationSession.Step?
     private var helperHasNativeLimit = true
     var nativeLimitAvailable: Bool {
         helperInstalled && !helperGateClosed && helperHasNativeLimit
@@ -229,7 +230,7 @@ final class BatteryModule: NotchcastModule {
         }
         let awake = KeepAwakePolicy(enabled: on(.keepAwake) && !awakePaused, until: awakeUntil)
         let holding = awake.evaluate(now: now, onBattery: reading?.onBattery ?? false,
-                                     percent: percent, locked: false) == .hold
+                                     percent: percent) == .hold
         do {
             if nativeLimitAvailable {
                 guard let verb = on(.batteryChargeLimit)
@@ -275,26 +276,23 @@ final class BatteryModule: NotchcastModule {
             if !on(.batteryCalibration) { engine.calibration.cancel() }
             calibrationEnabled = on(.batteryCalibration)
             let enabled = !chargingUnsupported && preferences.holdsBatteryCharging
-            let policy = ChargePolicy(enabled: enabled,
-                                      limit: on(.batterySailing)
-                                        ? preferences.batteryChargePercent : 100,
-                                      drain: on(.batterySailing))
+            let policy = ChargePolicy(enabled: enabled, limit: on(.batterySailing) ? preferences.batteryChargePercent : 100)
             let decision = engine.evaluate(
                 policy: policy, percent: percent, charging: reading?.isCharging ?? false,
                 connected: reading.map { !$0.onBattery } ?? false,
                 celsius: reading?.temperatureCelsius, now: now,
-                heatEnabled: on(.batteryHeatProtection))
+                heatEnabled: on(.batteryHeatProtection), calibrationLimit: preferences.batteryChargePercent)
+            calibrationStep = engine.calibration.step
             if calibrationEnabled && engine.calibration.completedAt != nil {
                 preferences.batteryCalibrationCompletedAt = engine.calibration.completedAt
                 preferences.set(.batteryCalibration, false)
                 calibrationEnabled = false
             }
             guard helperInstalled && !helperGateClosed else { return }
-            guard enabled || on(.lidClosedAwake) || !journal.effects.isEmpty else { return }
+            guard enabled || preferences.isEnabled(.lidClosedAwake) || !journal.effects.isEmpty else { return }
             var verbs: [RootContract.Command] = []
-            // Adapter disconnection requires a helper watchdog before it can be enabled safely.
-            try ChargePlanService().apply(decision, watchdogReady: false) { verbs.append($0) }
-            verbs.append(LidClosedPolicy.plan(enabled: on(.lidClosedAwake),
+            try ChargePlanService().apply(decision) { verbs.append($0) }
+            verbs.append(LidClosedPolicy.plan(enabled: preferences.isEnabled(.lidClosedAwake),
                                              helperReady: true, keepAwakeHolding: holding))
             for verb in verbs {
                 try Task.checkCancellation()
@@ -404,7 +402,7 @@ final class BatteryModule: NotchcastModule {
             switch BatteryOwnershipJournal.Key(rawValue: key) {
             case .chargeLimit: return !preferences.isOn(.batteryChargeLimit)
             case .charging: return !preferences.holdsBatteryCharging
-            case .sleep: return !preferences.isOn(.lidClosedAwake)
+            case .sleep: return !preferences.isEnabled(.lidClosedAwake)
             case .adapter, nil: return true
             }
         }
@@ -418,7 +416,7 @@ final class BatteryModule: NotchcastModule {
                 guard let verb = key.release, journal.effect(key) != nil else { continue }
                 try Task.checkCancellation()
                 if running && ((key == .charging && preferences.holdsBatteryCharging) ||
-                    (key == .sleep && preferences.isOn(.lidClosedAwake))) {
+                    (key == .sleep && preferences.isEnabled(.lidClosedAwake))) {
                     continue
                 }
                 do {

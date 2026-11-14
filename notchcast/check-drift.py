@@ -6,6 +6,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -293,17 +294,25 @@ def print_counters(root, upstream, observed, ours, our_tests, baseline, known):
             if value > baseline[rule].get(key, 0):
                 print(f'GATE-THRESHOLD {rule}:{key.replace(" | ", "|")} {value} {baseline[rule].get(key, 0)}')
     counters = report_counters(root, upstream, ours, our_tests)
+    breaches = []
     for (counter, key), value in sorted(counters.items()):
         limit = baseline['alerts'][counter]
         if key == 'all':
             print(f'{counter} | {value} | {limit} | {key}')
         if value > limit:
             mark = ' known' if value <= known.get((counter, key), limit) else ''
-            print(f'GATE-THRESHOLD {counter if key == "all" else f"{counter}:{key}"} {value} {limit}{mark}')
-    return counters
+            name = counter if key == 'all' else f'{counter}:{key}'
+            print(f'GATE-THRESHOLD {name} {value} {limit}{mark}')
+            if not mark:
+                breaches.append(f'threshold breach new or grown: {name} {value} > {limit} '
+                                f'(main: {known.get((counter, key), "none")})')
+    return counters, breaches
 
 
 def notify(counters, thresholds, cache, hook):
+    if os.environ.get('NOTCHCAST_NO_TASKS', '0') not in ('', '0'):
+        print('tasks disabled (NOTCHCAST_NO_TASKS)')
+        return
     available = subprocess.run(['bash', '-c',
                                 'if [ -f "$1" ]; then source "$1"; fi; declare -F notchcast_task >/dev/null',
                                 'drift-hook', str(hook)], capture_output=True, text=True, errors='replace')
@@ -378,7 +387,7 @@ def main():
         return 0
     baseline = read_baseline(path)
     if args.report:
-        counters = print_counters(root, upstream, observed, ours, our_tests, baseline, {})
+        counters, _ = print_counters(root, upstream, observed, ours, our_tests, baseline, {})
         for rule in ('dead', 'test-only'):
             for key in observed.get(rule, {}):
                 print(f'{rule} | {key}')
@@ -393,7 +402,13 @@ def main():
     for problem in problems:
         print(problem)
     if args.gates == '1,2,3,4':  # land.sh and local-ci.sh run all four; the pre-push subset stays quiet
-        print_counters(root, upstream, observed, ours, our_tests, baseline, main_counters(root, upstream))
+        known = main_counters(root, upstream)
+        _, breaches = print_counters(root, upstream, observed, ours, our_tests, baseline, known)
+        if known:
+            print('\n'.join(breaches))
+            problems += breaches
+        elif breaches:
+            print('WARN: origin/main counters unavailable; threshold breaches not enforced')
     return bool(problems)
 
 

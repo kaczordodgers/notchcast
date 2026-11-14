@@ -59,6 +59,7 @@ struct DialogView: View {
         }
         .padding(metrics.spacing.dialogInset)
         .frame(width: width, alignment: .leading)
+        .background { SurfaceBackdrop(fill: AppearanceThemeColors.surfaceBackdropStyle, shape: shape) }
         .background(Theme.Colors.panelScrim, in: shape)
         .background { Color.clear.glassEffect(.regular, in: shape) }
     }

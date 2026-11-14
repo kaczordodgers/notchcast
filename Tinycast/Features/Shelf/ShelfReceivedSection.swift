@@ -5,6 +5,8 @@ struct ShelfReceivedSection: View {
     @Environment(AppCore.self) private var core
     @State private var entries: [ShelfReceivedEntry] = []
     @State private var busy = false
+    @State private var confirmingClear = false
+    @State private var openFailure: String?
     private var store: ShelfReceivedStore { ShelfModule.shared.store }
 
     var body: some View {
@@ -14,44 +16,57 @@ struct ShelfReceivedSection: View {
                     ? String(localized: "Connected", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast"))
             }
             ShelfReceivedRows(entries: entries, action: perform)
-            Group {
+            Button(String(localized: "Clear All", table: "Notchcast"), role: .destructive) {
+                confirmingClear = true
+            }
+            .confirmationDialog(
+                String(localized: "Clear all received items?", table: "Notchcast"),
+                isPresented: $confirmingClear,
+                titleVisibility: .visible
+            ) {
                 Button(String(localized: "Clear All", table: "Notchcast"), role: .destructive) {
-                    Task {
-                        guard await core.confirm(title: String(localized: "Clear all received items?", table: "Notchcast"),
-                            message: String(localized: "This can't be undone."), symbol: "tray",
-                            confirmTitle: String(localized: "Clear All", table: "Notchcast")) else { return }
-                        await update { try await store.clear() }
+                    Task { await update { try await store.clear() } }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This can't be undone.")
+            }
+            .alert(
+                String(localized: "Could Not Open Shelf Item", table: "Notchcast"),
+                isPresented: Binding(get: { openFailure != nil }, set: { if !$0 { openFailure = nil } })
+            ) {
+                Button("OK") {}
+            } message: {
+                Text(openFailure ?? "")
+            }
+            .task {
+                var lastDate: Date?
+                var loadedOnce = false
+                var reportedError = false
+                while !Task.isCancelled {
+                    do {
+                        let date = try await store.modificationDate()
+                        if !busy && (!loadedOnce || date != lastDate) {
+                            let loaded = try await store.entries()
+                            try Task.checkCancellation()
+                            if !busy {
+                                entries = loaded
+                                lastDate = date
+                                loadedOnce = true
+                            }
+                        }
+                        reportedError = false
+                    } catch is CancellationError { return } catch {
+                        if !reportedError {
+                            core.showMessage(String(localized: "Could Not Load Shelf", table: "Notchcast"), tone: .danger)
+                            reportedError = true
+                        }
                     }
+                    do { try await Task.sleep(for: .seconds(2)) } catch { return }
                 }
             }
         }
         .disabled(busy)
-        .task {
-            var lastDate: Date?
-            var loadedOnce = false
-            var reportedError = false
-            while !Task.isCancelled {
-                do {
-                    let date = try await store.modificationDate()
-                    if !busy && (!loadedOnce || date != lastDate) {
-                        let loaded = try await store.entries()
-                        try Task.checkCancellation()
-                        if !busy {
-                            entries = loaded
-                            lastDate = date
-                            loadedOnce = true
-                        }
-                    }
-                    reportedError = false
-                } catch is CancellationError { return } catch {
-                    if !reportedError {
-                        core.showMessage(String(localized: "Could Not Load Shelf", table: "Notchcast"), tone: .danger)
-                        reportedError = true
-                    }
-                }
-                do { try await Task.sleep(for: .seconds(2)) } catch { return }
-            }
-        }
     }
 
     private func perform(_ entry: ShelfReceivedEntry, _ action: ShelfReceivedAction) {
@@ -68,7 +83,7 @@ struct ShelfReceivedSection: View {
                     try await QuicklinkLauncher.open(String(data: entry.item.data, encoding: .utf8) ?? "",
                                                      openWithBundleID: nil, inNewWindow: false)
                 } catch {
-                    core.showMessage(error.localizedDescription, tone: .danger)
+                    openFailure = error.localizedDescription
                 }
             }
         case .save:

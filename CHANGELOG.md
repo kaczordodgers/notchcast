@@ -8,8 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Compress the Finder selection as ZIP, as a smaller 7z or as a faster tar.zst, from Finder's Services menu or the launcher. [#398](https://github.com/kaczordodgers/notchcast/pull/398)
-- Archives unpack more formats, such as xz, bz2, zstd and other formats that bsdtar or unar can read, and ZIP files with non-Unicode Polish file names keep their names. [#400](https://github.com/kaczordodgers/notchcast/pull/400)
 - Capture Area copies a selected area of the screen, on any display, to the screenshot destination. [#406](https://github.com/kaczordodgers/notchcast/pull/406)
 - Capture Editor marks up a capture with arrows, text, rectangles, ellipses and blur, with undo and Copy. It opens after Capture Area, or from Edit Capture for the clipboard image or the last capture, on the capture's display. Close keeps the marks for the next Edit Capture. [#408](https://github.com/kaczordodgers/notchcast/pull/408) [#411](https://github.com/kaczordodgers/notchcast/pull/411) [#414](https://github.com/kaczordodgers/notchcast/pull/414) [#418](https://github.com/kaczordodgers/notchcast/pull/418) [#432](https://github.com/kaczordodgers/notchcast/pull/432)
 - X post and article links download as Markdown files, and the island shows download progress and a message for each failed download with its reason. [#468](https://github.com/kaczordodgers/notchcast/pull/468)
@@ -24,7 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The launcher stays open while a screenshot is taken and takes the keyboard back afterwards. [#481](https://github.com/kaczordodgers/notchcast/pull/481)
 - Spaces order is set only by the Spaces order switch; the matching Tweaks item is removed so the two no longer fight. [#429](https://github.com/kaczordodgers/notchcast/pull/429)
 - The launcher opened from the island is Tinycast's glass panel again: it follows Light and Dark, keeps its shadow and hangs just below the island instead of turning black and covering the menu bar. [#508](https://github.com/kaczordodgers/notchcast/pull/508)
-- Convert Files makes ZIP and 7z archives and extracts through Archives, so it names them the same way (zipping report.pdf gives report.pdf.zip) and gets the same safety checks when extracting. [#562](https://github.com/kaczordodgers/notchcast/pull/562)
+
+### Removed
+
+- Archives is removed: Notchcast no longer unpacks or compresses archives, and Finder, the launcher and Convert Files no longer offer it. If Finder still opens an archive type with Notchcast, select such a file, choose File > Get Info, set Open with to Archive Utility (or, for RAR and split .001 files, another installed app that opens them) and click Change All; repeat for each type. [#662](https://github.com/kaczordodgers/notchcast/pull/662)
 
 ### Fixed
 

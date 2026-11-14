@@ -296,7 +296,7 @@ struct BatteryStoreTests {
         precondition(released == 2 && module.nativeLimit == 85 && calls.isEmpty)
         preferences.set(.batteryCalibration, true)
         for _ in 0..<100 { await Task.yield() }
-        for value in [100, 10, 100, 100] {
+        for value in [100, 10, 100, preferences.batteryChargePercent] {
             percent = value
             await module.evaluate(now: .now)
         }

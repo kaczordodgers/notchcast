@@ -2,11 +2,11 @@ import Foundation
 
 struct ConvertFilesPlan: Sendable, Equatable {
     enum Tool: String, Sendable {
-        case native, archives, cwebp, sips, pandoc, textutil, ffmpeg, tar
+        case native, cwebp, sips, pandoc, textutil, ffmpeg, tar
 
         var executable: DownloadTool? {
             switch self {
-            case .native, .archives: nil
+            case .native: nil
             case .ffmpeg: .ffmpeg
             case .cwebp: .cwebp
             case .pandoc: .pandoc
@@ -22,7 +22,6 @@ struct ConvertFilesPlan: Sendable, Equatable {
 
     struct Item: Sendable, Equatable {
         let sources: [URL]
-        /// `JobOutput` numbers the name at publish; empty when `archives` names the output.
         let stem: String
         let suffix: String
         let tool: Tool
@@ -50,9 +49,6 @@ struct ConvertFilesPlan: Sendable, Equatable {
             let base = sources[0].deletingPathExtension().lastPathComponent
             return Self(items: [Item(sources: sources, stem: base + " merged", suffix: ".pdf", tool: .native,
                                      arguments: [format, pages] + sources.map(\.path))])
-        }
-        if ["zip", "7z"].contains(format) {
-            return Self(items: [Item(sources: sources, stem: "", suffix: "", tool: .archives, arguments: [format])])
         }
         if format == "tar.gz" {
             var arguments = ["-c", "-f", out, "-z", "--format=pax"]
@@ -89,11 +85,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
             var tool: Tool
             var needsProbe = false
             var arguments: [String]
-            if format == "extract" {
-                (stem, suffix) = ("", "")
-                tool = .archives
-                arguments = [format]
-            } else if ext == "pdf", ["pdf-split", "pdf-range", "txt"].contains(format) {
+            if ext == "pdf", ["pdf-split", "pdf-range", "txt"].contains(format) {
                 tool = .native
                 arguments = [format == "txt" ? "pdf-text" : format, pages, source.path]
             } else if data.contains(ext), data.contains(format) {

@@ -52,15 +52,13 @@ struct FinderToolsPolicyTest {
 
         var session = FinderCutSession()
         check(!session.take(changeCount: 1), "No cut never moves")
-        session.mark(changeCount: 3, fileCount: 2)
+        session.mark(changeCount: 3)
         check(!session.take(changeCount: 4), "Another clipboard write invalidates cut")
         check(session.clipboardChangeCount == nil, "Invalid cuts are cleared")
-        session.mark(changeCount: 4, fileCount: 2)
+        session.mark(changeCount: 4)
         check(session.take(changeCount: 4), "The same clipboard moves once")
         check(!session.take(changeCount: 4), "A second paste cannot move twice")
-        session.mark(changeCount: 5, fileCount: 0)
-        check(!session.take(changeCount: 5), "A non-file clipboard never moves")
-        session.mark(changeCount: 6, fileCount: 1)
+        session.mark(changeCount: 6)
         session.clear()
         check(!session.take(changeCount: 6), "Disabling forgets the cut")
 

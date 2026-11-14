@@ -11,6 +11,7 @@ The one list of what Notchcast hides and how. Code stays compiled so upstream ha
 | Hidden | Apple Shortcuts | apple-shortcuts | none | appleShortcutsEnabled | AppSettings, sidebar, slug, search; existing scanner and runner gates |
 | Hidden | Support | none | command:support | supportRemindersEnabled, supportEnabled | catalog, hotkeys, launcher dispatch, SupportCoordinator, reminder startup; menu and About affordances |
 | Hidden | About tab | about | none | none | sidebar, slug, search; page retained |
+| Hidden | About Website, Discord, X and Email links | about | none | none | AboutView filters link rows; GitHub stays for AGPL access |
 
 | Hidden | Backup | backup | none | none | sidebar, slug, search; Notchcast Backups retains sync, export and import |
 | Hidden | Raycast import | none | command:import-from-raycast | none | catalog, hotkeys, launcher dispatch and deeplinks |

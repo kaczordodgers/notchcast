@@ -62,8 +62,11 @@ struct TweaksStoreTests {
         precondition(TweaksProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
         precondition(!TweaksProcessRunner.allowedExecutables.contains("/bin/kill"))
         precondition(!TweaksProcessRunner.allowedExecutables.contains("/bin/launchctl"))
-        let domains = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["domains"])
-        precondition(domains.contains("com.apple"))
+        // Not `defaults domains`: its cost grows with every plist on the Mac and outran the 5 s budget.
+        let product = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: [
+            "read", "/System/Library/CoreServices/SystemVersion.plist", "ProductName"
+        ])
+        precondition(product == "macOS\n")
         do {
             _ = try TweaksProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"])
             preconditionFailure("A failing tool must throw")

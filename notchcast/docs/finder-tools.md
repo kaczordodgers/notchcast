@@ -8,7 +8,7 @@ or Automation grant.
 Command-X copies Finder's selection and remembers that clipboard version. Command-V then asks
 Finder to Move Item Here (Option-Command-V). Finder owns conflicts, failures, cross-volume moves,
 and its native progress UI. A different clipboard version, Command-C, Escape, disabling the feature,
-or losing Accessibility cancels the pending cut. Text editing receives the original cut/paste keys.
+or losing Accessibility cancels the pending cut. Text editing receives the original cut/paste keys. Paste outside the file list preserves the armed cut until a later file-list paste or cancellation.
 
 Hyper-R sends Finder's Return key when no text or dialog is being edited, following the native
 Return variant of the feature. Other applications keep their shortcuts. Command registration can
@@ -27,3 +27,4 @@ Run `./Scripts/run-tests.sh nc-FinderTools-policy-test` and
 `./Scripts/run-tests.sh nc-FinderTools-services-test`. They compile shipped sources without changing
 the clipboard, user files, or Finder. Finder's native move/rename behavior requires a later live check
 in a temporary directory with Accessibility granted.
+The services harness drives the shipped copy-selection handshake with injected clipboard reads and waits, including a clipboard mutation during URL reading, the unchanged-clipboard timeout and successful capture.

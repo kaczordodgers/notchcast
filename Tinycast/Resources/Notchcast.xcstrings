@@ -1,6 +1,342 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "After relaunch, start calibration again from step 1." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach einem Neustart die Kalibrierung wieder bei Schritt 1 starten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras reiniciar, vuelve a iniciar la calibración desde el paso 1."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après le redémarrage, relancez l’étalonnage à partir de l’étape 1."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再起動後は手順1から調整を開始し直してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 실행한 후 1단계부터 보정을 다시 시작하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Após reiniciar, inicie novamente a calibração no passo 1."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После перезапуска начните калибровку заново с шага 1."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动后，请从第1步重新开始校准。"
+          }
+        }
+      }
+    },
+    "Charge to 100%, unplug to 10%, recharge to 100%, then unplug to the limit and reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf 100 % laden, bis 10 % trennen, wieder auf 100 % laden, dann bis zum Ladelimit trennen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargar al 100 %, desconectar hasta el 10 %, recargar al 100 %, luego desconectar hasta el límite y reconectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charger à 100 %, débrancher jusqu’à 10 %, recharger à 100 %, puis débrancher jusqu’à la limite et rebrancher."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%まで充電し、電源を抜いて10%まで放電し、再び100%まで充電後、電源を抜いて上限まで放電し再接続します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%까지 충전하고 분리하여 10%까지 방전한 후 다시 100%까지 충전하고, 다시 분리하여 한도까지 방전한 후 연결합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carregar até 100%, desligar até 10%, recarregar até 100%, depois desligar até ao limite e voltar a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зарядить до 100 %, отключить до 10 %, снова зарядить до 100 %, затем отключить до предела и подключить снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充至100%，拔下电源放电至10%，重新充至100%，再拔下放电至上限后重新连接。"
+          }
+        }
+      }
+    },
+    "Could Not Open Shelf Item" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf-Element konnte nicht geöffnet werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo abrir el elemento de Shelf"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’ouvrir l’élément de Shelf"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelfの項目を開けませんでした"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf 항목을 열 수 없음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível abrir o item de Shelf"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось открыть элемент Shelf"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开 Shelf 项目"
+          }
+        }
+      }
+    },
+    "Each clipboard item must be 24 KiB or smaller" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedes Zwischenablageobjekt darf höchstens 24 KiB groß sein"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada elemento del portapapeles debe ocupar 24 KiB o menos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque élément du presse-papiers doit faire au maximum 24 Kio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードの各項目は24 KiB以下にしてください"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "각 클립보드 항목은 24 KiB 이하여야 합니다"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada item da área de transferência deve ter no máximo 24 KiB"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Каждый элемент буфера обмена должен быть не больше 24 КиБ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每个剪贴板项目不得超过24 KiB"
+          }
+        }
+      }
+    },
+    "Folders cannot be sent to Other Mac" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner können nicht an den anderen Mac gesendet werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pueden enviar carpetas al otro Mac"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’envoyer des dossiers à l’autre Mac"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フォルダは別のMacに送信できません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "폴더는 다른 Mac으로 보낼 수 없습니다"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não é possível enviar pastas para o outro Mac"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нельзя отправить папки на другой Mac"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法向另一台Mac发送文件夹"
+          }
+        }
+      }
+    },
+    "Other Mac: Agent Threads is off." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderer Mac: Agent Threads ist aus." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Otro Mac: Agent Threads está desactivado." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autre Mac : Agent Threads est désactivé." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "他のMac：Agent Threadsはオフです。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac: Agent Threads가 꺼져 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Outro Mac: Agent Threads está desativado." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другой Mac: Agent Threads выключен." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "另一台 Mac：Agent Threads 已关闭。" } }
+      }
+    },
+    "Pause charging above the charge limit without disconnecting the adapter." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Laden oberhalb des Ladelimits pausieren, ohne das Netzteil zu trennen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar la carga por encima del límite sin desconectar el adaptador."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre la charge au-dessus de la limite sans déconnecter l’adaptateur."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電上限を超えると、アダプタを切断せずに充電を一時停止します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "충전 한도를 넘으면 어댑터를 분리하지 않고 충전을 일시 중지합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar a carga acima do limite sem desligar o adaptador."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приостанавливать зарядку выше предела без отключения адаптера."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超过充电上限时暂停充电，不断开适配器。"
+          }
+        }
+      }
+    },
+    "Preview and apply supported setup tweaks from a profile." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unterstützte Einstellungen aus einem Profil prüfen und anwenden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Previsualiza y aplica los ajustes compatibles de un perfil." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prévisualisez et appliquez les réglages pris en charge d’un profil." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロファイル内の対応する設定をプレビューして適用します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로필에서 지원되는 설정을 미리 보고 적용합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Visualize e aplique os ajustes compatíveis de um perfil." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотр и применение поддерживаемых настроек из профиля." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "预览并应用配置文件中支持的设置调整。" } }
+      }
+    },
     "Dictation cleanup failed; pasted the original transcript" : {
       "localizations" : {
         "de" : {
@@ -209,10 +545,408 @@
         }
       }
     },
+    "Requires Keep Awake to be active while the lid is closed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfordert „Ruhezustand verhindern“ bei geschlossenem Deckel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requiere Mantener activo mientras la tapa esté cerrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nécessite « Maintenir éveillé » lorsque le capot est fermé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓋を閉じている間は「スリープを防止」を有効にする必要があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "덮개가 닫혀 있는 동안 잠자기 방지가 활성화되어 있어야 합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requer Manter ativo enquanto a tampa estiver fechada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При закрытой крышке требуется активный режим «Не переходить в сон»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合盖时需要启用保持唤醒。"
+          }
+        }
+      }
+    },
+    "Send at most 64 files at once" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sende höchstens 64 Dateien auf einmal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envía como máximo 64 archivos a la vez"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyez au maximum 64 fichiers à la fois"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一度に送信できるファイルは64個までです"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "한 번에 최대 64개의 파일을 보내세요"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envie no máximo 64 arquivos de cada vez"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправляйте не более 64 файлов за раз"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次最多发送64个文件"
+          }
+        }
+      }
+    },
+    "Sent %lld of %lld files to Other Mac" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld von %lld Dateien an den anderen Mac gesendet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos enviados al otro Mac: %1$lld de %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichiers envoyés à l’autre Mac : %1$lld sur %2$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$lld個中%1$lld個のファイルを別のMacに送信しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$lld개 중 %1$lld개의 파일을 다른 Mac으로 보냈습니다"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos enviados para o outro Mac: %1$lld de %2$lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправлено %1$lld из %2$#@total@ на другой Mac"
+          },
+          "substitutions" : {
+            "total" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld файла"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld файлов"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld файлов"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld файлов"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已向另一台Mac发送%2$lld个文件中的%1$lld个"
+          }
+        }
+      }
+    },
     "Set a Voice Ask destination in Settings." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Lege in den Einstellungen ein Voice Ask-Ziel fest."}},"es":{"stringUnit":{"state":"translated","value":"Configura un destino de Voice Ask en Ajustes."}},"fr":{"stringUnit":{"state":"translated","value":"Définissez une destination Voice Ask dans les réglages."}},"ja":{"stringUnit":{"state":"translated","value":"設定でVoice Askの送信先を設定してください。"}},"ko":{"stringUnit":{"state":"translated","value":"설정에서 Voice Ask 대상을 지정하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Defina um destino do Voice Ask nos Ajustes."}},"ru":{"stringUnit":{"state":"translated","value":"Укажите назначение Voice Ask в настройках."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"请在设置中指定 Voice Ask 目标。"}}}},
     "No speech detected." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Sprache erkannt."}},"es":{"stringUnit":{"state":"translated","value":"No se detectó voz."}},"fr":{"stringUnit":{"state":"translated","value":"Aucune parole détectée."}},"ja":{"stringUnit":{"state":"translated","value":"音声が検出されませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"음성이 감지되지 않았습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Nenhuma fala detectada."}},"ru":{"stringUnit":{"state":"translated","value":"Речь не обнаружена."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未检测到语音。"}}}},
     "Magpie isn't running" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Magpie läuft nicht"}},"es":{"stringUnit":{"state":"translated","value":"Magpie no está en ejecución"}},"fr":{"stringUnit":{"state":"translated","value":"Magpie n’est pas en cours d’exécution"}},"ja":{"stringUnit":{"state":"translated","value":"Magpieは起動していません"}},"ko":{"stringUnit":{"state":"translated","value":"Magpie가 실행 중이 아닙니다"}},"pt":{"stringUnit":{"state":"translated","value":"O Magpie não está em execução"}},"ru":{"stringUnit":{"state":"translated","value":"Magpie не запущен"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Magpie 未运行"}}}},
     "Start Magpie to see how much of each AI account is left." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Starte Magpie, um das verbleibende Kontingent jedes KI-Kontos zu sehen."}},"es":{"stringUnit":{"state":"translated","value":"Inicia Magpie para ver la cuota restante de cada cuenta de IA."}},"fr":{"stringUnit":{"state":"translated","value":"Lancez Magpie pour voir le quota restant de chaque compte d’IA."}},"ja":{"stringUnit":{"state":"translated","value":"Magpieを起動すると、各AIアカウントの残り容量を確認できます。"}},"ko":{"stringUnit":{"state":"translated","value":"각 AI 계정의 남은 할당량을 보려면 Magpie를 시작하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Inicie o Magpie para ver a cota restante de cada conta de IA."}},"ru":{"stringUnit":{"state":"translated","value":"Запустите Magpie, чтобы увидеть остаток квоты каждого аккаунта ИИ."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启动 Magpie 以查看每个 AI 账户的剩余额度。"}}}},
+    "Step 1 of 4: connect power and charge to 100%." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 1 von 4: Netzteil anschließen und auf 100 % laden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 1 de 4: conecta la alimentación y carga al 100 %."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 1 sur 4 : branchez l’alimentation et chargez à 100 %."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順1/4：電源に接続して100%まで充電してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1/4단계: 전원을 연결하고 100%까지 충전하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 1 de 4: ligue à corrente e carregue até 100%."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 1 из 4: подключите питание и зарядите до 100 %."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第1步，共4步：连接电源并充电至100%。"
+          }
+        }
+      }
+    },
+    "Step 2 of 4: unplug to 10%, then reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 2 von 4: Netzteil trennen, bis 10 % entladen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 2 de 4: desconecta hasta el 10 % y vuelve a conectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 2 sur 4 : débranchez jusqu’à 10 %, puis rebranchez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順2/4：電源を外して10%まで使い、再接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2/4단계: 전원을 분리하고 10%까지 사용한 다음 다시 연결하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 2 de 4: desligue da corrente até 10% e volte a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 2 из 4: отключите питание, разрядите до 10 % и подключите снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第2步，共4步：断开电源，使用至10%后重新连接。"
+          }
+        }
+      }
+    },
+    "Step 3 of 4: keep power connected and charge to 100%." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 3 von 4: Netzteil angeschlossen lassen und auf 100 % laden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 3 de 4: mantén la alimentación conectada y carga al 100 %."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 3 sur 4 : gardez l’alimentation branchée et chargez à 100 %."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順3/4：電源を接続したまま100%まで充電してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3/4단계: 전원을 연결한 상태로 100%까지 충전하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 3 de 4: mantenha ligado à corrente e carregue até 100%."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 3 из 4: оставьте питание подключённым и зарядите до 100 %."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第3步，共4步：保持电源连接并充电至100%。"
+          }
+        }
+      }
+    },
+    "Step 4 of 4: unplug to the saved charge limit, then reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 4 von 4: Netzteil trennen, bis zum gespeicherten Ladelimit entladen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 4 de 4: desconecta hasta el límite de carga guardado y vuelve a conectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 4 sur 4 : débranchez jusqu’à la limite de charge enregistrée, puis rebranchez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順4/4：電源を外して保存済みの充電上限まで使い、再接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4/4단계: 전원을 분리하고 저장된 충전 한도까지 사용한 다음 다시 연결하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 4 de 4: desligue da corrente até ao limite de carga guardado e volte a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 4 из 4: отключите питание, разрядите до сохранённого предела и подключите снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第4步，共4步：断开电源，使用至已保存的充电上限后重新连接。"
+          }
+        }
+      }
+    },
     "The mas tool is not installed." : {
       "localizations" : {
         "de" : {
@@ -429,422 +1163,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 已停止，代码为 %d。"
-          }
-        }
-      }
-    },
-    "Compress Fast" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schnell komprimieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimir rápido"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compresser rapidement"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高速圧縮"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "빠른 압축"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimir rápido"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Быстрое сжатие"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "快速压缩"
-          }
-        }
-      }
-    },
-    "Compress Small" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stark komprimieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimir al máximo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compresser au maximum"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高圧縮"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최대 압축"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimir ao máximo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Максимальное сжатие"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高效压缩"
-          }
-        }
-      }
-    },
-    "Compress with Notchcast" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mit Notchcast komprimieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimir con Notchcast"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compresser avec Notchcast"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notchcastで圧縮"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notchcast로 압축"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimir com Notchcast"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сжать с помощью Notchcast"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Notchcast 压缩"
-          }
-        }
-      }
-    },
-    "Compressing…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Komprimieren…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimiendo…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compression…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "圧縮中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 중…"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprimindo…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сжатие…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在压缩…"
-          }
-        }
-      }
-    },
-    "Compression stopped with code %d." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Komprimierung mit Code %d beendet."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La compresión se detuvo con el código %d."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La compression s’est arrêtée avec le code %d."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "圧縮がコード%dで停止しました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축이 코드 %d로 중지되었습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A compressão parou com o código %d."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сжатие остановлено с кодом %d."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩已停止，代码为 %d。"
-          }
-        }
-      }
-    },
-    "Couldn’t read the Finder selection." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Finder-Auswahl konnte nicht gelesen werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo leer la selección del Finder."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de lire la sélection du Finder."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Finderの選択項目を読み取れませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Finder 선택 항목을 읽을 수 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível ler a seleção do Finder."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось прочитать выбранные объекты Finder."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法读取访达所选项目。"
-          }
-        }
-      }
-    },
-    "Install archive tool: %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installiere das benötigte Archivwerkzeug: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instala la herramienta de archivos necesaria: %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installez l’outil d’archivage requis : %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "必要なアーカイブツールをインストールしてください：%@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "필요한 압축 도구를 설치하세요: %@"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instale a ferramenta de arquivos necessária: %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Установите необходимый архиватор: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请安装所需的归档工具：%@"
-          }
-        }
-      }
-    },
-    "Install the compression tool: %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Komprimierungswerkzeug installieren: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instala la herramienta de compresión: %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installez l’outil de compression : %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "圧縮ツールをインストールしてください：%@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 도구 설치: %@"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instale a ferramenta de compressão: %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Установите инструмент сжатия: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请安装压缩工具：%@"
           }
         }
       }
@@ -6332,49 +6650,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Batterieentladung"
+            "value" : "Ladepause"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarga de batería"
+            "value" : "Pausa de carga"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Décharge de la batterie"
+            "value" : "Pause de la charge"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "バッテリー放電"
+            "value" : "充電の一時停止"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "배터리 방전"
+            "value" : "충전 일시 중지"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarga da bateria"
+            "value" : "Pausa de carga"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Разряд батареи"
+            "value" : "Приостановка зарядки"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "电池放电"
+            "value" : "暂停充电"
           }
         }
       }
@@ -7275,58 +7593,6 @@
         }
       }
     },
-    "Cancel All Extractions" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alle Entpackvorgänge abbrechen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancelar todas las extracciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler toutes les extractions"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべての展開をキャンセル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모든 압축 풀기 취소"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancelar todas as extrações"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отменить все распаковки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消所有解压"
-          }
-        }
-      }
-    },
     "Cancel All Torrents" : {
       "localizations" : {
         "de" : {
@@ -7427,58 +7693,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消 Mac 更新"
-          }
-        }
-      }
-    },
-    "Cancelling…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wird abgebrochen…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancelando…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annulation…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キャンセル中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "취소 중…"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A cancelar…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отмена…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在取消…"
           }
         }
       }
@@ -8743,58 +8957,6 @@
         }
       }
     },
-    "Checking archive…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archiv wird geprüft…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprobando archivo…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérification de l’archive…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブを確認中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일 확인 중…"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A verificar o arquivo…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Проверка архива…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在检查压缩包…"
-          }
-        }
-      }
-    },
     "Choose a speed supported by the walking pad." : {
       "localizations" : {
         "de" : {
@@ -9103,110 +9265,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请选择本地文件。"
-          }
-        }
-      }
-    },
-    "Choose macOS privacy restrictions." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS-Datenschutzbeschränkungen auswählen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige restricciones de privacidad de macOS."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir les restrictions de confidentialité macOS."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOSのプライバシー制限を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS 개인정보 보호 제한을 선택합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha restrições de privacidade do macOS."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор ограничений конфиденциальности macOS."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择 macOS 隐私限制。"
-          }
-        }
-      }
-    },
-    "Choose which Apple intelligence features to disable." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auswählen, welche Apple-Intelligence-Funktionen deaktiviert werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige qué funciones de inteligencia de Apple desactivar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir les fonctions d’intelligence Apple à désactiver."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無効にするAppleのインテリジェンス機能を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비활성화할 Apple 지능형 기능을 선택합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha quais recursos de inteligência da Apple desativar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор отключаемых интеллектуальных функций Apple."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择要禁用的 Apple 智能功能。"
           }
         }
       }
@@ -12650,58 +12708,6 @@
         }
       }
     },
-    "Couldn’t change the default archive application." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Standard-App für Archive konnte nicht geändert werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo cambiar la app predeterminada para archivos comprimidos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de modifier l’app d’archives par défaut."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブのデフォルトアプリを変更できませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일의 기본 앱을 변경할 수 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível alterar a aplicação predefinida para arquivos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось изменить приложение для архивов по умолчанию."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法更改压缩包的默认应用。"
-          }
-        }
-      }
-    },
     "Couldn’t download Soloist. Check your connection." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12808,58 +12814,6 @@
         }
       }
     },
-    "Couldn’t read or write the archive’s files." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Archivdateien konnten nicht gelesen oder geschrieben werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudieron leer o escribir los archivos del comprimido."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de lire ou d’écrire les fichiers de l’archive."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブのファイルを読み書きできませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일의 파일을 읽거나 쓸 수 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível ler ou escrever os ficheiros do arquivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось прочитать или записать файлы архива."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法读取或写入压缩包文件。"
-          }
-        }
-      }
-    },
     "Couldn’t read that file." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12962,58 +12916,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法从钥匙串读取 API 密钥。"
-          }
-        }
-      }
-    },
-    "Couldn’t read the archive’s contents." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Archivinhalt konnte nicht gelesen werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo leer el contenido del archivo comprimido."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de lire le contenu de l’archive."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブの内容を読み取れませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일의 내용을 읽을 수 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível ler o conteúdo do arquivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось прочитать содержимое архива."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法读取压缩包内容。"
           }
         }
       }
@@ -16962,58 +16864,6 @@
         }
       }
     },
-    "Extract Archive…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archiv entpacken…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extraer archivo…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extraire une archive…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブを展開…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일 풀기…"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extrair arquivo…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распаковать архив…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解压归档…"
-          }
-        }
-      }
-    },
     "Extract Text" : {
       "localizations" : {
         "de" : {
@@ -17062,266 +16912,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提取文本"
-          }
-        }
-      }
-    },
-    "Extract in place" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Am selben Ort entpacken"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extraer en el sitio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extraire sur place"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "その場で展開"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "제자리에서 압축 풀기"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extrair no local"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распаковывать на месте"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "原地解压"
-          }
-        }
-      }
-    },
-    "Extract opened archives beside the original file." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geöffnete Archive neben der Originaldatei entpacken."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extrae los archivos comprimidos junto al archivo original."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extrait les archives ouvertes à côté du fichier d’origine."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開いたアーカイブを元のファイルの隣に展開します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "연 압축 파일을 원본 파일 옆에 풉니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extrai os arquivos abertos junto do ficheiro original."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распаковывает открытые архивы рядом с исходным файлом."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将打开的压缩包解压到原文件旁。"
-          }
-        }
-      }
-    },
-    "Extracting…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wird entpackt…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extrayendo…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extraction…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "展開中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 푸는 중…"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A extrair…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распаковка…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在解压…"
-          }
-        }
-      }
-    },
-    "Extraction progress" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entpackfortschritt"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progreso de extracción"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progression de l’extraction"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "展開の進行状況"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 풀기 진행률"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progresso da extração"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ход распаковки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解压进度"
-          }
-        }
-      }
-    },
-    "Extraction would leave less than 2 GB free." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nach dem Entpacken wären weniger als 2 GB frei."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La extracción dejaría menos de 2 GB libres."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’extraction laisserait moins de 2 Go d’espace libre."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "展開すると空き容量が2 GB未満になります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축을 풀면 여유 공간이 2GB 미만이 됩니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A extração deixaria menos de 2 GB livres."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "После распаковки останется менее 2 ГБ свободного места."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解压后可用空间将不足 2 GB。"
           }
         }
       }
@@ -19621,58 +19211,6 @@
         }
       }
     },
-    "In-place extraction is unavailable; keeping the archive." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entpacken am selben Ort ist nicht verfügbar; das Archiv bleibt erhalten."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La extracción en el sitio no está disponible; se conserva el archivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’extraction sur place est indisponible ; l’archive est conservée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "その場での展開は利用できないため、アーカイブを保持します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "제자리에서 압축을 풀 수 없어 압축 파일을 유지합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A extração no local está indisponível; o arquivo será mantido."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распаковка на месте недоступна; архив будет сохранён."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法原地解压，将保留压缩包。"
-          }
-        }
-      }
-    },
     "In-use marks" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19930,58 +19468,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 Homebrew 安装 aria2c：brew install aria2"
-          }
-        }
-      }
-    },
-    "Install hatchzip and add it to PATH or ~/.local/bin." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installiere hatchzip und füge es zu PATH oder ~/.local/bin hinzu."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instala hatchzip y añádelo a PATH o a ~/.local/bin."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installez hatchzip et ajoutez-le à PATH ou à ~/.local/bin."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzipをインストールし、PATHまたは~/.local/binに追加してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip을 설치하고 PATH 또는 ~/.local/bin에 추가하세요."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instale o hatchzip e adicione-o a PATH ou a ~/.local/bin."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Установите hatchzip и добавьте его в PATH или ~/.local/bin."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请安装 hatchzip 并将其添加到 PATH 或 ~/.local/bin。"
           }
         }
       }
@@ -20866,58 +20352,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "固定空间顺序"
-          }
-        }
-      }
-    },
-    "Keep awake while the lid is closed." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bei geschlossenem Deckel wach bleiben."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mantener activo mientras la tapa esté cerrada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rester éveillé lorsque le capot est fermé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "蓋を閉じている間もスリープを防止します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "덮개가 닫혀 있는 동안 잠자기를 방지합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manter ativo enquanto a tampa estiver fechada."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не засыпать при закрытой крышке."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "合盖时保持唤醒。"
           }
         }
       }
@@ -24603,58 +24037,6 @@
         }
       }
     },
-    "No archive was selected." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Es wurde kein Archiv ausgewählt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se seleccionó ningún archivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune archive sélectionnée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブが選択されていません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "선택한 압축 파일이 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhum arquivo foi selecionado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив не выбран."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未选择归档。"
-          }
-        }
-      }
-    },
     "No display can be controlled." : {
       "localizations" : {
         "de" : {
@@ -25587,58 +24969,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未连接"
-          }
-        }
-      }
-    },
-    "Not found" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nicht gefunden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No encontrado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introuvable"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "見つかりません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "찾을 수 없음"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não encontrado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не найдено"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未找到"
           }
         }
       }
@@ -27152,58 +26482,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开等待中的代理线程"
-          }
-        }
-      }
-    },
-    "Open archives with Notchcast" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archive mit Notchcast öffnen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abrir archivos comprimidos con Notchcast"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir les archives avec Notchcast"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notchcastでアーカイブを開く"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notchcast로 압축 파일 열기"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abrir arquivos com o Notchcast"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывать архивы в Notchcast"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Notchcast 打开压缩包"
           }
         }
       }
@@ -30054,58 +29332,6 @@
         }
       }
     },
-    "Plan portable setup imports and exports." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import und Export portabler Einstellungen planen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifica la importación y exportación de ajustes portátiles."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifiez les imports et exports de réglages portables."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ポータブル設定の読み込みと書き出しを計画します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이동 가능한 설정 가져오기와 내보내기를 계획합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planeje a importação e exportação de ajustes portáteis."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Планируйте импорт и экспорт переносимых настроек."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规划可移植设置的导入和导出。"
-          }
-        }
-      }
-    },
     "Planned" : {
       "localizations" : {
         "de" : {
@@ -31039,58 +30265,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保护 ⌘W"
-          }
-        }
-      }
-    },
-    "Queued" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In Warteschlange"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En cola"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En attente"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "待機中"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "대기 중"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Em fila"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В очереди"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "排队中"
           }
         }
       }
@@ -32184,6 +31358,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "录制已保存"
+          }
+        }
+      }
+    },
+    "Recording stopped early and was saved." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme wurde vorzeitig beendet und gespeichert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La grabación se detuvo antes de tiempo y se guardó."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’enregistrement s’est arrêté prématurément et a été sauvegardé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収録は途中で停止しましたが、保存されました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화가 예정보다 일찍 중지되어 저장되었습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A gravação parou antes do previsto e foi guardada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись остановлена раньше времени и сохранена."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制提前停止并已保存。"
           }
         }
       }
@@ -34227,110 +33453,6 @@
         }
       }
     },
-    "Resume this unfinished extraction in Archives with Extract in place on." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieses unvollständige Entpacken lässt sich in „Archive“ mit aktiviertem „Am selben Ort entpacken“ fortsetzen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reanuda esta extracción sin terminar en Archivos comprimidos con «Extraer en el sitio» activado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reprenez cette extraction inachevée dans Archives avec « Extraire sur place » activé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この未完了の展開は、「アーカイブ」で「その場で展開」をオンにして再開してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 미완료 압축 풀기는 ‘압축 파일’에서 ‘제자리에서 압축 풀기’를 켜고 재개하세요."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retome esta extração inacabada em Arquivos compactados com “Extrair no local” ativado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Возобновите эту незавершённую распаковку в разделе «Архивы», включив «Распаковывать на месте»."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在“归档”中开启“原地解压”以继续这次未完成的解压。"
-          }
-        }
-      }
-    },
-    "Resuming extraction while keeping the archive." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entpacken wird fortgesetzt; das Archiv bleibt erhalten."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se reanuda la extracción conservando el archivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reprise de l’extraction en conservant l’archive."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブを保持して展開を再開します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일을 유지하며 압축 풀기를 재개합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A retomar a extração mantendo o arquivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распаковка возобновляется с сохранением архива."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在保留压缩包并继续解压。"
-          }
-        }
-      }
-    },
     "Reveal backup folder" : {
       "localizations" : {
         "de" : {
@@ -34691,58 +33813,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "运行主机命令"
-          }
-        }
-      }
-    },
-    "Run a full battery calibration cycle." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einen vollständigen Kalibrierungszyklus starten."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ejecutar un ciclo completo de calibración."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exécuter un cycle complet d’étalonnage."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バッテリーの完全な調整サイクルを実行します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전체 배터리 보정 주기를 실행합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Executar um ciclo completo de calibração."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запустить полный цикл калибровки батареи."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "运行完整的电池校准周期。"
           }
         }
       }
@@ -42752,422 +41822,6 @@
         }
       }
     },
-    "The archive contains an unsafe path: %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv enthält einen unsicheren Pfad: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido contiene una ruta insegura: %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive contient un chemin dangereux : %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブに安全でないパスが含まれています：%@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일에 안전하지 않은 경로가 있습니다: %@"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo contém um caminho inseguro: %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив содержит небезопасный путь: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包包含不安全的路径：%@"
-          }
-        }
-      }
-    },
-    "The archive contains conflicting paths: %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv enthält widersprüchliche Pfade: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido contiene rutas en conflicto: %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive contient des chemins en conflit : %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブに競合するパスが含まれています：%@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일에 충돌하는 경로가 있습니다: %@"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo contém caminhos em conflito: %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив содержит конфликтующие пути: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包包含冲突的路径：%@"
-          }
-        }
-      }
-    },
-    "The archive contains more than 100,000 entries." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv enthält mehr als 100.000 Einträge."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido contiene más de 100.000 elementos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive contient plus de 100 000 éléments."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブに100,000件を超える項目が含まれています。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일에 항목이 100,000개 넘게 있습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo contém mais de 100 000 entradas."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В архиве более 100 000 элементов."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包包含超过 100,000 个条目。"
-          }
-        }
-      }
-    },
-    "The archive engine is not running." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Archiv-Engine läuft nicht."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El motor de archivos no está en ejecución."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le moteur d’archives est arrêté."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブエンジンが停止しています。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 엔진이 실행 중이 아닙니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O mecanismo de arquivos não está em execução."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Модуль архивов не запущен."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "归档引擎未运行。"
-          }
-        }
-      }
-    },
-    "The archive exceeds the safe expansion limit." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv überschreitet die sichere Entpackgrenze."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido supera el límite seguro de expansión."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive dépasse la limite d’expansion sûre."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブが安全な展開サイズの上限を超えています。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일이 안전한 확장 한도를 초과합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo excede o limite de expansão seguro."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив превышает безопасный предел распаковки."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包超出安全解压限制。"
-          }
-        }
-      }
-    },
-    "The archive is damaged or incomplete." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv ist beschädigt oder unvollständig."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido está dañado o incompleto."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive est endommagée ou incomplète."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブが破損しているか不完全です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일이 손상되었거나 불완전합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo está danificado ou incompleto."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив повреждён или неполон."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包已损坏或不完整。"
-          }
-        }
-      }
-    },
-    "The archive shrinks while extracting." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv wird beim Entpacken kleiner."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido se reduce al extraerlo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive rétrécit pendant l’extraction."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "展開中にアーカイブのサイズが小さくなります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축을 푸는 동안 압축 파일 크기가 줄어듭니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo diminui durante a extração."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив уменьшается по мере распаковки."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包会在解压过程中缩小。"
-          }
-        }
-      }
-    },
-    "The archive writes through a symbolic link: %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv schreibt über einen symbolischen Link: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo comprimido escribe a través de un enlace simbólico: %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive écrit via un lien symbolique : %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブがシンボリックリンク経由で書き込もうとしています：%@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일이 심볼릭 링크를 통해 쓰려고 합니다: %@"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo escreve através de uma ligação simbólica: %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Архив записывает данные через символическую ссылку: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "压缩包通过符号链接写入：%@"
-          }
-        }
-      }
-    },
     "The aria2c connection could not be verified." : {
       "localizations" : {
         "de" : {
@@ -44208,58 +42862,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请求的媒体大小太小。"
-          }
-        }
-      }
-    },
-    "The selected file is not a supported archive." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die ausgewählte Datei ist kein unterstütztes Archiv."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo seleccionado no es un archivo comprimido compatible."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le fichier sélectionné n’est pas une archive prise en charge."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選択したファイルは対応するアーカイブではありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "선택한 파일은 지원되는 압축 파일이 아닙니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo selecionado não é um arquivo compactado compatível."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбранный файл не является поддерживаемым архивом."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所选文件不是受支持的归档。"
           }
         }
       }
@@ -46770,110 +45372,6 @@
         }
       }
     },
-    "This archive format is not supported." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieses Archivformat wird nicht unterstützt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este formato de archivo comprimido no es compatible."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce format d’archive n’est pas pris en charge."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このアーカイブ形式には対応していません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 압축 형식은 지원되지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este formato de arquivo não é suportado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Этот формат архива не поддерживается."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不支持此压缩包格式。"
-          }
-        }
-      }
-    },
-    "This archive requires a password." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieses Archiv erfordert ein Passwort."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este archivo comprimido requiere una contraseña."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette archive nécessite un mot de passe."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このアーカイブにはパスワードが必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 압축 파일에는 암호가 필요합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este arquivo requer uma palavra-passe."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для этого архива нужен пароль."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此压缩包需要密码。"
-          }
-        }
-      }
-    },
     "This conversion was queued by an older version. Add the files again." : {
       "localizations" : {
         "de" : {
@@ -47910,58 +46408,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剪辑录制内容并导出MP4或GIF文件。"
-          }
-        }
-      }
-    },
-    "Try Again resumes in-place extraction." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Erneut versuchen“ setzt das Entpacken am selben Ort fort."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Reintentar» reanuda la extracción en el sitio."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« Réessayer » reprend l’extraction sur place."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「再試行」でその場での展開を再開します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다시 시도하면 제자리에서 압축 풀기를 재개합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Tentar novamente» retoma a extração no local."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Повторить» возобновит распаковку на месте."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点按“重试”可继续原地解压。"
           }
         }
       }
@@ -49481,58 +47927,6 @@
         }
       }
     },
-    "Use Notchcast instead of Archive Utility to open archives." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archive mit Notchcast statt mit dem Archivierungsprogramm öffnen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usa Notchcast en lugar de Utilidad de Compresión para abrir archivos comprimidos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilise Notchcast à la place d’Utilitaire d’archive pour ouvrir les archives."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブユーティリティの代わりにNotchcastでアーカイブを開きます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아카이브 유틸리티 대신 Notchcast로 압축 파일을 엽니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usa o Notchcast em vez do Utilitário de Arquivo para abrir arquivos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывает архивы в Notchcast вместо Утилиты архивирования."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Notchcast 代替归档实用工具打开压缩包。"
-          }
-        }
-      }
-    },
     "Use Theme" : {
       "localizations" : {
         "de" : {
@@ -49789,58 +48183,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安装 aria2c 后，使用它加速媒体下载。"
-          }
-        }
-      }
-    },
-    "Use battery power above the charge limit." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oberhalb des Ladelimits Batteriestrom nutzen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar batería por encima del límite de carga."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser la batterie au-dessus de la limite de charge."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "充電上限を超えるとバッテリーを使用します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "충전 한도를 넘으면 배터리 전원을 사용합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar a bateria acima do limite de carga."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Использовать батарею выше предела заряда."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "超过充电上限时使用电池供电。"
           }
         }
       }
@@ -51870,110 +50212,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未找到 aria2c"
-          }
-        }
-      }
-    },
-    "hatchzip is not installed." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip ist nicht installiert."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip no está instalado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip n’est pas installé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzipがインストールされていません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip이 설치되어 있지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O hatchzip não está instalado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip не установлен."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "尚未安装 hatchzip。"
-          }
-        }
-      }
-    },
-    "hatchzip stopped with code %d." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip wurde mit Code %d beendet."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip se detuvo con el código %d."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip s’est arrêté avec le code %d."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzipがコード%dで停止しました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip이 코드 %d로 중지되었습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O hatchzip parou com o código %d."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip завершился с кодом %d."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hatchzip 已停止，代码为 %d。"
           }
         }
       }

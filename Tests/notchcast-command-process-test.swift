@@ -3,10 +3,7 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CatalogShellCommandRunner.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Jobs/DownloadTool.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessOutputStream.swift
 // notchcast-kit: platform
 import AppKit
 import Darwin
@@ -35,9 +32,26 @@ import Foundation
         for _ in 0..<100 where kill(pid, 0) == 0 { try await Task.sleep(for: .milliseconds(10)) }
         precondition(kill(pid, 0) != 0)
         let path = try await CommandProcessRunner.run(.init(
-            executable: "/usr/bin/env", arguments: ["sh", "-c", "echo $PATH"], workingDirectory: nil))
+            executable: "/usr/bin/env", arguments: ["sh", "-c", "echo $PATH; echo LANG=$LANG; echo LC_ALL=$LC_ALL"],
+            workingDirectory: nil))
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
             .hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true, "env finds Homebrew tools before /usr/bin")
+        precondition(String(bytes: path.standardOutput, encoding: .utf8)?
+            .hasSuffix("\nLANG=en_US.UTF-8\nLC_ALL=en_US.UTF-8\n") == true, "Commands preserve the UTF-8 locale")
+        precondition(String(bytes: path.standardOutput, encoding: .utf8)?
+            .contains(FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin").path) == true,
+            "Commands preserve the user tool directory")
+        let shell = try await CommandProcessRunner.run(.init(executable: "/usr/bin/printenv",
+            arguments: ["SHELL"], workingDirectory: nil))
+        precondition(shell.standardOutput.isEmpty, "Commands preserve filtered environment inheritance")
+        setenv("SSH_AUTH_SOCK", "/tmp/nc-test.sock", 1)
+        let agent = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
+            arguments: ["-c", "printenv SSH_AUTH_SOCK; printenv SHELL"], workingDirectory: nil))
+        precondition(agent.standardOutput == Data("/tmp/nc-test.sock\n".utf8), "Host commands inherit the SSH agent")
+        unsetenv("SSH_AUTH_SOCK")
+        let noAgent = try await CommandProcessRunner.run(.init(executable: "/usr/bin/printenv",
+            arguments: ["SSH_AUTH_SOCK"], workingDirectory: nil))
+        precondition(noAgent.standardOutput.isEmpty, "An unset SSH agent stays unset")
         let output = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
             arguments: ["-c", "pwd; printf 'error output' >&2; exit 7"], workingDirectory: root.path))
         precondition(output.exitStatus == 7, "Expected exit 7, got \(output.exitStatus)")
@@ -46,11 +60,12 @@ import Foundation
         precondition(URL(fileURLWithPath: directory).resolvingSymlinksInPath().path == root.resolvingSymlinksInPath().path,
             "Working directory \(directory.debugDescription), expected \(root.resolvingSymlinksInPath().path.debugDescription)")
         precondition(output.standardError == Data("error output".utf8), "stderr must be captured separately")
+        let outputMarker = "START-\(UUID().uuidString)"
         let wrote = root.appending(path: "long-wrote"), release = root.appending(path: "long-release")
         let longStart = Date().addingTimeInterval(-1)
         let long = Task { try await CommandProcessRunner.run(.init(executable: "/bin/sh", arguments: ["-c",
-            "printf START; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' x; printf END; "
-                + "printf START >&2; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' y >&2; "
+            "printf '\(outputMarker)'; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' x; printf END; "
+                + "printf '\(outputMarker)' >&2; dd if=/dev/zero bs=1048576 count=8 2>/dev/null | tr '\\000' y >&2; "
                 + "printf END >&2; : > \"$1\"; while [ ! -e \"$2\" ]; do sleep .01; done",
             "sh", wrote.path, release.path], workingDirectory: nil)) }
         let longDeadline = ContinuousClock.now + .seconds(30)
@@ -64,7 +79,10 @@ import Foundation
             .filter { run in ((try? FileManager.default.attributesOfItem(atPath: temp.appending(path: run).path))?[
                 .creationDate] as? Date).map { $0 >= longStart } ?? false }
             .flatMap { run in ["out", "err"].map { temp.appending(path: "\(run)/\($0)").path } }
-            .filter { (FileHandle(forReadingAtPath: $0)?.readData(ofLength: 5)).map { $0 == Data("START".utf8) } ?? false }
+            .filter {
+                (FileHandle(forReadingAtPath: $0)?.readData(ofLength: outputMarker.utf8.count))
+                    .map { $0 == Data(outputMarker.utf8) } ?? false
+            }
             .compactMap { try? FileManager.default.attributesOfItem(atPath: $0)[.size] as? Int }
             .reduce(0, +)
         precondition(spooled < 1_048_576, "A running command must not spool its whole output (\(spooled) bytes)")

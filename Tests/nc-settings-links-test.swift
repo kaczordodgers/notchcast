@@ -55,7 +55,6 @@ struct NotchcastSettingsLinksTests {
             (.notchcastMacUpdate, .macUpdate),
             (.notchcastTweaksApps, .typingTweaks),
             (.notchcastTasks, .tasks),
-            (.notchcastArchives, .archives),
             (.notchcastBuildStats, .buildStats),
             (.notchcastAlerts, .monitorAlerts),
             (.notchcastAlertCPU, .monitorAlerts),
