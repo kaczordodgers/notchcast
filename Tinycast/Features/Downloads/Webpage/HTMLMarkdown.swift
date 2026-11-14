@@ -55,12 +55,12 @@ enum HTMLMarkdown {
         case "a":
             guard !trimmed.isEmpty else { return "" }
             guard let url = absolute(node.attributes["href"], baseURL: baseURL, image: false) else { return content }
-            if trimmed.contains(/\n[ \t]*\n/) || trimmed.replacingOccurrences(of: "  \n", with: "").contains("\n") {
-                return content + "\n\n[\(escape(url))](<\(url)>)\n\n"
-            }
-            let label = content.contains("\n") && !trimmed.contains("\n")
-                ? trimmed.replacingOccurrences(of: "^(#{1,6} |> ?)", with: "", options: .regularExpression)
-                : trimmed
+            let label = content.contains("\n")
+                ? collapsed(trimmed.split(separator: "\n").map {
+                    $0.replacingOccurrences(of: "^(#{1,6} |> ?)",
+                                               with: "", options: .regularExpression)
+                }.filter { !$0.isEmpty }.joined(separator: " "))
+                : collapsed(trimmed)
             return "[\(label)](<\(url)>)"
         case "img":
             guard let url = absolute(imageSource(node), baseURL: baseURL, image: true) else { return "" }
