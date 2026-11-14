@@ -104,6 +104,9 @@ struct DownloadsWebpageTests {
         expect(markdown("<p>See <a href='/x'>one<br><br>two</a> now</p>") ==
                "See one  \n\ntwo\n\n[https://example.com/x](<https://example.com/x>)\n\n now",
                "double hard break keeps link destination on a separate line")
+        expect(markdown("<p>See <a href='/x'>one<br>\n<br>two</a> now</p>") ==
+               "See one  \n\ntwo\n\n[https://example.com/x](<https://example.com/x>)\n\n now",
+               "double hard break with whitespace keeps link destination on a separate line")
         expect(!markdown("<p>A&#0;B&#x0;C</p>").contains("\u{0}"),
                "zero numeric entities do not introduce NUL")
         let blocks = markdown("<a href='/next'><div>One</div><p>Two</p></a>")
@@ -174,7 +177,7 @@ struct DownloadsWebpageTests {
         let started = AsyncStream<Void>.makeStream()
         let release = DispatchSemaphore(value: 0)
         defer { release.signal() }
-        let deadline = DispatchWorkItem {
+        let deadline = DispatchWorkItem { @Sendable in
             fatalError("DNS cancellation did not complete within three seconds")
         }
         DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: deadline)
