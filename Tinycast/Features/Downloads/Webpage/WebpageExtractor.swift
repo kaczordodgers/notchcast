@@ -60,7 +60,6 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
                     view.load(URLRequest(url: source, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 60))
                 }
             } catch {
-                print("TIMING extractor nav error \(ProcessInfo.processInfo.systemUptime) \(error) refusal=\(String(describing: proxy.refusal))")
                 try Task.checkCancellation()
                 throw proxy.refusal ?? error
             }
@@ -93,7 +92,6 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async
         -> WKNavigationActionPolicy {
         guard webView === self.webView, !loaded, let url = navigationAction.request.url else { return .cancel }
-        print("TIMING decidePolicy \(ProcessInfo.processInfo.systemUptime) \(url)")
         do { try PublicWebAddress.validate(url) } catch {
             if navigationAction.targetFrame?.isMainFrame == true { finish(.failure(error)) }
             return .cancel
@@ -129,7 +127,6 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation?, withError error: any Error) {
-        print("TIMING didFailProvisional \(ProcessInfo.processInfo.systemUptime) \(error)")
         guard webView === self.webView else { return }
         finish(.failure(Failure.renderFailed))
     }
