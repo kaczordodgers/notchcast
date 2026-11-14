@@ -56,6 +56,7 @@ struct MachRemoteProgressTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         await sendFilesProgress()
         await sendFilesCancel()
+        await noOutputAfterCancel()
         await updateRemoteProgress()
     }
 
@@ -90,6 +91,28 @@ struct MachRemoteProgressTests {
         await waitUntil("cancel stops the rsync child") { !alive(pid) }
         check(!FileManager.default.fileExists(atPath: gate.path), "the child stopped without its gate")
         print("PASS: cancelling Send Files stops the streaming child")
+    }
+
+    @MainActor final class CancelProbe {
+        var task: Task<MachSSH.Result, any Error>?
+        var cancelled = false
+        var afterCancel = 0
+    }
+
+    static func noOutputAfterCancel() async {
+        let shell = MachRemoteShell(ssh: MachSSH(address: "fake-mac",
+            runner: runner(rsync: "", ssh: "seq 1 1000; sleep 5")))
+        let probe = CancelProbe()
+        probe.task = Task {
+            try await shell.ssh(command: "flood", options: []) { _ in
+                if probe.cancelled { probe.afterCancel += 1 } else { probe.cancelled = true; probe.task?.cancel() }
+            }
+        }
+        let outcome = await probe.task?.result
+        check(probe.cancelled, "the first record arrived")
+        check(probe.afterCancel == 0, "no output after cancel, got \(probe.afterCancel)")
+        if case .success = outcome { check(false, "a cancelled run must not return success") }
+        print("PASS: no buffered output reaches the callback after cancellation")
     }
 
     static func updateRemoteProgress() async {

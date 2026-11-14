@@ -30,7 +30,9 @@ struct MachRemoteShell: RemoteShellRunning {
             defer { sink.finish() }
             return try await run { sink.yield($0) }
         }()
-        for await record in records { output(record + "\n") }
-        return try await result
+        for await record in records where !Task.isCancelled { output(record + "\n") }
+        let finished = try await result
+        try Task.checkCancellation()
+        return finished
     }
 }
