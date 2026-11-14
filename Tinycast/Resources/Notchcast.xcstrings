@@ -1,6 +1,186 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "After relaunch, start calibration again from step 1." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach einem Neustart die Kalibrierung wieder bei Schritt 1 starten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras reiniciar, vuelve a iniciar la calibración desde el paso 1."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après le redémarrage, relancez l’étalonnage à partir de l’étape 1."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再起動後は手順1から調整を開始し直してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 실행한 후 1단계부터 보정을 다시 시작하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Após reiniciar, inicie novamente a calibração no passo 1."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После перезапуска начните калибровку заново с шага 1."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动后，请从第1步重新开始校准。"
+          }
+        }
+      }
+    },
+    "Charge to 100%, unplug to 10%, recharge to 100%, then unplug to the limit and reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf 100 % laden, bis 10 % trennen, wieder auf 100 % laden, dann bis zum Ladelimit trennen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargar al 100 %, desconectar hasta el 10 %, recargar al 100 %, luego desconectar hasta el límite y reconectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charger à 100 %, débrancher jusqu’à 10 %, recharger à 100 %, puis débrancher jusqu’à la limite et rebrancher."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%まで充電し、電源を抜いて10%まで放電し、再び100%まで充電後、電源を抜いて上限まで放電し再接続します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%까지 충전하고 분리하여 10%까지 방전한 후 다시 100%까지 충전하고, 다시 분리하여 한도까지 방전한 후 연결합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carregar até 100%, desligar até 10%, recarregar até 100%, depois desligar até ao limite e voltar a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зарядить до 100 %, отключить до 10 %, снова зарядить до 100 %, затем отключить до предела и подключить снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充至100%，拔下电源放电至10%，重新充至100%，再拔下放电至上限后重新连接。"
+          }
+        }
+      }
+    },
+    "Other Mac: Agent Threads is off." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderer Mac: Agent Threads ist aus." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Otro Mac: Agent Threads está desactivado." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autre Mac : Agent Threads est désactivé." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "他のMac：Agent Threadsはオフです。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac: Agent Threads가 꺼져 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Outro Mac: Agent Threads está desativado." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другой Mac: Agent Threads выключен." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "另一台 Mac：Agent Threads 已关闭。" } }
+      }
+    },
+    "Pause charging above the charge limit without disconnecting the adapter." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Laden oberhalb des Ladelimits pausieren, ohne das Netzteil zu trennen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar la carga por encima del límite sin desconectar el adaptador."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre la charge au-dessus de la limite sans déconnecter l’adaptateur."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電上限を超えると、アダプタを切断せずに充電を一時停止します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "충전 한도를 넘으면 어댑터를 분리하지 않고 충전을 일시 중지합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar a carga acima do limite sem desligar o adaptador."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приостанавливать зарядку выше предела без отключения адаптера."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超过充电上限时暂停充电，不断开适配器。"
+          }
+        }
+      }
+    },
+    "Preview and apply supported setup tweaks from a profile." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unterstützte Einstellungen aus einem Profil prüfen und anwenden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Previsualiza y aplica los ajustes compatibles de un perfil." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prévisualisez et appliquez les réglages pris en charge d’un profil." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロファイル内の対応する設定をプレビューして適用します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로필에서 지원되는 설정을 미리 보고 적용합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Visualize e aplique os ajustes compatíveis de um perfil." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотр и применение поддерживаемых настроек из профиля." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "预览并应用配置文件中支持的设置调整。" } }
+      }
+    },
     "Dictation cleanup failed; pasted the original transcript" : {
       "localizations" : {
         "de" : {
@@ -209,10 +389,270 @@
         }
       }
     },
+    "Requires Keep Awake to be active while the lid is closed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfordert „Ruhezustand verhindern“ bei geschlossenem Deckel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requiere Mantener activo mientras la tapa esté cerrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nécessite « Maintenir éveillé » lorsque le capot est fermé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓋を閉じている間は「スリープを防止」を有効にする必要があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "덮개가 닫혀 있는 동안 잠자기 방지가 활성화되어 있어야 합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requer Manter ativo enquanto a tampa estiver fechada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При закрытой крышке требуется активный режим «Не переходить в сон»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合盖时需要启用保持唤醒。"
+          }
+        }
+      }
+    },
     "Set a Voice Ask destination in Settings." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Lege in den Einstellungen ein Voice Ask-Ziel fest."}},"es":{"stringUnit":{"state":"translated","value":"Configura un destino de Voice Ask en Ajustes."}},"fr":{"stringUnit":{"state":"translated","value":"Définissez une destination Voice Ask dans les réglages."}},"ja":{"stringUnit":{"state":"translated","value":"設定でVoice Askの送信先を設定してください。"}},"ko":{"stringUnit":{"state":"translated","value":"설정에서 Voice Ask 대상을 지정하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Defina um destino do Voice Ask nos Ajustes."}},"ru":{"stringUnit":{"state":"translated","value":"Укажите назначение Voice Ask в настройках."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"请在设置中指定 Voice Ask 目标。"}}}},
     "No speech detected." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Sprache erkannt."}},"es":{"stringUnit":{"state":"translated","value":"No se detectó voz."}},"fr":{"stringUnit":{"state":"translated","value":"Aucune parole détectée."}},"ja":{"stringUnit":{"state":"translated","value":"音声が検出されませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"음성이 감지되지 않았습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Nenhuma fala detectada."}},"ru":{"stringUnit":{"state":"translated","value":"Речь не обнаружена."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未检测到语音。"}}}},
     "Magpie isn't running" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Magpie läuft nicht"}},"es":{"stringUnit":{"state":"translated","value":"Magpie no está en ejecución"}},"fr":{"stringUnit":{"state":"translated","value":"Magpie n’est pas en cours d’exécution"}},"ja":{"stringUnit":{"state":"translated","value":"Magpieは起動していません"}},"ko":{"stringUnit":{"state":"translated","value":"Magpie가 실행 중이 아닙니다"}},"pt":{"stringUnit":{"state":"translated","value":"O Magpie não está em execução"}},"ru":{"stringUnit":{"state":"translated","value":"Magpie не запущен"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Magpie 未运行"}}}},
     "Start Magpie to see how much of each AI account is left." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Starte Magpie, um das verbleibende Kontingent jedes KI-Kontos zu sehen."}},"es":{"stringUnit":{"state":"translated","value":"Inicia Magpie para ver la cuota restante de cada cuenta de IA."}},"fr":{"stringUnit":{"state":"translated","value":"Lancez Magpie pour voir le quota restant de chaque compte d’IA."}},"ja":{"stringUnit":{"state":"translated","value":"Magpieを起動すると、各AIアカウントの残り容量を確認できます。"}},"ko":{"stringUnit":{"state":"translated","value":"각 AI 계정의 남은 할당량을 보려면 Magpie를 시작하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Inicie o Magpie para ver a cota restante de cada conta de IA."}},"ru":{"stringUnit":{"state":"translated","value":"Запустите Magpie, чтобы увидеть остаток квоты каждого аккаунта ИИ."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启动 Magpie 以查看每个 AI 账户的剩余额度。"}}}},
+    "Step 1 of 4: connect power and charge to 100%." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 1 von 4: Netzteil anschließen und auf 100 % laden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 1 de 4: conecta la alimentación y carga al 100 %."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 1 sur 4 : branchez l’alimentation et chargez à 100 %."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順1/4：電源に接続して100%まで充電してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1/4단계: 전원을 연결하고 100%까지 충전하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 1 de 4: ligue à corrente e carregue até 100%."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 1 из 4: подключите питание и зарядите до 100 %."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第1步，共4步：连接电源并充电至100%。"
+          }
+        }
+      }
+    },
+    "Step 2 of 4: unplug to 10%, then reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 2 von 4: Netzteil trennen, bis 10 % entladen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 2 de 4: desconecta hasta el 10 % y vuelve a conectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 2 sur 4 : débranchez jusqu’à 10 %, puis rebranchez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順2/4：電源を外して10%まで使い、再接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2/4단계: 전원을 분리하고 10%까지 사용한 다음 다시 연결하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 2 de 4: desligue da corrente até 10% e volte a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 2 из 4: отключите питание, разрядите до 10 % и подключите снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第2步，共4步：断开电源，使用至10%后重新连接。"
+          }
+        }
+      }
+    },
+    "Step 3 of 4: keep power connected and charge to 100%." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 3 von 4: Netzteil angeschlossen lassen und auf 100 % laden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 3 de 4: mantén la alimentación conectada y carga al 100 %."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 3 sur 4 : gardez l’alimentation branchée et chargez à 100 %."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順3/4：電源を接続したまま100%まで充電してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3/4단계: 전원을 연결한 상태로 100%까지 충전하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 3 de 4: mantenha ligado à corrente e carregue até 100%."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 3 из 4: оставьте питание подключённым и зарядите до 100 %."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第3步，共4步：保持电源连接并充电至100%。"
+          }
+        }
+      }
+    },
+    "Step 4 of 4: unplug to the saved charge limit, then reconnect." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schritt 4 von 4: Netzteil trennen, bis zum gespeicherten Ladelimit entladen und wieder anschließen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso 4 de 4: desconecta hasta el límite de carga guardado y vuelve a conectar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étape 4 sur 4 : débranchez jusqu’à la limite de charge enregistrée, puis rebranchez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手順4/4：電源を外して保存済みの充電上限まで使い、再接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4/4단계: 전원을 분리하고 저장된 충전 한도까지 사용한 다음 다시 연결하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo 4 de 4: desligue da corrente até ao limite de carga guardado e volte a ligar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг 4 из 4: отключите питание, разрядите до сохранённого предела и подключите снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第4步，共4步：断开电源，使用至已保存的充电上限后重新连接。"
+          }
+        }
+      }
+    },
     "The mas tool is not installed." : {
       "localizations" : {
         "de" : {
@@ -6332,49 +6772,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Batterieentladung"
+            "value" : "Ladepause"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarga de batería"
+            "value" : "Pausa de carga"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Décharge de la batterie"
+            "value" : "Pause de la charge"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "バッテリー放電"
+            "value" : "充電の一時停止"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "배터리 방전"
+            "value" : "충전 일시 중지"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarga da bateria"
+            "value" : "Pausa de carga"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Разряд батареи"
+            "value" : "Приостановка зарядки"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "电池放电"
+            "value" : "暂停充电"
           }
         }
       }
@@ -9103,110 +9543,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请选择本地文件。"
-          }
-        }
-      }
-    },
-    "Choose macOS privacy restrictions." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS-Datenschutzbeschränkungen auswählen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige restricciones de privacidad de macOS."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir les restrictions de confidentialité macOS."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOSのプライバシー制限を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS 개인정보 보호 제한을 선택합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha restrições de privacidade do macOS."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор ограничений конфиденциальности macOS."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择 macOS 隐私限制。"
-          }
-        }
-      }
-    },
-    "Choose which Apple intelligence features to disable." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auswählen, welche Apple-Intelligence-Funktionen deaktiviert werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige qué funciones de inteligencia de Apple desactivar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir les fonctions d’intelligence Apple à désactiver."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無効にするAppleのインテリジェンス機能を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비활성화할 Apple 지능형 기능을 선택합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha quais recursos de inteligência da Apple desativar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор отключаемых интеллектуальных функций Apple."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择要禁用的 Apple 智能功能。"
           }
         }
       }
@@ -20870,58 +21206,6 @@
         }
       }
     },
-    "Keep awake while the lid is closed." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bei geschlossenem Deckel wach bleiben."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mantener activo mientras la tapa esté cerrada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rester éveillé lorsque le capot est fermé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "蓋を閉じている間もスリープを防止します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "덮개가 닫혀 있는 동안 잠자기를 방지합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manter ativo enquanto a tampa estiver fechada."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не засыпать при закрытой крышке."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "合盖时保持唤醒。"
-          }
-        }
-      }
-    },
     "Keep dictation history" : {
       "localizations" : {
         "de" : {
@@ -30054,58 +30338,6 @@
         }
       }
     },
-    "Plan portable setup imports and exports." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import und Export portabler Einstellungen planen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifica la importación y exportación de ajustes portátiles."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planifiez les imports et exports de réglages portables."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ポータブル設定の読み込みと書き出しを計画します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이동 가능한 설정 가져오기와 내보내기를 계획합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planeje a importação e exportação de ajustes portáteis."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Планируйте импорт и экспорт переносимых настроек."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规划可移植设置的导入和导出。"
-          }
-        }
-      }
-    },
     "Planned" : {
       "localizations" : {
         "de" : {
@@ -34691,58 +34923,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "运行主机命令"
-          }
-        }
-      }
-    },
-    "Run a full battery calibration cycle." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einen vollständigen Kalibrierungszyklus starten."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ejecutar un ciclo completo de calibración."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exécuter un cycle complet d’étalonnage."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バッテリーの完全な調整サイクルを実行します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전체 배터리 보정 주기를 실행합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Executar um ciclo completo de calibração."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запустить полный цикл калибровки батареи."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "运行完整的电池校准周期。"
           }
         }
       }
@@ -49789,58 +49969,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安装 aria2c 后，使用它加速媒体下载。"
-          }
-        }
-      }
-    },
-    "Use battery power above the charge limit." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oberhalb des Ladelimits Batteriestrom nutzen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar batería por encima del límite de carga."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser la batterie au-dessus de la limite de charge."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "充電上限を超えるとバッテリーを使用します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "충전 한도를 넘으면 배터리 전원을 사용합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar a bateria acima do limite de carga."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Использовать батарею выше предела заряда."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "超过充电上限时使用电池供电。"
           }
         }
       }

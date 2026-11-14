@@ -93,8 +93,8 @@ rm -f "$STORE"
 : > "$CALLS"
 before=$(date +%s)
 claim 7
-read -r owner until auto < <(sed -n 's/^claimed=//p' "$scratch/output")
-[ "$owner" = 7 ] && [ "$auto" = auto ] && [ "$until" -ge $((before + 9000)) ] || { cat "$scratch/output"; echo 'FAIL: hold_claim'; exit 1; }
+read -r owner until auto lander < <(sed -n 's/^claimed=//p' "$scratch/output")
+[ "$owner" = 7 ] && [ "$auto" = auto ] && [ "${lander##*:}" = $$ ] && [ "$until" -ge $((before + 9000)) ] || { cat "$scratch/output"; echo 'FAIL: hold_claim'; exit 1; }
 grep -q '^left=$' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: hold_release_claimed'; exit 1; }
 echo 'PASS: hold_claim takes an auto hold, hold_release_claimed gives it back'
 echo "7 $later" > "$STORE"
@@ -129,3 +129,17 @@ renew "7 $soon auto"
 GH_FAIL=1 renew "7 $soon auto"
 grep -q '^WARN: cannot read the landing hold to renew it' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: renew read error'; exit 1; }
 echo 'PASS: hold_renew_claimed extends its own auto hold, leaves a replaced one, warns when unreadable'
+host=$(hostname -s | tr -c 'A-Za-z0-9\n' -)
+true &
+gone=$!
+wait "$gone"
+echo "330 $later auto $host:$gone" > "$STORE"
+bash "$hold" show | grep -q "^no landing hold (330's lander $host:$gone is gone)$" || { bash "$hold" show; echo 'FAIL: show of an orphaned hold'; exit 1; }
+claim 7
+grep -q '^claimed=7 ' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: claim over a killed lander'"'"'s hold'; exit 1; }
+for hold_value in "330 $later auto other-mac:$gone" "330 $later auto $host:$$"; do
+    echo "$hold_value" > "$STORE"
+    claim 7 || true
+    grep -q '^REFUSED: landing is held for 330 until ' "$scratch/output" || { cat "$scratch/output"; echo "FAIL: claim over '$hold_value'"; exit 1; }
+done
+echo 'PASS: an auto hold whose lander on this Mac is gone is no hold; one from another Mac or a live lander still is'

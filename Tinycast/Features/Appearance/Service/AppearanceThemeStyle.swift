@@ -16,7 +16,18 @@ extension AppearanceThemeColors {
 
 extension AppearanceThemeColors {
     @MainActor static func backdrop(hidden: Bool) -> AnyShapeStyle {
-        hidden ? AnyShapeStyle(Color.clear) : AnyShapeStyle(shared.backdrop)
+        if hidden { return AnyShapeStyle(Color.clear) }
+        let surface = surfaceFill
+        return surface.map { AnyShapeStyle($0) } ?? AnyShapeStyle(shared.backdrop)
+    }
+
+    @MainActor static var surfaceFill: Color? {
+        guard let style = AppearanceStore.current?.effectiveSurfaceStyle, style != .glass else { return nil }
+        return Color(nsColor: NSColor(name: nil) { appearance in
+            let dark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            let spec = style.fill(dark: dark) ?? (0, 0)
+            return NSColor(white: spec.0, alpha: spec.1)
+        })
     }
 
     static func tinted(_ glass: Glass) -> Glass {

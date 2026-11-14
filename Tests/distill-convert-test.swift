@@ -117,8 +117,8 @@ struct DistillConvertTests {
         expect(plain.contains("trailing spaces  \n```nested```"),
                "plain text preserves literal bytes and nested fences")
         expect(plain.contains("````\n"), "fence expands beyond source backticks")
-        expect(status("plain.txt", in: results) == .converted, "verified text is moved to Trash")
-        expect(!exists(folder.appendingPathComponent("plain.txt")), "converted source left input folder")
+        expect(status("plain.txt", in: results) == .retained, "text source is retained")
+        expect(exists(folder.appendingPathComponent("plain.txt")), "converted text stays in input folder")
         let again = try await converter.convert(folder: folder)
         expect(output("document.pdf", in: again) == output("document.pdf", in: results), "receipt reuses retained PDF output")
         expect(output("scan.png", in: again) == output("scan.png", in: results), "receipt reuses retained OCR output")
@@ -249,14 +249,15 @@ struct DistillConvertTests {
         expect(!exists(changed.appendingPathComponent("document.md")), "stale result is never published")
 
         let retry = try directory("retry", in: root)
-        try write("RETRY SOURCE 3541", "source.txt", in: retry)
-        let denied = DistillConverter(trash: { _ in throw FixtureFailure.trashDenied })
+        try write("RETRY SOURCE 3541", "source.html", in: retry)
+        let html: DistillConverter.HTML = { text, _ in DistillConversion(markdown: text, retainSource: false) }
+        let denied = DistillConverter(html: html, trash: { _ in throw FixtureFailure.trashDenied })
         let failed = try await denied.convert(folder: retry)
-        expect(isFailed(status("source.txt", in: failed)) && exists(retry.appendingPathComponent("source.txt")),
+        expect(isFailed(status("source.html", in: failed)) && exists(retry.appendingPathComponent("source.html")),
                "Trash failure keeps source and reports failure")
-        let recovered = try await DistillConverter(trash: moveTo(trash)).convert(folder: retry)
-        expect(status("source.txt", in: recovered) == .converted, "retry completes failed Trash operation")
-        expect(output("source.txt", in: failed) == output("source.txt", in: recovered), "retry reuses verified output")
+        let recovered = try await DistillConverter(html: html, trash: moveTo(trash)).convert(folder: retry)
+        expect(status("source.html", in: recovered) == .converted, "retry completes failed Trash operation")
+        expect(output("source.html", in: failed) == output("source.html", in: recovered), "retry reuses verified output")
 
         let edited = try directory("edited-output", in: root)
         try write("ORIGINAL SOURCE", "source.txt", in: edited)
@@ -299,7 +300,7 @@ struct DistillConvertTests {
         try write("KEEP OUTSIDE", "outside.txt", in: outside)
         try FileManager.default.createSymbolicLink(at: folder.appendingPathComponent("child"), withDestinationURL: outside)
         let results = try await DistillConverter(trash: moveTo(trash)).convert(folder: link)
-        expect(status("source.txt", in: results) == .converted, "symlink job root is resolved")
+        expect(status("source.txt", in: results) == .retained, "symlink job root is resolved")
         expect(output("source.txt", in: results)?.lastPathComponent == "source.md",
                "receipt-less matching output is reused")
         expect(!exists(folder.appendingPathComponent("source.txt.md")), "crash recovery creates no duplicate")
@@ -330,8 +331,10 @@ struct DistillConvertTests {
     static func realTrash(_ root: URL) async throws {
         let folder = try directory("real-trash", in: root)
         let recovered = try directory("recovered-trash", in: root)
-        try write("RECOVERABLE ORIGINAL 7432", "source.txt", in: folder)
-        let converter = DistillConverter(trash: { source in
+        try write("RECOVERABLE ORIGINAL 7432", "source.html", in: folder)
+        let converter = DistillConverter(html: { text, _ in
+            DistillConversion(markdown: text, retainSource: false)
+        }, trash: { source in
             let output = source.deletingPathExtension().appendingPathExtension("md")
             guard try Data(contentsOf: output).count > 0 else { throw FixtureFailure.invalid }
             var trashed: NSURL?
@@ -340,7 +343,7 @@ struct DistillConvertTests {
             try FileManager.default.moveItem(at: trashed as URL, to: recovered.appendingPathComponent("source.txt"))
         })
         let results = try await converter.convert(folder: folder)
-        expect(status("source.txt", in: results) == .converted, "real FileManager Trash succeeds after output verification")
+        expect(status("source.html", in: results) == .converted, "real FileManager Trash succeeds after output verification")
         expect(try contents(recovered.appendingPathComponent("source.txt")) == "RECOVERABLE ORIGINAL 7432",
                "trashed source is recoverable and unchanged")
     }

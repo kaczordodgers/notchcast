@@ -8,12 +8,12 @@ enum FleetLocalSource {
     }
 
     static func read(state: AgentThreadsState, enabled: @MainActor () -> Bool) async -> FleetSnapshot {
-        guard enabled() else { return .init(rows: [], failure: .off) }
+        guard enabled() else { return .init(rows: [], failure: .sourceOff) }
         if state.status != .loading { state.refresh() }
         repeat {
             await state.waitUntilIdle()
             guard !Task.isCancelled else { return .init(rows: [], failure: .failed) }
-            guard enabled() else { return .init(rows: [], failure: .off) }
+            guard enabled() else { return .init(rows: [], failure: .sourceOff) }
         } while state.status == .loading
         guard state.status == .ready else { return .init(rows: [], failure: .failed) }
         let rows = state.threads.filter { $0.phase != .stale }.map { thread in

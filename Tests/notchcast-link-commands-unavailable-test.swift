@@ -23,6 +23,7 @@ extension BlockedDialogModule { static let shared: BlockedDialogModule? = nil }
 @MainActor final class RemoteScreenModule {
     static let shared: RemoteScreenModule? = nil
     let coordinator: RemoteScreenCoordinator
+    let launcher = RemoteScreenLauncher()
     init(coordinator: RemoteScreenCoordinator) { self.coordinator = coordinator }
 }
 

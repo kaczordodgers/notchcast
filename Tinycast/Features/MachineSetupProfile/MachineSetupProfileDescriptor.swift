@@ -3,7 +3,7 @@ import Foundation
 extension NotchcastFeature.Descriptor {
     static let machineSetupProfile = Self(
         title: String(localized: "Machine Setup Profile", table: "Notchcast"),
-        subtitle: String(localized: "Plan portable setup imports and exports.", table: "Notchcast"),
+        subtitle: String(localized: "Preview and apply supported setup tweaks from a profile.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
         backedUp: false,

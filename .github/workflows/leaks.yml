@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base commit the checks compare against, as a PR's base (notchcast/train.sh)
+        default: ''
 
 permissions:
   contents: read
@@ -14,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: A train run names its base
+        if: startsWith(github.ref, 'refs/heads/train/') && inputs.base == ''
+        run: |
+          echo "::error::train branches are dispatched by notchcast/train.sh with -f base=<main sha>"
+          exit 1
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -25,7 +35,7 @@ jobs:
           echo "BASE=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_ENV"
       - name: Allowed commit emails
         env:
-          COMMIT_RANGE: ${{ github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || 'refs/remotes/upstream/main..HEAD' }}
+          COMMIT_RANGE: ${{ github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || inputs.base && format('{0}..HEAD', inputs.base) || 'refs/remotes/upstream/main..HEAD' }}
         run: python3 notchcast/check-commit-emails.py "$COMMIT_RANGE"
       - name: Forbidden names and IDs in added lines
         run: notchcast/check-identity.sh diff "$BASE"

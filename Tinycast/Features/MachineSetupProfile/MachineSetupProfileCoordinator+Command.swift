@@ -26,7 +26,7 @@ extension MachineSetupProfileCoordinator {
                 present: { outcome in
                     host.showMessage(outcome.succeeded ? report(outcome.steps) :
                         String(localized: "Import Failed") + "\n" + report(outcome.steps),
-                        outcome.succeeded ? .success : .danger)
+                        outcome.complete ? .success : .danger)
                 })
         } catch {
             host.showMessage(String(localized: "Import Failed"), .danger)

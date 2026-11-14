@@ -24,16 +24,7 @@ struct DownloadToolLookup: Sendable {
         let folders = directories
             ?? ExecutableLocator.searchDirectories(home: home, path: parent["PATH"] ?? "/usr/bin:/bin")
         self.directories = folders
-        var environment = [
-            "PATH": folders.map(\.path).joined(separator: ":"),
-            "HOME": home.path, "LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8"
-        ]
-        for key in ["TMPDIR", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
-                    "http_proxy", "https_proxy", "all_proxy", "no_proxy",
-                    "SSL_CERT_FILE", "SSL_CERT_DIR", "USER", "LOGNAME"] {
-            environment[key] = parent[key]
-        }
-        self.environment = environment
+        environment = ExecutableLocator.toolEnvironment(directories: folders, home: home, inherited: parent)
     }
 
     func find(_ tool: DownloadTool) -> URL? { ExecutableLocator.find(tool.name, in: directories) }

@@ -5,6 +5,7 @@ import AppKit
 final class ThemedSurface: NSView {
     private(set) var style: AppearanceSurfaceStyle
     private var surface: NSView
+    private let scheme = SurfaceSchemeKeeper()
 
     init(style: AppearanceSurfaceStyle) {
         self.style = style
@@ -17,10 +18,16 @@ final class ThemedSurface: NSView {
 
     func apply(_ style: AppearanceSurfaceStyle) {
         guard self.style != style else { return }
+        scheme.update(window: window, pinsDark: style != .glass)
         surface.removeFromSuperview()
         self.style = style
         surface = Self.makeSurface(style)
         installSurface()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        scheme.update(window: window, pinsDark: style != .glass)
     }
 
     override func viewDidChangeEffectiveAppearance() {
@@ -36,10 +43,9 @@ final class ThemedSurface: NSView {
     }
 
     private func updateFill() {
-        guard style != .glass else { return }
         let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let fill: NSColor = style == .black ? .black : (dark ? .black.withAlphaComponent(0.42)
-            : .white.withAlphaComponent(0.68))
+        guard let spec = style.fill(dark: dark) else { return }
+        let fill = NSColor(white: spec.white, alpha: spec.alpha)
         let fillView = style == .matte ? surface.subviews.first : surface
         fillView?.layer?.backgroundColor = fill.cgColor
     }

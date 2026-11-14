@@ -34,14 +34,11 @@ struct EditorDocumentRepository: Sendable {
                     defer { try? file.close() }
                     do {
                         try write(file, bytes)
-                        try file.synchronize()
                         try file.truncate(atOffset: UInt64(bytes.count))
-                        try file.synchronize()
                     } catch {
                         try file.seek(toOffset: 0)
                         try file.write(contentsOf: snapshot.bytes)
                         try file.truncate(atOffset: UInt64(snapshot.bytes.count))
-                        try file.synchronize()
                         throw error
                     }
                     return try EditorDocumentSnapshot(bytes: bytes)

@@ -29,7 +29,7 @@
     "Features/CaptureRecording -> Features/CaptureArea": 1,
     "Features/CaptureScreenshot -> Features/CaptureArea": 1,
     "Features/CaptureScrolling -> Features/CaptureArea": 1,
-    "Features/CommandRunner -> Features/Downloads": 1,
+    "Features/CommandRunner -> Features/Downloads": 0,
     "Features/ConvertFiles -> Features/Downloads": 1,
     "Features/DictationEnglish -> Features/DictationCleanup": 2,
     "Features/Distill -> Features/Downloads": 0,
@@ -109,7 +109,7 @@
   },
   "file-size": {
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
-    "Tinycast/Features/Battery/Store/BatteryModule.swift": 438,
+    "Tinycast/Features/Battery/Store/BatteryModule.swift": 436,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 0,
     "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
     "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0

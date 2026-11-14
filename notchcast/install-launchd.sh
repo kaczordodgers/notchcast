@@ -62,7 +62,10 @@ stage=''
 refresh() {
     git -C "$repo" fetch --quiet origin main 2>/dev/null || return 1
     stage=$(mktemp -d "$root/tools.XXXXXX") || return 1
-    git -C "$repo" archive refs/remotes/origin/main notchcast/ 2>/dev/null | tar -xf - -C "$stage" 2>/dev/null || return 1
+    # A file, not a pipe: tar exits at the end marker, and git archive then dies of SIGPIPE.
+    git -C "$repo" archive -o "$stage/tools.tar" refs/remotes/origin/main notchcast/ 2>/dev/null || return 1
+    tar -xf "$stage/tools.tar" -C "$stage" 2>/dev/null || return 1
+    rm -f "$stage/tools.tar"
     [ -f "$stage/notchcast/update.sh" ] && [ -f "$stage/notchcast/install-app.sh" ] \
         && [ -f "$stage/notchcast/config.env" ] || return 1
     local old

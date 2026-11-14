@@ -1,6 +1,10 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeEngine.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeClick.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Service/GreenMaximizeRefresh.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowPlacementEngine.swift
+// notchcast-sources: Tinycast/Platform/LocalizedResource.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowCommand.swift
+// notchcast-sources: Tinycast/Features/WindowManagement/Model/WindowCycle.swift
 import ApplicationServices
 import CoreGraphics
 import Foundation
@@ -10,6 +14,10 @@ struct GreenMaximizeTest {
     static func main() {
         let original = CGRect(x: 200, y: 150, width: 700, height: 500)
         let visible = CGRect(x: -1920, y: 25, width: 1920, height: 1055)
+        precondition(GreenMaximizeEngine.target(current: original,
+            visible: WindowPlacementEngine.canvas(visible, gap: WindowPlacementEngine.sanitizedGap(10, in: visible)),
+            memory: nil)
+            == visible.insetBy(dx: 10, dy: 10))
         precondition(GreenMaximizeEngine.target(current: original, visible: visible, memory: nil) == visible)
         let memory = GreenMaximizeEngine.memory(original: original, requested: visible, applied: visible)
         precondition(memory != nil)
@@ -89,6 +97,13 @@ struct GreenMaximizeTest {
         precondition(gate.moved(to: CGPoint(x: 110, y: 250)))
         precondition(gate.zone == nil)
         precondition(!gate.moved(to: CGPoint(x: 400, y: 400)))
+        gate.replace(zones: [CGRect(x: 390, y: 390, width: 100, height: 40)], at: CGPoint(x: 400, y: 400))
+        precondition(gate.zone == 0, "a still pointer enters a zone that appears under it")
+        precondition(gate.replace(zones: [zone], at: CGPoint(x: 400, y: 400)),
+                     "replacing zones invalidates the cached pointer target when its index changes")
+        precondition(!gate.replace(zones: [zone], at: CGPoint(x: 400, y: 400)))
+        precondition(gate.zone == nil, "a zone that moves away no longer holds the pointer")
+        print("green-maximize: replaced zones re-gate a still pointer")
         print("green-maximize: pointer zone gate and hop throttling passed")
     }
 

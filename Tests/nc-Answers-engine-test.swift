@@ -19,6 +19,14 @@ struct AnswersEngineTest {
         }
         precondition(CurrencyAnswerQuery.parse("1,000 usd")?.amount == 1000)
         precondition(CurrencyAnswerQuery.parse("12,5 eur")?.amount == 12.5)
+        for (text, amount) in [("1.234,56 eur", 1234.56), ("-1.234.567,89 usd", -1234567.89),
+                               ("+1.234,56 usd to eur", 1234.56), ("1,234.56 usd", 1234.56),
+                               ("1.234 usd", 1.234)] {
+            precondition(CurrencyAnswerQuery.parse(text)?.amount == amount, text)
+        }
+        for text in ["12.34,56 eur", "1.234,5.6 eur", "1.234,,56 eur"] {
+            precondition(CurrencyAnswerQuery.parse(text) == nil, text)
+        }
         let small = LauncherCurrencyAnswer(query: CurrencyAnswerQuery.parse("1 krw to usd")!,
                                           converted: 0.000725, effectiveDate: "2026-11-03", isStale: false)
         precondition(small.formattedValue(locale: Locale(identifier: "en_US")) == "0.000725 USD")

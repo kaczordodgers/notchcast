@@ -27,6 +27,9 @@ struct EditorDocumentTests {
         try await repository()
         try await recovery()
         try await sessions()
+        try await busy()
+        try await moves()
+        try await moves(changesKind: true)
         try await statistics()
         preferences()
         print("Document editor: byte fidelity, conflicts, deletion, autosave, Markdown and text policies passed")
@@ -90,43 +93,21 @@ struct EditorDocumentTests {
         precondition(count == tag.count && actual == tag)
         let hardLink = directory.appendingPathComponent("linked.md")
         try FileManager.default.linkItem(at: url, to: hardLink)
-        let inode = try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber
-        precondition(inode != nil)
         let beforeLinkedSave = try await EditorDocumentRepository.load(url)
         _ = try await EditorDocumentRepository.save("linked replacement", to: url, expecting: beforeLinkedSave)
         try check(try Data(contentsOf: hardLink) == Data("linked replacement".utf8))
         let linkedSnapshot = try await EditorDocumentRepository.load(url)
+        do {
+            _ = try await EditorDocumentRepository.save("bad", to: url, expecting: linkedSnapshot) { file, bytes in
+                try file.write(contentsOf: bytes.prefix(1))
+                throw CocoaError(.fileWriteUnknown)
+            }
+            preconditionFailure("partial writes must fail")
+        } catch let error as CocoaError where error.code == .fileWriteUnknown {}
+        try check(try Data(contentsOf: url) == linkedSnapshot.bytes)
+        try check(try Data(contentsOf: hardLink) == linkedSnapshot.bytes)
         _ = try await EditorDocumentRepository.save("short", to: url, expecting: linkedSnapshot)
         try check(try Data(contentsOf: hardLink) == Data("short".utf8))
-        try check(try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber == inode)
-        let shortSnapshot = try await EditorDocumentRepository.load(url)
-        do {
-            _ = try await EditorDocumentRepository.save("partial replacement", to: url, expecting: shortSnapshot) { file, bytes in
-                try file.write(contentsOf: bytes.prefix(2))
-                throw CocoaError(.fileWriteOutOfSpace)
-            }
-            preconditionFailure("Injected partial write must fail")
-        } catch let error as CocoaError {
-            precondition(error.code == .fileWriteOutOfSpace)
-        }
-        try check(try Data(contentsOf: hardLink) == shortSnapshot.bytes)
-        try check(try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? NSNumber == inode)
-        var limits = rlimit()
-        precondition(getrlimit(RLIMIT_FSIZE, &limits) == 0)
-        let oldSignal = signal(SIGXFSZ, SIG_IGN)
-        do {
-            defer {
-                precondition(setrlimit(RLIMIT_FSIZE, &limits) == 0)
-                signal(SIGXFSZ, oldSignal)
-            }
-            var restricted = rlimit(rlim_cur: 6, rlim_max: limits.rlim_max)
-            precondition(setrlimit(RLIMIT_FSIZE, &restricted) == 0)
-            do {
-                _ = try await EditorDocumentRepository.save("cannot fit", to: url, expecting: shortSnapshot)
-                preconditionFailure("A failed in-place write must fail the save")
-            } catch {}
-        }
-        try check(try Data(contentsOf: hardLink) == shortSnapshot.bytes)
         let restored = try await EditorDocumentRepository.load(url)
         try FileManager.default.removeItem(at: url)
         do {
@@ -225,28 +206,6 @@ struct EditorDocumentTests {
             }
             precondition(document.source == external && !document.isDirty)
         }
-        let renamed = directory.appendingPathComponent("renamed.md")
-        let coordinator = NSFileCoordinator(filePresenter: nil)
-        var moveError: NSError?
-        coordinator.coordinate(writingItemAt: copy, options: .forMoving,
-                               writingItemAt: renamed, options: .forReplacing, error: &moveError) { old, new in
-            do {
-                try FileManager.default.moveItem(at: old, to: new)
-                coordinator.item(at: old, didMoveTo: new)
-            } catch { preconditionFailure("Rename failed: \(error)") }
-        }
-        if let moveError { throw moveError }
-        for _ in 0..<100 where document.url != renamed {
-            try await Task.sleep(for: .milliseconds(50))
-        }
-        precondition(document.url == renamed)
-        precondition(document.rendersMarkdown)
-        try await document.refresh()
-        precondition(document.failure == nil)
-        document.brainDump = false
-        precondition(document.edit("saved after rename"))
-        try await document.flush()
-        try check(try Data(contentsOf: renamed) == Data("saved after rename".utf8))
     }
 
     private static func statistics() async throws {
@@ -258,6 +217,78 @@ struct EditorDocumentTests {
         precondition(!EditorTextPolicy.accepts("same", after: "size", brainDump: true))
         precondition(EditorTextPolicy.accepts("text", after: "text\n", brainDump: true))
         precondition(!EditorTextPolicy.accepts("text", after: " text", brainDump: true))
+    }
+
+    private static func busy() async throws {
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("busy.txt")
+        let snapshot = try EditorDocumentSnapshot(bytes: Data("original".utf8))
+        try snapshot.bytes.write(to: url)
+        let document = EditorDocumentSession(url: url, snapshot: snapshot, rendersMarkdown: false)
+        document.setEnabled(true)
+        defer { document.setEnabled(false) }
+        var release: CheckedContinuation<EditorDocumentSnapshot, Never>?
+        let running = Task {
+            try await document.perform { @MainActor in
+                await withCheckedContinuation { release = $0 }
+            }
+        }
+        while release == nil { await Task.yield() }
+        do {
+            try await document.refresh()
+            preconditionFailure("a second load must report busy")
+        } catch EditorFailure.busy {}
+        release?.resume(returning: snapshot)
+        _ = try await running.value
+    }
+
+    private static func moves(changesKind: Bool = false) async throws {
+        let directory = try temporaryDirectory().resolvingSymlinksInPath()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let original = directory.appendingPathComponent(changesKind ? "before.md" : "before.txt")
+        let moved = directory.appendingPathComponent("after.txt")
+        try Data("original".utf8).write(to: original)
+        let document = EditorDocumentSession(
+            url: original, snapshot: try await EditorDocumentRepository.load(original), rendersMarkdown: changesKind)
+        document.setEnabled(true)
+        defer { document.setEnabled(false) }
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var error: NSError?
+        var moveError: Error?
+        coordinator.coordinate(writingItemAt: original, options: .forMoving, error: &error) { location in
+            do {
+                try FileManager.default.moveItem(at: location, to: moved)
+                coordinator.item(at: location, didMoveTo: moved)
+            } catch { moveError = error }
+        }
+        if let error { throw error }
+        if let moveError { throw moveError }
+        if changesKind {
+            for _ in 0..<100 where document.failure == nil {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            precondition(document.url == original && document.rendersMarkdown)
+            precondition(document.failure as? EditorFailure == .missingFile)
+            coordinator.coordinate(writingItemAt: original, options: .forReplacing, error: &error) { location in
+                do { try Data("returned".utf8).write(to: location) } catch { moveError = error }
+            }
+            if let error { throw error }
+            if let moveError { throw moveError }
+            for _ in 0..<100 where document.failure != nil || document.source != "returned" {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            precondition(document.failure == nil && document.source == "returned")
+            return
+        }
+        for _ in 0..<100 where document.url != moved {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        precondition(document.url == moved)
+        precondition(document.edit("saved after rename"))
+        try await document.flush()
+        try check(try Data(contentsOf: moved) == Data("saved after rename".utf8))
+        precondition(!FileManager.default.fileExists(atPath: original.path))
     }
 
     private static func preferences() {

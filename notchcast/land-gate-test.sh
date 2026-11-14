@@ -123,13 +123,13 @@ export HOLD=
 before=$(date +%s)
 run
 [ "$status" -eq 77 ] || { cat "$scratch/output"; echo 'FAIL: no hold refused'; exit 1; }
-read -r owner until auto < "$HELD_AT_MERGE" || { echo 'FAIL: no landing hold taken at the start'; exit 1; }
+read -r owner until auto lander < "$HELD_AT_MERGE" || { echo 'FAIL: no landing hold taken at the start'; exit 1; }
 [ "$owner" = 1 ] && [ "$auto" = auto ] && [ "$until" -ge $((before + 9000)) ] && [ "$until" -le $(($(date +%s) + 9000)) ] \
     || { echo "FAIL: took '$owner $until $auto'"; exit 1; }
 [ ! -e "$STORE" ] && [ "$(sed -n 2p "$HOLD_LOG")" = delete ] || { cat "$HOLD_LOG"; echo 'FAIL: the hold was not released at exit'; exit 1; }
 echo 'PASS: land.sh takes an auto hold for its PR at the start and releases it at exit'
 NOTCHCAST_LAND_HOLD_MINUTES=5 run
-read -r owner until auto < "$HELD_AT_MERGE"
+read -r owner until auto lander < "$HELD_AT_MERGE"
 [ "$until" -le $(($(date +%s) + 300)) ] || { echo 'FAIL: NOTCHCAST_LAND_HOLD_MINUTES ignored'; exit 1; }
 echo 'PASS: NOTCHCAST_LAND_HOLD_MINUTES sets the auto hold length'
 export BUILD=failure

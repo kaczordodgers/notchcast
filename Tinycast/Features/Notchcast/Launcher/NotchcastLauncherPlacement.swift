@@ -21,6 +21,11 @@ enum NotchcastLauncherPlacement {
         return panels.first { $0.displayFrame.contains(center) && $0.launcherAttachment != nil }
     }
 
+    /// A launcher blocks an island only on the display it sits on; other displays' islands stay usable.
+    static func blocks(_ island: IslandPanel, launchers: [CGRect]) -> Bool {
+        launchers.contains { island.displayFrame.contains(CGPoint(x: $0.midX, y: $0.midY)) }
+    }
+
     /// An open island gives way to a launcher hung from it or one it covers or touches; elsewhere it stays.
     static func displaces(_ island: IslandPanel, launcher: CGRect, host: IslandPanel?) -> Bool {
         island === host || !island.openBodyFrame.intersection(launcher).isNull

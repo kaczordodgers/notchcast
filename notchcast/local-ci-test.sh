@@ -23,6 +23,7 @@ if [ "$1" = clone ]; then
 fi
 # The merged tree and main differ, so the merge is not refused as empty.
 if [ "$1" = rev-parse ]; then echo "${@: -1}"; fi
+if [ "$1" = archive ]; then tar -cf "$3" -T /dev/null; fi
 STUB
 printf '#!/bin/sh\n' > "$scratch/bin/swiftc"
 cat > "$scratch/bin/python3" <<'STUB'

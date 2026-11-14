@@ -1,4 +1,5 @@
 // notchcast-kit: core
+// notchcast-sources: Tinycast/Platform/SystemLanguages.swift Tinycast/Features/Notchcast/Core/SystemLanguages+Bundle.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
