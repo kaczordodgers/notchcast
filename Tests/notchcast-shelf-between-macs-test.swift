@@ -40,6 +40,18 @@ struct ShelfTest {
         }
         let entries = try FileManager.default.contentsOfDirectory(atPath: directory.path)
         precondition(entries.count == 64, "Stored \(entries.count) items")
+        let oldest = ShelfItem(kind: .text, name: "item", data: Data("receive 0".utf8))
+        let newest = ShelfItem(kind: .text, name: "item", data: Data("receive 64".utf8))
+        precondition(!entries.contains(oldest.fingerprint + ".json") && entries.contains(newest.fingerprint + ".json"))
+        async let first = module.receive(ShelfItem(kind: .text, name: "first", data: Data("first".utf8)))
+        async let second = module.receive(ShelfItem(kind: .text, name: "second", data: Data("second".utf8)))
+        let pair = try await [first, second]
+        precondition(pair.allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
+        let committed = Task { @MainActor in try await module.receive(text) }
+        await Task.yield()
+        committed.cancel()
+        let committedURL = try await committed.value
+        precondition(FileManager.default.fileExists(atPath: committedURL.path))
         let received = try await module.receive(text)
         let duplicate = try await module.receive(text)
         precondition(received == duplicate)
@@ -60,6 +72,14 @@ struct ShelfTest {
         } catch ShelfEngine.Failure.invalidItem {}
         module.stop()
         do { _ = try await module.receive(text); fatalError("received while stopped") } catch ShelfEngine.Failure.stopped {}
+        let queuedDirectory = directory.appendingPathComponent("queued")
+        let queuedModule = ShelfModule(directory: queuedDirectory)
+        queuedModule.start()
+        let queued = Task { @MainActor in try await queuedModule.receive(text) }
+        let stopping = Task { @MainActor in queuedModule.stop() }
+        await stopping.value
+        do { _ = try await queued.value; fatalError("queued receive survived stop") } catch ShelfEngine.Failure.stopped {}
+        precondition(!FileManager.default.fileExists(atPath: queuedDirectory.path))
         print("Shelf send, receive, size, peer-down, duplicate and path safety passed")
     }
 }
