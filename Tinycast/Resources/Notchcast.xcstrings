@@ -47511,54 +47511,54 @@
         }
       }
     },
-    "Update command-line tools" : {
+    "Update Claude Code and Codex" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Befehlszeilenwerkzeuge aktualisieren"
+            "value" : "Claude Code und Codex aktualisieren"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualizar herramientas de línea de comandos"
+            "value" : "Actualizar Claude Code y Codex"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mettre à jour les outils en ligne de commande"
+            "value" : "Mettre à jour Claude Code et Codex"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コマンドラインツールを更新"
+            "value" : "Claude Code と Codex を更新"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "명령줄 도구 업데이트"
+            "value" : "Claude Code 및 Codex 업데이트"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atualizar ferramentas de linha de comandos"
+            "value" : "Atualizar o Claude Code e o Codex"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновить инструменты командной строки"
+            "value" : "Обновить Claude Code и Codex"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更新命令行工具"
+            "value" : "更新 Claude Code 和 Codex"
           }
         }
       }
