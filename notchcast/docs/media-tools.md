@@ -14,7 +14,7 @@ within the requested bytes; impossible targets fail. Images are JPEG quality 0.7
 1600-pixel default limit and source metadata removed. GIFs use 720 pixels and 12 fps, capped
 at 120 seconds to bound work. PDF text is read directly, with Vision OCR for pages with no text layer or that draw an image;
 OCR replaces a page's text layer only when it reads over twice as many characters, so a stamped
-header or page number never hides a scanned body. Images use Vision OCR. OCR is accurate where the Mac can compile that model and fast where it cannot (virtual Macs). Cancellation is checked between OCR pages and image operations.
+header or page number never hides a scanned body. Images use Vision OCR. OCR runs on a GCD thread, since Vision blocks its caller, and is accurate where the Mac can run that model and fast where it cannot (virtual Macs). Cancellation is checked between OCR pages and image operations.
 
 Behavior references: [media service](https://github.com/vorssaint/vorssaint-utils/blob/main/Sources/Vorssaint/Services/Media/MediaService.swift),
 Copyright (C) 2026 Vorssaint, GPL-3.0-or-later, and the local media conversion reference.

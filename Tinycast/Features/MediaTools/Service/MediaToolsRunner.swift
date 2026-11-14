@@ -169,18 +169,27 @@ struct MediaToolsRunner: Sendable {
 
     private func recognize(_ image: CGImage) async throws -> String {
         try Task.checkCancellation()
-        var request = RecognizeTextRequest()
-        request.recognitionLevel = .accurate
-        let observations: [RecognizedTextObservation]
-        do {
-            observations = try await request.perform(on: image)
-        } catch where !(error is CancellationError) {
-            // Virtual Macs cannot compile the accurate model on any device; the fast one still reads.
-            request.recognitionLevel = .fast
-            observations = try await request.perform(on: image)
+        // Vision blocks its caller while it waits on its own tasks, so it must not hold a pool thread.
+        let text = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, any Error>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                continuation.resume(with: Result { try Self.read(image) })
+            }
         }
         try Task.checkCancellation()
-        return observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+        return text
+    }
+
+    private static func read(_ image: CGImage) throws -> String {
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        do {
+            try VNImageRequestHandler(cgImage: image).perform([request])
+        } catch {
+            // Virtual Macs cannot run the accurate model on any device; the fast one still reads.
+            request.recognitionLevel = .fast
+            try VNImageRequestHandler(cgImage: image).perform([request])
+        }
+        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
     }
 
     private func gif(_ input: URL, output: URL) async throws {
