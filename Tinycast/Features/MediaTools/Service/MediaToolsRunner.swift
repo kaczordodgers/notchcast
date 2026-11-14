@@ -52,7 +52,7 @@ struct MediaToolsRunner: Sendable {
         case .gif: try await gif(input, output: staged)
         case let .image(dimension): try image(input, output: staged, dimension: dimension)
         case .text:
-            let text = try extract(input)
+            let text = try await extract(input)
             try text.write(to: staged, atomically: false, encoding: .utf8)
         }
         try Task.checkCancellation()
@@ -77,19 +77,24 @@ struct MediaToolsRunner: Sendable {
         guard CGImageDestinationFinalize(destination) else { throw Failure.encoding }
     }
 
-    private func extract(_ input: URL) throws -> String {
+    private func extract(_ input: URL) async throws -> String {
         if input.pathExtension.lowercased() == "pdf" {
             guard let document = PDFDocument(url: input), !document.isLocked else { throw Failure.unsupported }
-            return try (0..<document.pageCount).map { index in
+            var pages: [String] = []
+            for index in 0..<document.pageCount {
                 try Task.checkCancellation()
                 guard let page = document.page(at: index) else { throw Failure.unsupported }
                 let layer = page.string ?? ""
-                guard Self.letterCount(layer) == 0 || page.pageRef.map(Self.drawsImage) == true else { return layer }
+                guard Self.letterCount(layer) == 0 || page.pageRef.map(Self.drawsImage) == true else {
+                    pages.append(layer)
+                    continue
+                }
                 guard let image = page.pageRef.flatMap(Self.rasterize) else { throw Failure.unsupported }
-                let recognized = try recognize(image)
+                let recognized = try await recognize(image)
                 // A stamped header or page number must not stand in for the scanned body under it.
-                return Self.letterCount(recognized) > 2 * Self.letterCount(layer) ? recognized : layer
-            }.joined(separator: "\n")
+                pages.append(Self.letterCount(recognized) > 2 * Self.letterCount(layer) ? recognized : layer)
+            }
+            return pages.joined(separator: "\n")
         }
         guard let source = CGImageSourceCreateWithURL(input as CFURL, nil),
               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
@@ -98,7 +103,7 @@ struct MediaToolsRunner: Sendable {
                 kCGImageSourceThumbnailMaxPixelSize: 3200,
               ] as CFDictionary)
         else { throw Failure.unsupported }
-        return try recognize(image)
+        return try await recognize(image)
     }
 
     private static func rasterize(_ page: CGPDFPage) -> CGImage? {
@@ -162,13 +167,13 @@ struct MediaToolsRunner: Sendable {
         return found
     }
 
-    private func recognize(_ image: CGImage) throws -> String {
+    private func recognize(_ image: CGImage) async throws -> String {
         try Task.checkCancellation()
-        let request = VNRecognizeTextRequest()
+        var request = RecognizeTextRequest()
         request.recognitionLevel = .accurate
-        try VNImageRequestHandler(cgImage: image).perform([request])
+        let observations = try await request.perform(on: image)
         try Task.checkCancellation()
-        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+        return observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
     }
 
     private func gif(_ input: URL, output: URL) async throws {
