@@ -43,8 +43,8 @@ It also holds the facts a harness could only restate, each as a rule over every 
 - setting-one-case: two settings on one `case` line of `NotchcastSetting.swift`;
 - setting-row-arm: a `NotchcastSetting` without exactly one non-empty row arm in `NotchcastSettingRows+*.swift`;
 - backup-anchor-header: a `notchcastBackup…` search anchor without its `SettingsSectionHeader`;
-- source-hooks: a one-line hook (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present. `HOOKS` also pins `ArchiveModule+Registration.swift` to its one entry, requiring `.archives`;
-- plist: `Info.plist` archive document types, imported type identifiers, the Bonjour service and the local network text.
+- source-hooks: a one-line hook (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present.
+- plist: `Info.plist` imported type identifiers, the Bonjour service and the local network text.
 
 A rule that finds nothing to check fails instead of passing: a descriptor it cannot open, no `unwired` list, a class pin no feature belongs to, an `ABSENT` path with no file, no module static, no setting, no backup anchor.
 
@@ -105,6 +105,7 @@ Dropping a feature deletes its case, descriptor, hub line, every list and settin
 | Retired | Was | Left on disk |
 | --- | --- | --- |
 | `agentAnswer` | unwired since #209, module empty | the Bool switch only |
+| `archives`, `archivesInPlace`, `archivesDefaultApp` | Archives unpacked and compressed archives and could be Finder's default app for them; removed in #662 | the three Bool switches and `archiveHandlersClaimed`; the `archiveRecoveryParents` string array; staging folders, sidecars and progress files an interrupted extraction or compression left beside an archive (#662 lists them); and, where `archivesDefaultApp` was on, Launch Services still naming Notchcast for the 13 archive types, so Finder sends those files to an app that ignores them until Open with is set to Archive Utility, or another app for RAR and split `.001` files (CHANGELOG) |
 | `killProcess` | unwired, no command; `KillProcessService` and `KillProcessEntry` stay (System Monitor stops processes through them) | the Bool switch only |
 | `macSetup` | unwired; `TweaksModule.apply` had no caller since #235 | the Bool switch only; no `mac-setup-rollback-*.json` journal could be written. `macSetupPlans` is the shared tweak journal and stays |
 

@@ -31,9 +31,7 @@ CAPTURE_EDITOR = "Tinycast/Features/CaptureEditor/CaptureEditorDescriptor.swift"
 AI_COMMAND = "Tinycast/Features/Tweaks/TweakProfileCommands.swift"
 SCREEN_TEXT = ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"
 VOICE_ENTRY = ".init(requires: [.voiceAsk], module: voiceAskModule)"
-ARCHIVES_HOOK = "        if ArchiveModule.shared.open(url) { return }\n"
 DEEP_LINK_HOOK = "        if deepLinkCoordinator.handles(url) {"
-ARCHIVE_ENTRIES = "Tinycast/Features/Archives/ArchiveModule+Registration.swift"
 GLOBE = "Tinycast/Features/DictationTrigger/GlobeDictationDescriptor.swift"
 # A fact the checker finds nowhere must fail, not pass: the error, the file, then the text every copy of which is replaced.
 UNREAD = (
@@ -46,8 +44,6 @@ UNREAD = (
 )
 # One planted break of the shipped tree per spec fact: its rule, the error it must raise, the file, then old and new text.
 BREAKS = (
-    ("feature-pins", ".archivesInPlace defaultEnabled is true; the spec pins false",
-     "Tinycast/Features/Archives/ArchivesInPlaceDescriptor.swift", "defaultEnabled: false", "defaultEnabled: true"),
     ("feature-pins", ".captureEditor defaultEnabled is true; the spec pins false",
      CAPTURE_EDITOR, "defaultEnabled: false", "defaultEnabled: true"),
     ("feature-pins", ".recording requiredGrants is []; the spec pins [.screenRecording]",
@@ -95,12 +91,8 @@ BREAKS = (
     ("module-entry-once", "run appUpdates in exactly one entry",
      MODULES, "            .init(requires: [.appUpdates], module: appUpdates),\n", ""),
     ("module-entry-once", "run github in exactly one entry", MODULES, "            .init(requires: [.githubSearch], module: github),\n", ""),
-    ("module-entry-once", "run shared in one entry", ARCHIVE_ENTRIES, "module: shared)]",
-     "module: shared), .init(requires: [.archivesInPlace], module: shared)]"),
     ("module-entry-requires", "the entry that runs showDesktop requires .showDesktop", MODULES,
      ".init(requires: [.showDesktop], module: showDesktop)", ".init(requires: [.island], module: showDesktop)"),
-    ("source-hooks", "hook missing or out of order: [.init(requires: [.archives], module: shared)]",
-     ARCHIVE_ENTRIES, "requires: [.archives]", "requires: []"),
     ("feature-pins", ".globeDictation needsIsland is true; the spec pins false",
      GLOBE, "dependencies: [],", "dependencies: [\n            .island\n        ],"),
     ("feature-pins", "open the descriptor with `static let <feature> = Self(`", GLOBE, "= Self(", "= NotchcastFeature.Descriptor("),
@@ -118,8 +110,6 @@ BREAKS = (
     ("source-hooks", "hook missing or out of order: NotchcastHost.current = .live(core: core)",
      "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "NotchcastHost.current = .live(core: core)",
      "_ = NotchcastHost.live(core: core)"),
-    ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",
-     "Tinycast/App/AppCore.swift", ARCHIVES_HOOK, "", DEEP_LINK_HOOK, ARCHIVES_HOOK + "        do {"),
     ("source-hooks", "hook missing or out of order: var extensionsEnabled: Bool { get { false } set { } }",
      SHAPE.APP_SETTINGS, "var extensionsEnabled: Bool {\n        get { false }", "var extensionsEnabled: Bool {\n        get { true }"),
     ("source-hooks", "keep showSupport out of this file",
@@ -132,12 +122,6 @@ BREAKS = (
      "Tinycast/App/AppDelegate.swift", "AppCore.shared.handleOpenURL(url)", "_ = url"),
     ("source-hooks", "hook missing or out of order: case .about: AboutView()",
      "Tinycast/Features/Settings/SettingsDetailView.swift", "case .about: AboutView()", "case .about: EmptyView()"),
-    ("plist", "declare one Archives document type", SHAPE.PLIST, "<string>Alternate</string>", "<string>Owner</string>"),
-    ("plist", "declare one Archives document type", SHAPE.ARCHIVE_FORMATS,
-     '"public.zip-archive"', '"app.notchcast.mismatched-archive"'),
-    ("plist", "imported type com.example.zoo-archive is neither app.notchcast.* nor in FOREIGN_TYPES", SHAPE.PLIST,
-     "<key>UTTypeIdentifier</key>\n\t\t\t<string>app.notchcast.zoo-archive<", "<key>UTTypeIdentifier</key>\n\t\t\t<string>com.example.zoo-archive<"),
-    ("plist", "an imported type carries the split-archive extension 001", SHAPE.PLIST, "<string>001</string>", "<string>002</string>"),
     ("plist", "NSBonjourServices lists exactly MachLinkManager.serviceType",
      SHAPE.PLIST, "<string>_notchcast-link._tcp</string>", "<string>_other-link._tcp</string>"),
     ("plist", "NSLocalNetworkUsageDescription reads", SHAPE.PLIST, SHAPE.LOCAL_NETWORK, "Uses the network."),
@@ -684,19 +668,6 @@ class FeatureFactTests(unittest.TestCase):
 
     def test_shipped_tree_holds_every_fact(self):
         self.assertEqual(SHAPE.fact_errors(self.root), [])
-
-    def test_archive_document_identifiers_match_metadata(self):
-        self.assertEqual(SHAPE.plist_errors(self.root), [])
-        path = self.root / SHAPE.PLIST
-        shipped = path.read_text()
-        identifier = "<string>public.zip-archive</string>"
-        self.assertIn(identifier, shipped)
-        path.write_text(shipped.replace(identifier, "<string>app.notchcast.mismatched-archive</string>", 1))
-        try:
-            errors = SHAPE.plist_errors(self.root)
-        finally:
-            path.write_text(shipped)
-        self.assertTrue(any("declare one Archives document type" in message for _, _, message in errors))
 
     def test_a_comment_above_a_descriptor_field_passes(self):
         path = self.root / GLOBE

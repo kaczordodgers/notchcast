@@ -128,9 +128,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case machBlockedDialogAlert
     case remoteScreen
     case machMBPFans
-    case archives
-    case archivesInPlace
-    case archivesDefaultApp
     case torrents
     case torrentsUseIPhone
     case torrentsKeepSharing

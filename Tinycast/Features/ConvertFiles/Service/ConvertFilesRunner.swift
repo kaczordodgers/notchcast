@@ -49,7 +49,6 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
     private func execute(
         _ item: ConvertFilesPlan.Item, context: DownloadRunContext
     ) async throws -> URL {
-        if item.tool == .archives { return try await Self.archive(item.arguments[0], item.sources) }
         let manager = FileManager.default
         let folder = item.sources[0].deletingLastPathComponent()
         let scratch = folder.appending(path: ".convert-" + UUID().uuidString)

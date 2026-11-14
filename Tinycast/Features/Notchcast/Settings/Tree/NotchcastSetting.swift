@@ -22,7 +22,6 @@ enum NotchcastSetting: String, CaseIterable, Sendable {
     case downloadsTorrents
     case filesAndClipboardCutPasteShortcut
     case filesAndClipboardRenameShortcut
-    case filesAndClipboardArchives
     case filesAndClipboardURLCleaner
     case captureScreenshotDestination
     case captureScreenTextLineBreaks

@@ -18,7 +18,6 @@ extension SettingsAnchor {
     static let notchcastMacUpdate = Self.notchcast(feature: .macUpdate)
     static let notchcastTweaksApps = Self.notchcast(feature: .typingTweaks)
     static let notchcastTasks = Self.notchcast(feature: .tasks)
-    static let notchcastArchives = Self.notchcast(feature: .archives)
     static let notchcastBuildStats = Self.notchcast(feature: .buildStats)
     static let notchcastAlerts = Self.notchcast(feature: .monitorAlerts)
     static let notchcastAlertCPU = Self.notchcast(feature: .monitorAlerts)
@@ -90,9 +89,6 @@ extension SettingsSearchCatalog {
         .init(group: .notchcastAppearance, LocalizedStringResource("Dark theme", table: "Notchcast"), keywords: ["palette", "raycast", "ray.so"]),
         .init(group: .notchcastAppearance, LocalizedStringResource("Theme backdrop", table: "Notchcast"), keywords: ["opacity", "background", "transparency"]),
         .init(group: .notchcastAppearance, LocalizedStringResource("Import from link", table: "Notchcast"), keywords: ["theme", "raycast", "ray.so", "url"]),
-        .init(group: .notchcast(feature: .archives), "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
-        .init(group: .notchcast(feature: .archivesInPlace), LocalizedStringResource("Extract in place", table: "Notchcast"), keywords: ["shrink", "space", "destructive"]),
-        .init(group: .notchcast(feature: .archivesDefaultApp), LocalizedStringResource("Open archives with Notchcast", table: "Notchcast"), keywords: ["default", "handler", "Archive Utility"]),
         .init(group: .notchcast(feature: .monitorAlerts), LocalizedStringResource("Monitor Alerts", table: "Notchcast")),
         .init(group: .notchcastAlertCPU, LocalizedStringResource("CPU usage threshold", table: "Notchcast")),
         .init(group: .notchcastAlertTemperature, LocalizedStringResource("CPU temperature threshold", table: "Notchcast")),

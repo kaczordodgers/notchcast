@@ -45,18 +45,12 @@ PLIST = Path("Tinycast/Info.plist")
 SETTINGS = TREE.with_name("NotchcastSetting.swift")
 BACKUPS = TREE.with_name("NotchcastBackupGroups.swift")
 APP_SETTINGS = Path("Tinycast/Features/Settings/AppSettings.swift")
-ARCHIVE_FORMATS = Path("Tinycast/Features/Archives/Model/ArchiveFormat.swift")
 MACH_LINK = Path("Tinycast/Features/MachLink/Service/MachLinkManager.swift")
 LOCAL_NETWORK = "Notchcast connects to your other Mac on the local network."
 # Imported types that are not ours to name: Info.plist declares them because macOS ships no declaration.
-FOREIGN_TYPES = {"org.bittorrent.torrent", "com.rarlab.rar-archive"}
+FOREIGN_TYPES = {"org.bittorrent.torrent"}
 # What a harness used to assert about one feature, as Swift text; changing a value here is a spec change.
 PINS = {
-    "archives": {"group": ".archives", "dependencies": "[]", "requiredGrants": "[]", "module": ".filesAndClipboard"},
-    "archivesInPlace": {"group": ".archives", "defaultEnabled": "false", "dependencies": "[.archives]",
-                        "requiredGrants": "[]", "module": ".filesAndClipboard"},
-    "archivesDefaultApp": {"group": ".archives", "defaultEnabled": "false", "dependencies": "[.archives]",
-                           "requiredGrants": "[]", "module": ".filesAndClipboard"},
     "captureEditor": {"group": ".captureAndDictation", "defaultEnabled": "false", "wired": "true", "requiredGrants": "[]"},
     "captureTrimmer": {"group": ".captureAndDictation", "defaultEnabled": "true", "wired": "false", "requiredGrants": "[]"},
     "colorPicker": {"group": ".captureAndDictation", "defaultEnabled": "true", "requiredGrants": "[]"},
@@ -102,7 +96,7 @@ CLASS_PINS = (
 # Lines a fork behaviour hangs on, in files no harness compiles: a path, then its needles in order.
 HOOKS = (
     ("Tinycast/App/AppCore.swift", "func handleOpenURL(_ url: URL)", "if pendingURLs != nil",
-     "if ArchiveModule.shared.open(url) { return }", "if deepLinkCoordinator.handles(url)"),
+     "if deepLinkCoordinator.handles(url)"),
     ("Tinycast/App/AppCore.swift", "if settings.extensionsEnabled { extensions.start("),
     ("Tinycast/App/AppDelegate.swift", "AppCore.shared.handleOpenURL(url)"),
     ("Tinycast/App/MenuBarItem.swift",
@@ -120,7 +114,6 @@ HOOKS = (
      "if let tasks = TodoModule.shared { tasksSync.connect(to: tasks) }",
      "MonitorModule.shared.registerRemoteFanRoute(on: macLink.channel)",
      "MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)"),
-    ("Tinycast/Features/Archives/ArchiveModule+Registration.swift", "[.init(requires: [.archives], module: shared)]"),
     ("Tinycast/Features/AgentThreads/AgentThreadsModule.swift",
      *2 * ("isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }",)),
     ("Tinycast/Features/Notchcast/Core/NotchcastCore.swift",
@@ -677,26 +670,14 @@ def source_errors(root):
 
 
 def plist_errors(root):
-    """Info.plist declares the archive types the code opens and the one Bonjour service it browses."""
+    """Info.plist declares imported types and the one Bonjour service it browses."""
     errors = []
     with (root / PLIST).open("rb") as file:
         plist = plistlib.load(file)
-    source = (root / ARCHIVE_FORMATS).read_text()
-    formats = re.search(r"static let entries: \[Entry\] = \[(.*?)\n    \]", source, re.S)
-    derived = "static let typeIdentifiers = entries.map(\\.identifier)" in source
-    archives = [kind for kind in plist.get("CFBundleDocumentTypes", []) if kind.get("CFBundleTypeName") == "Archives"]
-    if (len(archives) != 1 or archives[0].get("LSHandlerRank") != "Alternate" or not formats or not derived
-            or set(archives[0].get("LSItemContentTypes", [])) != set(re.findall(r'identifier: "([^"]+)"', formats[1]))):
-        errors.append((PLIST, 1, "declare one Archives document type, ranked Alternate, listing ArchiveFormat.typeIdentifiers"))
-    extensions = []
     for imported in plist.get("UTImportedTypeDeclarations", []):
         identifier = imported.get("UTTypeIdentifier", "")
         if not identifier.startswith("app.notchcast.") and identifier not in FOREIGN_TYPES:
             errors.append((PLIST, 1, f"imported type {identifier} is neither app.notchcast.* nor in FOREIGN_TYPES"))
-        tags = imported.get("UTTypeTagSpecification", {}).get("public.filename-extension", [])
-        extensions += tags if isinstance(tags, list) else []
-    if "001" not in extensions:
-        errors.append((PLIST, 1, "an imported type carries the split-archive extension 001"))
     service = re.search(r'static let serviceType = "([^"]+)"', (root / MACH_LINK).read_text())
     if not service or plist.get("NSBonjourServices") != [service[1]]:
         errors.append((PLIST, 1, "NSBonjourServices lists exactly MachLinkManager.serviceType"))

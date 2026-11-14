@@ -122,8 +122,6 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | musicSharpCovers | Consent to read browser sessions and send song titles to Apple; stays on this Mac |
 | spotifyConnect | Uses a saved key and starts the speaker process/network service |
 | microphoneMute | Start reapplies mute to system audio devices; stop unmutes |
-| archives | Start observes archivesDefaultApp and can change system-wide handlers |
-| archivesDefaultApp | Changes system-wide file associations |
 | torrents | Enables network transfers through an aria2 daemon |
 | torrentsUseIPhone | Enables use of an additional network interface |
 | torrentsKeepSharing | Enables continued uploads |
@@ -133,8 +131,6 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | remoteTerminalDirectory | Device-specific terminal directory; stays on this Mac |
 | remoteUpdatePath | Device-specific update path; stays on this Mac |
 | microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
-| archiveHandlersClaimed | OS association ownership state |
-| archiveRecoveryParents | Runtime archive recovery journal locations |
 | fanControl | Reaches root helper |
 | batteryChargeLimit | Reaches root helper |
 | batterySailing | Reaches root helper |
@@ -175,8 +171,7 @@ rgb, hsl, swiftUIColor, nsColorLiteral).
 `notchcast.screenshot.destination` and `notchcast.screenshot.folder` are excluded as
 screen-recording capability and capture-output policy. `backupRunNow` and `backupBrowseRestore` are
 excluded: they run the machine backup tool with its repository password command.
-`archivesInPlace` is excluded because it consumes the source archive, and `machineSetupProfile`
-because it gates a command that changes the Dock default. Backups written before these left the
+`machineSetupProfile` is excluded because it gates a command that changes the Dock default. Backups written before these left the
 list restore with those switches skipped; `notchcast.day.excludedCalendars`, removed with its only
 setter, is skipped the same way.
 The document editor carries `notchcast.editor.font` (system/jetBrainsMono),

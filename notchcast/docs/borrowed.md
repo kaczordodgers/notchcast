@@ -22,7 +22,6 @@ Pinned is the upstream commit or version our copy matches. `unrecorded` means no
 | removemacai | https://github.com/omlahore/RemoveMacAI | port | b6ecada4 | `Tinycast/Features/Tweaks/Model/` | `Sources/removemacai/` |
 | batfi | https://github.com/rurza/BatFi | port | bbe0197 | `notchcast/root/NativeChargeLimit.swift` | `Server/ManualChargeLimitDefaults.swift`, `Server/PowerUICharging.swift`, `investigation/tools/mclset.swift` |
 | ray-so | https://github.com/raycast/ray-so | data | 168f9aa9c2c4 | `Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift` | `app/(navigation)/themes/` |
-| hatchzip | https://github.com/xevrion/hatchzip | engine | 0.1.3 | `Tinycast/Features/Archives/` | releases and tags; `crates/core/src/` |
 | odysseus | https://github.com/odysseus-dev/odysseus | reference | unrecorded | `Tinycast/Features/AgentChatTools/Model/AgentTurnCompletion.swift` | `src/agent_loop.py` (branch `dev`) |
 | launcher-keys | https://github.com/sermelipharo/tinycast-space and https://github.com/seancxk/tinycast-fork | reference | unrecorded | `Tinycast/Features/LauncherKeys/` | `.space/patches/0001-alias-space.patch`, `.space/patches/0016-launcher-keys.patch`; `patches/0001-alias-space.patch` |
 | net-merge | https://github.com/rohit267/net-merge | reference | unrecorded | `Tinycast/Features/NetMerge/` | releases; `internal/` |
