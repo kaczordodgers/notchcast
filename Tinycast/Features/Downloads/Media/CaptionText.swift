@@ -18,13 +18,7 @@ nonisolated enum CaptionText {
     }
 
     private static func clean(_ line: String) -> String {
-        line.replacingOccurrences(of: "<[^>]*>", with: "", options: .regularExpression)
-            .replacingOccurrences(of: "&amp;", with: "&")
-            .replacingOccurrences(of: "&lt;", with: "<")
-            .replacingOccurrences(of: "&gt;", with: ">")
-            .replacingOccurrences(of: "&nbsp;", with: " ")
-            .replacingOccurrences(of: "&#39;", with: "'")
-            .replacingOccurrences(of: "&quot;", with: "\"")
+        HTMLDocument.decode(line.replacingOccurrences(of: "<[^>]*>", with: "", options: .regularExpression))
             .split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 }

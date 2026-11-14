@@ -55,7 +55,13 @@ enum HTMLMarkdown {
         case "a":
             guard !trimmed.isEmpty else { return "" }
             guard let url = absolute(node.attributes["href"], baseURL: baseURL, image: false) else { return content }
-            return "[\(trimmed)](<\(url)>)"
+            let label = content.contains("\n")
+                ? collapsed(trimmed.split(separator: "\n").map {
+                    $0.replacingOccurrences(of: "^(#{1,6} |> ?)",
+                                               with: "", options: .regularExpression)
+                }.filter { !$0.isEmpty }.joined(separator: " "))
+                : collapsed(trimmed)
+            return "[\(label)](<\(url)>)"
         case "img":
             guard let url = absolute(imageSource(node), baseURL: baseURL, image: true) else { return "" }
             return "![\(escape(node.attributes["alt"] ?? ""))](<\(url)>)"

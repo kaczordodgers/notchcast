@@ -1,7 +1,8 @@
 import Darwin
 import Foundation
+import os
 
-enum PublicWebAddress {
+nonisolated enum PublicWebAddress {
     typealias Lookup = @Sendable (String, UInt16) throws -> [String]
 
     static let localNames = ["localhost"]
@@ -62,13 +63,21 @@ enum PublicWebAddress {
         return true
     }
 
-    @concurrent
-    static func resolve(_ host: String, port: UInt16, lookup: Lookup = lookup) async throws -> [String] {
+    static func resolve(_ host: String, port: UInt16, lookup: @escaping Lookup = lookup) async throws -> [String] {
         try Task.checkCancellation()
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
         try validate(URL(string: "http://\(name.contains(":") ? "[\(name)]" : name):\(port)/") ?? URL(filePath: "/"))
-        let addresses = try lookup(name, port)
-        try Task.checkCancellation()
+        let resolution = Resolution()
+        let addresses = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                guard resolution.install(continuation) else { return }
+                DispatchQueue.global(qos: .utility).async {
+                    resolution.finish(Result { try lookup(name, port) })
+                }
+            }
+        } onCancel: {
+            resolution.finish(.failure(CancellationError()))
+        }
         guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
         guard addresses.allSatisfy(isPublicIP) else { throw Refusal.privateAddress }
         return addresses
@@ -95,6 +104,35 @@ enum PublicWebAddress {
             current = entry.pointee.ai_next
         }
         return addresses
+    }
+
+    nonisolated private final class Resolution: Sendable {
+        enum State {
+            case idle
+            case waiting(CheckedContinuation<[String], any Error>)
+            case finished
+        }
+
+        let state = OSAllocatedUnfairLock(initialState: State.idle)
+
+        func install(_ continuation: CheckedContinuation<[String], any Error>) -> Bool {
+            let installed = state.withLock { state in
+                guard case .idle = state else { return false }
+                state = .waiting(continuation)
+                return true
+            }
+            if !installed { continuation.resume(throwing: CancellationError()) }
+            return installed
+        }
+
+        func finish(_ result: Result<[String], any Error>) {
+            let continuation = state.withLock { state -> CheckedContinuation<[String], any Error>? in
+                defer { state = .finished }
+                if case .waiting(let continuation) = state { return continuation }
+                return nil
+            }
+            continuation?.resume(with: result)
+        }
     }
 
     private static func isNumeric(_ host: String) -> Bool {
