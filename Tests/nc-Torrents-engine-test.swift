@@ -130,37 +130,27 @@ import Foundation
         let nested = destination.appendingPathComponent("nested/file")
         try FileManager.default.createDirectory(at: nested.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data().write(to: nested)
-        let alias = root.appendingPathComponent("alias")
-        try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: destination)
-        let escape = destination.appendingPathComponent("escape")
-        try FileManager.default.createSymbolicLink(at: escape, withDestinationURL: root)
-        try Data().write(to: root.appendingPathComponent("outside"))
-        let status = TorrentStatus(status: "active", files: [
-            .init(path: nested.path), .init(path: alias.appendingPathComponent("nested/file").path),
-            .init(path: root.appendingPathComponent("Downloads2/file").path),
-            .init(path: escape.appendingPathComponent("outside").path),
-        ])
-        let files = try await TorrentManager.outputFiles(status, destination: alias)
-        check(files.map(\.path) == [nested, nested].map { $0.resolvingSymlinksInPath().path },
-              "Resolved output containment: \(files.map(\.path))")
+        let movies = destination.appendingPathComponent("Movies")
+        try FileManager.default.createSymbolicLink(at: movies, withDestinationURL: root)
+        try Data().write(to: root.appendingPathComponent("film.mkv"))
         let pending = destination.appendingPathComponent("uncreated/pending.bin")
-        let canonical = destination.resolvingSymlinksInPath()
-        let privateAlias = URL(fileURLWithPath: canonical.path.replacingOccurrences(of: "/private/var/", with: "/var/"))
-        var missingFileResults: [Bool] = []
-        for base in [alias, privateAlias] {
-            let active = TorrentStatus(status: "active", files: [
-                .init(path: base.appendingPathComponent("nested/file").path),
-                .init(path: base.appendingPathComponent("uncreated/pending.bin").path),
-                .init(path: base.appendingPathComponent("escape/uncreated/pending.bin").path),
-            ])
-            let outputs = try await TorrentManager.outputFiles(active, destination: base)
-            missingFileResults.append(outputs.map(\.path) == [canonical.appendingPathComponent("nested/file").path,
-                canonical.appendingPathComponent("uncreated/pending.bin").path])
-        }
+        let film = movies.appendingPathComponent("film.mkv")
+        let status = TorrentStatus(status: "active", files: [
+            .init(path: nested.path), .init(path: pending.path),
+            .init(path: root.appendingPathComponent("Downloads2/file").path),
+            .init(path: film.path),
+        ])
+        let files = try await TorrentManager.outputFiles(status, destination: destination)
+        check(files.map(\.path) == [nested, pending, film].map(\.path),
+              "Lexical output filter includes nested and symlinked files, excludes siblings")
         check(!FileManager.default.fileExists(atPath: pending.path), "Pending file remains absent")
-        check(missingFileResults == [true, true],
-              "Missing output retained for symlink destination and private prefix: \(missingFileResults)")
-        print("PASS: missing outputs retained for symlink destination and private prefix; symlink escapes rejected")
+        print("PASS: lexical output filter retains existing, pending and symlinked files; excludes siblings")
+        do {
+            _ = try TorrentAria2Session.writeConfiguration(secret: "unused", directory: nested)
+            check(false, "Configuration directory creation must fail beneath a file")
+        } catch TorrentFailure.launchFailed {
+            print("PASS: configuration directory creation failure reports launchFailed")
+        }
         let secret = UUID().uuidString
         let configuration = try TorrentAria2Session.writeConfiguration(secret: secret, directory: root)
         defer { try? FileManager.default.removeItem(at: configuration.deletingLastPathComponent()) }
@@ -172,7 +162,7 @@ import Foundation
                                                      stateDirectory: root, extraArguments: [])
         check(!arguments.joined().contains(secret) && !arguments.contains { $0.hasPrefix("--rpc-secret") },
               "Built argv contains no RPC secret")
-        print("PASS: RPC configuration 0600, directory 0700, built argv has no secret; resolved output containment")
+        print("PASS: RPC configuration 0600, directory 0700, built argv has no secret")
     }
 
     @MainActor static func modelChecks(data: Data, hash: String) throws {

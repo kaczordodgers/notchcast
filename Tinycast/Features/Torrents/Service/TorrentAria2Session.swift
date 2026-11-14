@@ -115,8 +115,12 @@ import Foundation
 
     static func writeConfiguration(secret: String, directory: URL) throws -> URL {
         let privateDirectory = directory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: privateDirectory, withIntermediateDirectories: false,
-                                                attributes: [.posixPermissions: 0o700])
+        do {
+            try FileManager.default.createDirectory(at: privateDirectory, withIntermediateDirectories: false,
+                                                    attributes: [.posixPermissions: 0o700])
+        } catch {
+            throw TorrentFailure.launchFailed
+        }
         let file = privateDirectory.appendingPathComponent("aria2.conf")
         guard FileManager.default.createFile(atPath: file.path, contents: Data("rpc-secret=\(secret)\n".utf8),
                                              attributes: [.posixPermissions: 0o600]) else {
