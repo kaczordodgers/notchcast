@@ -85,11 +85,7 @@ struct MediaToolsRunner: Sendable {
                 guard let page = document.page(at: index) else { throw Failure.unsupported }
                 let layer = page.string ?? ""
                 guard Self.letterCount(layer) == 0 || page.pageRef.map(Self.drawsImage) == true else { return layer }
-                let thumbnail = page.thumbnail(of: CGSize(width: 1600, height: 1600), for: .mediaBox)
-                guard let data = thumbnail.tiffRepresentation,
-                      let source = CGImageSourceCreateWithData(data as CFData, nil),
-                      let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
-                else { throw Failure.unsupported }
+                guard let image = page.pageRef.flatMap(Self.rasterize) else { throw Failure.unsupported }
                 let recognized = try recognize(image)
                 // A stamped header or page number must not stand in for the scanned body under it.
                 return Self.letterCount(recognized) > 2 * Self.letterCount(layer) ? recognized : layer
@@ -103,6 +99,26 @@ struct MediaToolsRunner: Sendable {
               ] as CFDictionary)
         else { throw Failure.unsupported }
         return try recognize(image)
+    }
+
+    private static func rasterize(_ page: CGPDFPage) -> CGImage? {
+        let box = page.getBoxRect(.mediaBox)
+        guard box.width > 0, box.height > 0 else { return nil }
+        let quarterTurn = page.rotationAngle % 180 != 0
+        let scale = CGFloat(imageLimit) / max(box.width, box.height)
+        let width = Int((quarterTurn ? box.height : box.width) * scale)
+        let height = Int((quarterTurn ? box.width : box.height) * scale)
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+            bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)
+        else { return nil }
+        context.setFillColor(CGColor(gray: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.translateBy(x: CGFloat(width) / 2, y: CGFloat(height) / 2)
+        context.rotate(by: -CGFloat(page.rotationAngle) * .pi / 180)
+        context.scaleBy(x: scale, y: scale)
+        context.translateBy(x: -box.midX, y: -box.midY)
+        context.drawPDFPage(page)
+        return context.makeImage()
     }
 
     private static func letterCount(_ text: String) -> Int {
