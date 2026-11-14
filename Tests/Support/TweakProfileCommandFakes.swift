@@ -6,7 +6,7 @@ enum NotchcastFeature: Sendable {
     var title: String { "fixture" }
 }
 
-enum DialogTone { case success }
+enum DialogTone { case success, danger }
 
 @MainActor
 final class TweaksModule {

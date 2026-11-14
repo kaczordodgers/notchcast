@@ -27,6 +27,6 @@ enum TweakProfileCommands {
                 }, request: { kept, privacy in
                     _ = try await TweaksModule.shared.requestProfile(keepingAI: kept, privacy: privacy)
                 })
-        } catch { host.showMessage(error.localizedDescription, .success) }
+        } catch { host.showMessage(error.localizedDescription, .danger) }
     }
 }
