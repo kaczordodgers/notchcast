@@ -122,7 +122,8 @@ struct HTMLDocument {
             var value = entities[key]
             if key.hasPrefix("#") {
                 let hex = key.hasPrefix("#x")
-                if let number = UInt32(key.dropFirst(hex ? 2 : 1), radix: hex ? 16 : 10), let scalar = UnicodeScalar(number) {
+                if let number = UInt32(key.dropFirst(hex ? 2 : 1), radix: hex ? 16 : 10), number != 0,
+                   let scalar = UnicodeScalar(number) {
                     value = String(scalar)
                 }
             }

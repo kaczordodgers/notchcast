@@ -93,6 +93,16 @@ struct DownloadsWebpageTests {
     }
 
     static func converter() {
+        expect(markdown("<a href='/x'><ul><li>a</li><li>b</li></ul></a><p>after</p>") ==
+               "- a\n- b\n\n[https://example.com/x](<https://example.com/x>)\n\nafter",
+               "block link preserves ul list and following paragraph")
+        expect(markdown("<a href='/x'><pre>code</pre></a>") ==
+               "```\ncode\n```\n\n[https://example.com/x](<https://example.com/x>)",
+               "block link preserves pre closing fence")
+        expect(markdown("<a href='/x'>one<br>two</a>") == "[one  \ntwo](<https://example.com/x>)",
+               "inline link retains hard break")
+        expect(!markdown("<p>A&#0;B&#x0;C</p>").contains("\u{0}"),
+               "zero numeric entities do not introduce NUL")
         let blocks = markdown("<a href='/next'><div>One</div><p>Two</p></a>")
         expect(blocks == "One\n\nTwo\n\n[https://example.com/next](<https://example.com/next>)",
                "block link preserves paragraphs and destination without a multiline label")
@@ -161,6 +171,12 @@ struct DownloadsWebpageTests {
         let started = AsyncStream<Void>.makeStream()
         let release = DispatchSemaphore(value: 0)
         defer { release.signal() }
+        let deadline = Task {
+            try await Task.sleep(for: .seconds(3))
+            release.signal()
+            fatalError("DNS cancellation did not complete within three seconds")
+        }
+        defer { deadline.cancel() }
         let task = Task {
             try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in
                 started.continuation.yield(())

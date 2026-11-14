@@ -102,7 +102,6 @@ enum PublicWebAddress {
             if !addresses.contains(address) { addresses.append(address) }
             current = entry.pointee.ai_next
         }
-        try Task.checkCancellation()
         guard !addresses.isEmpty else { throw Refusal.resolutionFailed }
         return addresses
     }
