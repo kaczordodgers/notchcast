@@ -61,7 +61,8 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
                 }
             } catch {
                 try Task.checkCancellation()
-                throw proxy.refusal ?? error
+                if case Failure.renderFailed = error, let refusal = proxy.refusal { throw refusal }
+                throw error
             }
             try Task.checkCancellation()
             try await Task.sleep(for: .milliseconds(750))

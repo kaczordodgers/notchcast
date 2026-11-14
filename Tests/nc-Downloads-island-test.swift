@@ -28,6 +28,7 @@ struct DownloadsIslandTest {
         testActivity()
         testFailures()
         try await testBridge()
+        try await testPersistenceReports()
         print("nc-Downloads-island-test: passed activity, batch counts, failures once and the live bridge")
     }
 
@@ -111,6 +112,36 @@ struct DownloadsIslandTest {
         relaunched.stop()
         try await eventually { fresh.activities.isEmpty }
         await relaunched.settle()
+    }
+
+    private static func testPersistenceReports() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "downloads-persistence-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let parent = root.appending(path: "blocked")
+        try Data().write(to: parent)
+        var reports: [String] = []
+        let controller = DownloadsQueueController(
+            file: parent.appending(path: "queue.json"), destination: root, speechKinds: [],
+            tools: DownloadToolLookup(directories: [], home: root), report: { reports.append($0) })
+        controller.start { _ in }
+        await controller.settle()
+        try await eventually { reports.count == 1 }
+        for _ in 0..<2 {
+            controller.queue!.enqueue(kind: "missing", sources: ["offline"])
+            try? await controller.queue!.flush()
+            await drain()
+        }
+        controller.stop()
+        await controller.settle()
+        await drain()
+        precondition(reports.count == 1, "Repeated failed saves report once per lifecycle")
+        controller.start { _ in }
+        await controller.settle()
+        try await eventually { reports.count == 2 }
+        controller.stop()
+        await controller.settle()
+        precondition(reports.count == 2, "Restart reports the persistent failure again")
     }
 
     private static func makeController(file: URL, root: URL) -> DownloadsQueueController {

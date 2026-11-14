@@ -65,6 +65,7 @@ final class DownloadsQueueController {
 
     func stop() {
         operation = nil
+        reportedPersistenceError = nil
         transition?.cancel()
         let previous = transition
         let stopped = queue
