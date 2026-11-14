@@ -101,6 +101,9 @@ struct DownloadsWebpageTests {
                "block link preserves pre closing fence")
         expect(markdown("<a href='/x'>one<br>two</a>") == "[one  \ntwo](<https://example.com/x>)",
                "inline link retains hard break")
+        expect(markdown("<p>See <a href='/x'>one<br><br>two</a> now</p>") ==
+               "See one  \n\ntwo\n\n[https://example.com/x](<https://example.com/x>)\n\n now",
+               "double hard break keeps link destination on a separate line")
         expect(!markdown("<p>A&#0;B&#x0;C</p>").contains("\u{0}"),
                "zero numeric entities do not introduce NUL")
         let blocks = markdown("<a href='/next'><div>One</div><p>Two</p></a>")
@@ -171,11 +174,10 @@ struct DownloadsWebpageTests {
         let started = AsyncStream<Void>.makeStream()
         let release = DispatchSemaphore(value: 0)
         defer { release.signal() }
-        let deadline = Task {
-            try await Task.sleep(for: .seconds(3))
-            release.signal()
+        let deadline = DispatchWorkItem {
             fatalError("DNS cancellation did not complete within three seconds")
         }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: deadline)
         defer { deadline.cancel() }
         let task = Task {
             try await PublicWebAddress.resolve("example.com", port: 443) { _, _ in

@@ -171,7 +171,6 @@ final class PublicWebProxy {
                 let portBytes = try await read(2)
                 let port = UInt16(portBytes[0]) * 256 + UInt16(portBytes[1])
                 let addresses = try await PublicWebAddress.resolve(host, port: port)
-                try Task.checkCancellation()
                 guard !closed, let endpointPort = NWEndpoint.Port(rawValue: port) else {
                     throw CancellationError()
                 }

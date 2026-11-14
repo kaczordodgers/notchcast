@@ -55,7 +55,7 @@ enum HTMLMarkdown {
         case "a":
             guard !trimmed.isEmpty else { return "" }
             guard let url = absolute(node.attributes["href"], baseURL: baseURL, image: false) else { return content }
-            if trimmed.replacingOccurrences(of: "  \n", with: "").contains("\n") {
+            if trimmed.contains("  \n  \n") || trimmed.replacingOccurrences(of: "  \n", with: "").contains("\n") {
                 return content + "\n\n[\(escape(url))](<\(url)>)\n\n"
             }
             return "[\(trimmed)](<\(url)>)"

@@ -8,8 +8,8 @@
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
-import Foundation
 // notchcast-sources: Tinycast/Features/Downloads/Webpage/HTMLDocument.swift
+import Foundation
 
 @main
 struct MediaNetworkTest {
