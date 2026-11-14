@@ -278,7 +278,20 @@ import Observation
 
     @concurrent static func outputFiles(_ status: TorrentStatus, destination: URL) async throws -> [URL] {
         let destination = destination.resolvingSymlinksInPath().standardizedFileURL
-        let files = (status.files ?? []).map { URL(fileURLWithPath: $0.path).resolvingSymlinksInPath().standardizedFileURL }
+        let files = (status.files ?? []).compactMap { file -> URL? in
+            var ancestor = URL(fileURLWithPath: file.path).standardizedFileURL
+            var remaining: [String] = []
+            while !FileManager.default.fileExists(atPath: ancestor.path) {
+                let attributes = try? FileManager.default.attributesOfItem(atPath: ancestor.path)
+                guard attributes?[.type] as? FileAttributeType != .typeSymbolicLink,
+                      ancestor.path != "/" else { return nil }
+                remaining.append(ancestor.lastPathComponent)
+                ancestor.deleteLastPathComponent()
+            }
+            return remaining.reversed().reduce(ancestor.resolvingSymlinksInPath()) {
+                $0.appendingPathComponent($1)
+            }.standardizedFileURL
+        }
             .filter { $0.path.hasPrefix(destination.path + "/") }
         if status.status == "complete" || status.seeder == "true" {
             for file in files {

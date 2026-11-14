@@ -143,6 +143,24 @@ import Foundation
         let files = try await TorrentManager.outputFiles(status, destination: alias)
         check(files.map(\.path) == [nested, nested].map { $0.resolvingSymlinksInPath().path },
               "Resolved output containment: \(files.map(\.path))")
+        let pending = destination.appendingPathComponent("uncreated/pending.bin")
+        let canonical = destination.resolvingSymlinksInPath()
+        let privateAlias = URL(fileURLWithPath: canonical.path.replacingOccurrences(of: "/private/var/", with: "/var/"))
+        var missingFileResults: [Bool] = []
+        for base in [alias, privateAlias] {
+            let active = TorrentStatus(status: "active", files: [
+                .init(path: base.appendingPathComponent("nested/file").path),
+                .init(path: base.appendingPathComponent("uncreated/pending.bin").path),
+                .init(path: base.appendingPathComponent("escape/uncreated/pending.bin").path),
+            ])
+            let outputs = try await TorrentManager.outputFiles(active, destination: base)
+            missingFileResults.append(outputs.map(\.path) == [canonical.appendingPathComponent("nested/file").path,
+                canonical.appendingPathComponent("uncreated/pending.bin").path])
+        }
+        check(!FileManager.default.fileExists(atPath: pending.path), "Pending file remains absent")
+        check(missingFileResults == [true, true],
+              "Missing output retained for symlink destination and private prefix: \(missingFileResults)")
+        print("PASS: missing outputs retained for symlink destination and private prefix; symlink escapes rejected")
         let secret = UUID().uuidString
         let configuration = try TorrentAria2Session.writeConfiguration(secret: secret, directory: root)
         defer { try? FileManager.default.removeItem(at: configuration.deletingLastPathComponent()) }
