@@ -13,7 +13,7 @@ on:
         type: number
         default: 1
       hosted:
-        description: Run on hosted xcode-27 even while NOTCHCAST_MAC_RUNNER is set (no harness skipped)
+        description: Run on hosted xcode-27 even if a pool Mac is free
         type: boolean
         default: false
 
@@ -70,12 +70,88 @@ jobs:
           fi
           echo "tests=$tests" >> "$GITHUB_OUTPUT"
           echo "shards=[$(seq -s, 0 $((shards - 1)))]" >> "$GITHUB_OUTPUT"
-  # A dispatch only, so never a fork's code: vars.NOTCHCAST_MAC_RUNNER may name a self-hosted Mac (README Runners).
-  harnesses:
+  # The branch's planning scripts must never share a runner with the Mac decision.
+  mac-route:
     needs: plan
-    # An empty selection skips this job and the run still concludes success; an empty matrix would fail it.
-    if: ${{ needs.plan.outputs.shards != '[]' }}
-    runs-on: ${{ github.event_name == 'workflow_dispatch' && !inputs.hosted && vars.NOTCHCAST_MAC_RUNNER || 'xcode-27' }}
+    if: ${{ !inputs.hosted && !inputs.all && vars.POOL_FREE_NOTCHCAST_MAC != '' && needs.plan.outputs.tests != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mac-runner: ${{ steps.mac.outputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: refs/heads/main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Route the selected Mac harnesses
+        id: mac
+        env:
+          LC_ALL: C
+          POOL_FREE: ${{ vars.POOL_FREE_NOTCHCAST_MAC }}
+          TESTS: ${{ needs.plan.outputs.tests }}
+        shell: bash
+        run: |
+          main=refs/remotes/origin/main
+          base_config=$(git show "$main:notchcast/config.env") || exit 0
+          MAINTAINER_LOGIN=$(sed -n 's/^MAINTAINER_LOGIN=\([a-zA-Z0-9-][a-zA-Z0-9-]*\)$/\1/p' <<< "$base_config")
+          fork_repo=$(sed -n 's/^FORK_REPO=\(.*\)$/\1/p' <<< "$base_config")
+          [[ "$GITHUB_REPOSITORY" == "$fork_repo" && "$GITHUB_REF_TYPE" == branch &&
+             "$GITHUB_ACTOR" == "$MAINTAINER_LOGIN" && "$GITHUB_TRIGGERING_ACTOR" == "$MAINTAINER_LOGIN" ]] || exit 0
+
+          git diff --quiet --no-ext-diff --no-textconv --ignore-submodules=none "$main" "$GITHUB_SHA" -- . \
+            ':(exclude,glob,top)Tinycast/**/*.swift' ':(exclude,glob,top)Tests/**/*.swift' || exit 0
+
+          [[ "$POOL_FREE" =~ ^([1-9][0-9]{0,8})[[:blank:]]([0-9]{10})$ ]] || exit 0
+          age=$(( $(date +%s) - 10#${BASH_REMATCH[2]} ))
+          (( age >= 0 && age < 180 )) || exit 0
+
+          names='^[a-zA-Z0-9_+-]+( [a-zA-Z0-9_+-]+)* *$'
+          [[ "$TESTS" =~ $names ]] || exit 0
+          read -ra selected <<< "$TESTS"
+          list='^(HOSTED_ONLY_TESTS|CI_SKIP_TESTS)="([a-zA-Z0-9_+ -]*)"$'
+          read -ra blocked <<< "$(sed -En "s/$list/\2/p" <<< "$base_config" | paste -sd' ' -)"
+          blocked_paths=()
+          for test in "${blocked[@]}"; do blocked_paths+=("Tests/$test.swift"); done
+          tag='^// notchcast-(hosted-only|ci-skip)$'
+          blocked_blobs=' '
+          for tree in "$main" "$GITHUB_SHA"; do
+            tagged=$(git grep -a -l -E "$tag" "$tree" -- ':(top,glob)Tests/*.swift') || [[ $? == 1 ]] || exit 0
+            paths=("${blocked_paths[@]}")
+            while IFS= read -r match; do
+              [[ -n "$match" ]] || continue
+              [[ "$match" == "$tree":Tests/* ]] || exit 0
+              paths+=("${match#*:}")
+            done <<< "$tagged"
+            (( ${#paths[@]} )) || continue
+            entries=$(git --literal-pathspecs ls-tree --format='%(objecttype) %(objectname)' "$tree" -- "${paths[@]}") || exit 0
+            while read -r type blob; do
+              [[ -n "$type" ]] || continue
+              [[ "$type" == blob && -n "$blob" ]] || exit 0
+              blocked_blobs+="$blob "
+            done <<< "$entries"
+          done
+          risky=$(git show "$main:notchcast/ci-tests-test.sh" | sed -n "s/^risky='\(.*\)'$/\1/p") || exit 0
+          [[ 'NSWindow(' =~ $risky && -n "$risky" ]] || exit 0
+          for test in "${selected[@]}"; do
+            path="Tests/$test.swift"
+            for tree in "$GITHUB_SHA" "$main"; do
+              entry=$(git ls-tree --format='%(objectmode) %(objecttype) %(objectname)' "$tree" -- "$path") || exit 0
+              if [[ "$tree" == "$main" && -z "$entry" ]]; then continue; fi
+              read -r mode type blob <<< "$entry"
+              [[ "$mode" == 100??? && "$type" == blob && -n "$blob" ]] || exit 0
+              [[ "$blocked_blobs" != *" $blob "* ]] || exit 0
+              harness=$(git show "$blob") || exit 0
+              grep -Eaq "$risky|$tag" <<< "$harness" && exit 0
+              [[ $? == 1 ]] || exit 0
+            done
+          done
+          echo "runs-on=notchcast-mbp" >> "$GITHUB_OUTPUT"
+  harnesses:
+    needs: [plan, mac-route]
+    # The status check lets a skipped route leave planned shards eligible for hosted execution.
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.shards != '[]' }}
+    runs-on: ${{ needs.mac-route.result == 'success' && needs.mac-route.outputs.mac-runner == 'notchcast-mbp' && 'notchcast-mbp' || 'xcode-27' }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
