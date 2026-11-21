@@ -12,6 +12,7 @@ struct MonitorReading: Equatable, Sendable {
     var memory: MonitorMemory?
     var pressure: MonitorPressure = .unknown
     var disk: MonitorDisk?
+    var volumes: [MonitorVolume]?
     var network: MonitorNetworkCounters?
     /// Read only while the page shows, since it walks every process.
     var processes: [MonitorProcessTime]?

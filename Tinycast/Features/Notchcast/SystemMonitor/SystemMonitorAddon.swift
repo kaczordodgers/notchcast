@@ -1,6 +1,6 @@
 // notchcast-new-switch-ids: systemPage
 // notchcast-addon-order: 260
-// notchcast-readme: Mac Tweaks: System in the Island, a page with CPU, memory, disk and network that warns when one runs hot
+// notchcast-readme: Mac Tweaks: System in the Island shows CPU, memory, disk and network, warns when hot and ejects disks
 import Foundation
 
 /// The System page in the island (#977): four tiles, the busiest processes and a hot warning; off by default.

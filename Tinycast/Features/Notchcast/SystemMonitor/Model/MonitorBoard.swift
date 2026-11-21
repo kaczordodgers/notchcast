@@ -18,6 +18,7 @@ struct MonitorSample: Equatable, Sendable {
     var memory: MonitorMemory?
     var pressure: MonitorPressure = .unknown
     var disk: MonitorDisk?
+    var volumes: [MonitorVolume] = []
     var down: Double?
     var up: Double?
     var processes: [MonitorProcess]?
@@ -37,6 +38,11 @@ struct MonitorBoard: Sendable {
 
     private(set) var sample = MonitorSample()
     private(set) var heat = MonitorHeat()
+    var ejecting: Set<String> = []
+
+    mutating func didEject(_ path: String) {
+        sample.volumes.removeAll { $0.path == path }
+    }
     private var cpu: (ticks: MonitorCPUTicks, at: TimeInterval)?
     private var network: (counters: MonitorNetworkCounters, at: TimeInterval)?
     private var processes: (times: [Int32: UInt64], at: TimeInterval)?
@@ -52,9 +58,10 @@ struct MonitorBoard: Sendable {
     }
 
     /// The reads a page hides (network, processes) are dropped, so showing it again starts from a fresh baseline.
-    mutating func apply(_ reading: MonitorReading, processorCount: Int) {
+    mutating func apply(_ reading: MonitorReading, processorCount: Int, locale: Locale) {
         let now = reading.uptime
         var next = MonitorSample(memory: reading.memory, pressure: reading.pressure, disk: reading.disk)
+        next.volumes = MonitorVolumes.listed(reading.volumes ?? [], locale: locale)
         if let ticks = reading.cpu {
             if let cpu, now > cpu.at, now - cpu.at <= Self.maxGap { next.cpu = ticks.load(since: cpu.ticks) }
             cpu = (ticks, now)

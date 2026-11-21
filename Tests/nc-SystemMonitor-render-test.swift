@@ -84,12 +84,35 @@ struct SystemMonitorRenderTest {
         plain.tone = nil
         let closedStates = [("closed-normal", [IslandStatus]()), ("closed-hot", [status]),
                             ("closed-hot-untoned", [plain])]
+        let seagate = Fix.volume("Seagate")
+        let backup = Fix.volume("Backup", size: 64 * Fix.gb)
+        var disks = Fix.board(volumes: [seagate, backup])
+        disks.ejecting.insert(backup.path)
+        let diskPage = deck([MonitorPage.page(disks, locale: Fix.locale)])
+        let ejectNotices = [
+            ("ejected", MonitorPage.ejectNotice(.ejected, volume: seagate)),
+            ("busy", MonitorPage.ejectNotice(.busy("Preview"), volume: seagate)),
+        ]
         var sizes: [String: CGSize] = [:]
         for frosted in [false, true] {
             for notch in [false, true] {
                 let suffix = "\(notch ? "notch" : "island")-\(frosted ? "frosted" : "black")"
                 for (name, deck) in decks {
                     sizes[name] = render("977-\(name)-\(suffix)", deck: deck, notch: notch, frosted: frosted)
+                }
+                _ = render("1297-system-disks-\(suffix)", deck: diskPage, notch: notch, frosted: frosted)
+                for (name, notice) in ejectNotices {
+                    let file = "1297-closed-\(name)-\(suffix)"
+                    if notch {
+                        let art = IslandHeadlineArt(notice, notch: notchSize.width, frosted: frosted)
+                        rest(file, width: art.size.width, body: art.size.height,
+                             notchLeft: (art.size.width - notchSize.width) / 2, frosted: frosted) {
+                            art.draw(in: $0)
+                        }
+                    } else {
+                        closed(file, IslandNoticeArt(notice, notch: false, frosted: frosted),
+                               notch: false, frosted: frosted)
+                    }
                 }
                 for (name, statuses) in closedStates {
                     closed("977-\(name)-\(suffix)", IslandStatusArt(statuses, notch: notch, frosted: frosted),
@@ -161,28 +184,32 @@ struct SystemMonitorRenderTest {
     }
 
     /// The resting island with the status glyph, as the audit harness draws a compact pill, below a notch or not.
-    static func closed(_ name: String, _ art: IslandStatusArt, notch: Bool, frosted: Bool) {
+    static func closed(_ name: String, _ art: some PillArt, notch: Bool, frosted: Bool) {
         let inner = notch ? Theme.Spacing.md : 0
         let width = max((notch ? notchSize.width : 0) + 2 * (Theme.Spacing.lg + inner) + art.layout.leading
                         + art.layout.trailing, notch ? notchSize.width : NotchTheme.Size.islandRest.width)
         let body = notch ? 0 : NotchTheme.Size.islandRest.height
-        let top = notch ? notchSize.height : 0
-        let radius: CGFloat = notch ? 10 : 12
+        let notchLeft = notch ? CGFloat(Theme.Spacing.lg + Theme.Spacing.md + art.layout.leading) : nil
+        rest(name, width: width, body: body, notchLeft: notchLeft, frosted: frosted) { art.draw(in: $0) }
+    }
+
+    static func rest(_ name: String, width: CGFloat, body: CGFloat, notchLeft: CGFloat?, frosted: Bool,
+                     draw: @escaping (CGRect) -> Void) {
+        let top = notchLeft == nil ? 0 : notchSize.height
         let size = CGSize(width: width + 2 * margin, height: top + body + margin)
         let image = NSImage(size: size, flipped: false) { rect in
             (frosted ? NSColor.white : NSColor(white: 0.18, alpha: 1)).setFill()
             rect.fill()
             let shape = CGRect(x: margin, y: rect.maxY - top - body, width: width, height: top + body)
-            let path = notch ? NSBezierPath(roundedRect: shape, xRadius: radius, yRadius: radius)
-                : NSBezierPath(roundedRect: shape, xRadius: body / 2, yRadius: body / 2)
+            let radius = notchLeft == nil ? body / 2 : (body == 0 ? 10 : Theme.Radius.panel)
+            let path = NSBezierPath(roundedRect: shape, xRadius: radius, yRadius: radius)
             NSColor(frosted ? NotchTheme.Colors.islandGlassTint : NotchTheme.Colors.islandSurface).setFill()
             path.fill()
-            if notch {
+            if let notchLeft {
                 NSColor.black.setFill()
-                CGRect(x: shape.minX + Theme.Spacing.lg + Theme.Spacing.md + art.layout.leading,
-                       y: rect.maxY - notchSize.height, width: notchSize.width, height: notchSize.height).fill()
+                CGRect(x: shape.minX + notchLeft, y: shape.maxY - top, width: notchSize.width, height: top).fill()
             }
-            art.draw(in: notch ? CGRect(x: shape.minX, y: shape.minY, width: shape.width, height: top) : shape)
+            draw(CGRect(x: shape.minX, y: shape.minY, width: width, height: body == 0 ? top : body))
             return true
         }
         var proposed = CGRect(origin: .zero, size: size)

@@ -11,6 +11,7 @@ final class SystemMonitorModule: NotchcastModule {
     private var shows = false
     private var posted: IslandPage?
     private var status: IslandStatus?
+    private(set) var ejectTasks: [String: Task<Void, Never>] = [:]
     private(set) var loop: Task<Void, Never>?
 
     init(context: NotchcastContext, system: MonitorSystem, locale: Locale = .autoupdatingCurrent) {
@@ -33,6 +34,8 @@ final class SystemMonitorModule: NotchcastModule {
         context.presenter.watchPages(id: MonitorPage.id, onChange: nil)
         loop?.cancel()
         loop = nil
+        for task in ejectTasks.values { task.cancel() }
+        ejectTasks.removeAll()
         board = MonitorBoard()
         shows = false
         posted = nil
@@ -66,7 +69,7 @@ final class SystemMonitorModule: NotchcastModule {
     /// Records the read and says how long to wait for the next one; nil once the switch is off.
     private func apply(_ reading: MonitorReading) -> Duration? {
         guard isOn else { return nil }
-        board.apply(reading, processorCount: system.processorCount)
+        board.apply(reading, processorCount: system.processorCount, locale: locale)
         let next = MonitorPage.status(board.heat)
         if next != status {
             status = next
@@ -84,7 +87,37 @@ final class SystemMonitorModule: NotchcastModule {
         guard page != posted else { return }
         posted = page
         context.presenter.setPage(page, id: MonitorPage.id) { [weak self] action in
-            if action == IslandPage.refreshAction { self?.run() }
+            self?.onAction(action)
         }
+    }
+
+    private func onAction(_ action: String) {
+        guard isOn else { return }
+        if action == IslandPage.refreshAction {
+            run()
+            return
+        }
+        guard shows, let path = MonitorVolumes.path(for: action), ejectTasks[path] == nil,
+              let volume = board.sample.volumes.prefix(MonitorVolumes.rowLimit).first(where: { $0.path == path })
+        else { return }
+
+        let eject = system.eject
+        board.ejecting.insert(path)
+        ejectTasks[path] = Task { [weak self] in
+            guard !Task.isCancelled else { return }
+            let result = await eject(path)
+            guard !Task.isCancelled else { return }
+            self?.finishEject(volume, outcome: result.outcome)
+        }
+        post()
+    }
+
+    private func finishEject(_ volume: MonitorVolume, outcome: MonitorEjectOutcome) {
+        ejectTasks[volume.path] = nil
+        board.ejecting.remove(volume.path)
+        if outcome == .ejected { board.didEject(volume.path) }
+        context.presenter.post(MonitorPage.ejectNotice(outcome, volume: volume), onTap: nil)
+        if shows { post() }
+        if outcome == .ejected { run() }
     }
 }

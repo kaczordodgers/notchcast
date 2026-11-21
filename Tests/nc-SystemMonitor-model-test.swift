@@ -23,6 +23,8 @@ struct SystemMonitorModelTests {
         processes()
         gaps()
         page()
+        volumes()
+        ejecting()
         hotPage()
         homeLine()
         tones()
@@ -130,13 +132,15 @@ struct SystemMonitorModelTests {
     static func cadence() {
         var board = MonitorBoard()
         check(board.interval(shown: true) == .seconds(2) && board.interval(shown: false) == .seconds(15), "at rest")
-        board.apply(Fix.reading(at: 0, busy: 0, total: 1000, received: 0, sent: 0, detail: false), processorCount: 4)
+        board.apply(Fix.reading(at: 0, busy: 0, total: 1000, received: 0, sent: 0, detail: false),
+                    processorCount: 4, locale: Fix.locale)
         check(board.interval(shown: true) == .seconds(2), "a hidden read leaves nothing for the page to wait on")
-        board.apply(Fix.reading(at: 15, busy: 0, total: 2000, received: 0, sent: 0, detail: true), processorCount: 4)
+        board.apply(Fix.reading(at: 15, busy: 0, total: 2000, received: 0, sent: 0, detail: true),
+                    processorCount: 4, locale: Fix.locale)
         check(board.interval(shown: true) == .milliseconds(500) && board.interval(shown: false) == .seconds(15),
               "the first detail read is a baseline, so the next comes soon")
         board.apply(Fix.reading(at: 15.5, busy: 0, total: 3000, received: 500, sent: 50, detail: true, step: 1.5),
-                    processorCount: 4)
+                    processorCount: 4, locale: Fix.locale)
         check(board.sample.down == 1000 && board.sample.processes?.count == 2, "rates over the half second")
         check(board.interval(shown: true) == .seconds(2), "then the shown pace")
     }
@@ -144,20 +148,22 @@ struct SystemMonitorModelTests {
     static func rates() {
         var board = MonitorBoard()
         board.apply(Fix.reading(at: 10, busy: 100, total: 1000, received: 1_000, sent: 500, detail: true),
-                    processorCount: 8)
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.cpu == nil && board.sample.down == nil, "one read is only a baseline")
         check(board.sample.memory != nil && board.sample.disk != nil, "memory and disk need no baseline")
         board.apply(Fix.reading(at: 12, busy: 400, total: 2000, received: 5_000, sent: 1_500, detail: true),
-                    processorCount: 8)
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.cpu == 0.3, "CPU between the two reads: \(board.sample.cpu ?? -1)")
         check(board.sample.down == 2_000 && board.sample.up == 500, "bytes per second over 2 s")
         var changed = Fix.reading(at: 14, busy: 500, total: 3000, received: 9_000, sent: 2_000, detail: true)
         changed.network?.interfaces = ["en0", "en1"]
-        board.apply(changed, processorCount: 8)
+        board.apply(changed, processorCount: 8, locale: Fix.locale)
         check(board.sample.down == nil, "a new interface starts a new baseline, never a spike")
-        board.apply(Fix.reading(at: 16, busy: 600, total: 4000, received: 1, sent: 1, detail: true), processorCount: 8)
+        board.apply(Fix.reading(at: 16, busy: 600, total: 4000, received: 1, sent: 1, detail: true),
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.down == nil, "after a reset the next read is the baseline again")
-        board.apply(Fix.reading(at: 18, busy: 700, total: 5000, received: 0, sent: 0, detail: true), processorCount: 8)
+        board.apply(Fix.reading(at: 18, busy: 700, total: 5000, received: 0, sent: 0, detail: true),
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.down == 0 && board.sample.up == 0, "a counter that went back reads as no traffic")
     }
 
@@ -188,15 +194,20 @@ struct SystemMonitorModelTests {
     /// Hidden, the page's own reads stop; shown again they start from a fresh baseline, and a sleep is no sample.
     static func gaps() {
         var board = MonitorBoard()
-        board.apply(Fix.reading(at: 0, busy: 0, total: 100, received: 0, sent: 0, detail: true), processorCount: 8)
-        board.apply(Fix.reading(at: 2, busy: 50, total: 200, received: 10, sent: 10, detail: true), processorCount: 8)
+        board.apply(Fix.reading(at: 0, busy: 0, total: 100, received: 0, sent: 0, detail: true),
+                    processorCount: 8, locale: Fix.locale)
+        board.apply(Fix.reading(at: 2, busy: 50, total: 200, received: 10, sent: 10, detail: true),
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.processes?.isEmpty == false, "two detail reads list processes")
-        board.apply(Fix.reading(at: 17, busy: 60, total: 300, received: 0, sent: 0, detail: false), processorCount: 8)
+        board.apply(Fix.reading(at: 17, busy: 60, total: 300, received: 0, sent: 0, detail: false),
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.processes == nil && board.sample.down == nil, "hidden reads drop network and processes")
         check(board.sample.cpu == 0.1, "the hot check keeps reading CPU every 15 s")
-        board.apply(Fix.reading(at: 19, busy: 70, total: 400, received: 0, sent: 0, detail: true), processorCount: 8)
+        board.apply(Fix.reading(at: 19, busy: 70, total: 400, received: 0, sent: 0, detail: true),
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.processes == nil, "shown again, the first detail read is a baseline")
-        board.apply(Fix.reading(at: 40, busy: 90, total: 500, received: 0, sent: 0, detail: true), processorCount: 8)
+        board.apply(Fix.reading(at: 40, busy: 90, total: 500, received: 0, sent: 0, detail: true),
+                    processorCount: 8, locale: Fix.locale)
         check(board.sample.cpu == nil && board.sample.processes == nil, "a gap over 20 s starts again")
     }
 
@@ -226,6 +237,89 @@ struct SystemMonitorModelTests {
         check(none.cards.prefix(3).allSatisfy(\.dimmed) && meter(none.cards[0])?.value == "–",
               "before a read the tiles are dimmed dashes")
         check(empty.line.text == "Measuring…", "and Home says so")
+    }
+
+    static func volumes() {
+        let cases: [(String, Bool?, Bool, Bool, Bool?, Bool?, Bool)] = [
+            ("external removable", false, true, false, true, false, true),
+            ("external ejectable", false, false, true, true, false, true),
+            ("external fixed", false, false, false, true, false, true),
+            ("card in internal reader", true, true, true, true, false, true),
+            ("internal fixed", true, false, false, true, false, false),
+            ("network", false, true, true, false, false, false),
+            ("locality unknown", false, true, true, nil, false, false),
+            ("external startup", false, true, true, true, true, false),
+            ("disk image without a bus flag", nil, true, true, true, false, true),
+        ]
+        for (name, internalBus, removable, ejectable, local, root, expected) in cases {
+            let volume = MonitorVolume(path: "/Volumes/\(name)", name: name, size: nil, isInternal: internalBus,
+                                       isRemovable: removable, isEjectable: ejectable, isLocal: local,
+                                       isRootFileSystem: root)
+            check(volume.canEject == expected, name)
+        }
+        let root = Fix.volume("Startup", path: "/")
+        check(!root.canEject, "root falls back to its mount path")
+        var network = Fix.volume("Share")
+        network.isLocal = false
+        let filtered = MonitorPage.page(Fix.board(volumes: [root, network]), locale: Fix.locale)
+        check(filtered == MonitorPage.page(Fix.board(), locale: Fix.locale), "no eligible disk leaves the page alone")
+
+        let volumes = [Fix.volume("Disk 10"), Fix.volume("Disk 4"), Fix.volume("Disk 2", path: "/Volumes/B"),
+                       Fix.volume("Disk 2", path: "/Volumes/A"), Fix.volume("Disk 3"), Fix.volume("Disk 30")]
+        let board = Fix.board(volumes: volumes)
+        check(board.sample.volumes.map(\.path) == ["/Volumes/A", "/Volumes/B", "/Volumes/Disk 3", "/Volumes/Disk 4",
+                                                   "/Volumes/Disk 10", "/Volumes/Disk 30"],
+              "natural name order, ties by path")
+        let rows = MonitorPage.page(board, locale: Fix.locale).blocks.compactMap {
+            if case .row(let row) = $0 { row } else { nil }
+        }
+        check(rows.map(\.title) == ["Disks", "Disk 2", "Disk 2", "Disk 3", "Disk 4", "2 more",
+                                    "Top processes", "Xcode", "Safari"], "cap at four before the process list")
+        check(rows[1].detail == "500 GB" && rows[1].trailing == "Eject" && rows[1].symbol == "externaldrive"
+              && rows[1].spoken == "Eject Disk 2, 500 GB", "size and a named VoiceOver action")
+        check(rows[0].id == nil && rows[5].id == nil && rows[5].symbol == nil, "header and overflow are plain rows")
+    }
+
+    static func ejecting() {
+        let volume = Fix.volume("Seagate", path: "/Volumes/Żółć : data")
+        let neighbour = Fix.volume("Backup")
+        let action = MonitorVolumes.action(for: volume.path)
+        check(MonitorVolumes.path(for: action) == volume.path, "spaces, colons and non-ASCII survive the round trip")
+        for other in [IslandPage.refreshAction, "eject:", "eject:relative", "media.volume:0.5"] {
+            check(MonitorVolumes.path(for: other) == nil, "foreign or malformed action: \(other)")
+        }
+        var board = Fix.board(volumes: [volume, neighbour])
+        let idle = MonitorPage.page(board, locale: Fix.locale)
+        guard case .row(let idleRow) = idle.blocks[3] else { return check(false, "the volume row") }
+        check(idleRow.id == action, "the idle row can eject")
+        board.ejecting.insert(volume.path)
+        let active = MonitorPage.page(board, locale: Fix.locale)
+        guard case .row(let working) = active.blocks[3] else { return check(false, "the ejecting row") }
+        check(working.id == nil && working.trailing == "Ejecting…" && working.spoken == "Ejecting Seagate",
+              "the ejecting volume is a plain status row")
+        check(active.blocks[2] == idle.blocks[2], "a neighbouring disk stays a button")
+
+        let cases: [(MonitorEjectResult, MonitorEjectOutcome, String)] = [
+            (MonitorEjectResult(stillMounted: true), .ejected, "Ejected Seagate"),
+            (MonitorEjectResult(errorDomain: NSCocoaErrorDomain, errorCode: 769, stillMounted: false),
+             .ejected, "Ejected Seagate"),
+            (MonitorEjectResult(errorDomain: NSCocoaErrorDomain, errorCode: 769, holder: "Preview", stillMounted: true),
+             .busy("Preview"), "Seagate Is in Use by Preview"),
+            (MonitorEjectResult(errorDomain: NSCocoaErrorDomain, errorCode: 769, stillMounted: true),
+             .busy(nil), "Seagate Is in Use"),
+            (MonitorEjectResult(errorDomain: NSCocoaErrorDomain, errorCode: 768, stillMounted: true),
+             .failed, "Couldn’t Eject Seagate"),
+            (MonitorEjectResult(errorDomain: NSPOSIXErrorDomain, errorCode: 769, stillMounted: true),
+             .failed, "Couldn’t Eject Seagate"),
+        ]
+        for (result, outcome, text) in cases {
+            check(result.outcome == outcome, "eject outcome for \(text)")
+            let notice = MonitorPage.ejectNotice(result.outcome, volume: volume)
+            let failure = outcome != .ejected
+            check(notice.text == text && notice.isFailure == failure && notice.dwell == (failure ? 4 : 2.4),
+                  "notice words, tone and dwell for \(text)")
+            check(notice.symbol == (failure ? "externaldrive.badge.exclamationmark" : "checkmark"), "notice glyph")
+        }
     }
 
     /// Hot is a yellow meter with a word under it on the page, and a glyph with a word on the closed island.
@@ -290,7 +384,7 @@ struct SystemMonitorModelTests {
             check(MonitorPage.status(hot.heat)?.tone == .warning, "\(name): the closed glyph turns yellow")
             check(MonitorPage.line(hot, locale: Fix.locale).tone == .warning, "\(name): the Home glyph turns yellow")
             var cooled = hot
-            cooled.apply(cooler, processorCount: 4)
+            cooled.apply(cooler, processorCount: 4, locale: Fix.locale)
             check(cooled.heat.hot.isEmpty, "\(name) leaves hot at its lower mark: \(cooled.heat.hot)")
             check(MonitorPage.status(cooled.heat) == nil && MonitorPage.line(cooled, locale: Fix.locale).tone == nil,
                   "\(name): cooled, no tone")

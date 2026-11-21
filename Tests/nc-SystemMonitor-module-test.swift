@@ -20,6 +20,7 @@ func check(_ condition: Bool, _ message: String) {
 extension MonitorSystem {
     static func live() -> MonitorSystem {
         MonitorSystem(read: { _, _ in preconditionFailure("the harness never reads the Mac") },
+                      eject: { _ in preconditionFailure("the harness never ejects a real volume") },
                       sleep: { _ in preconditionFailure("the harness never sleeps") }, processorCount: 1)
     }
 }
@@ -30,6 +31,11 @@ final class FakeMac {
     var time: TimeInterval = 0
     var cpu = 0.2
     var pressure = MonitorPressure.normal
+    var volumes: [MonitorVolume] = []
+    var volumeReads = 0
+    var ejects: [String] = []
+    var whenEjectHeld: CheckedContinuation<Void, Never>?
+    private var heldEject: CheckedContinuation<MonitorEjectResult, Never>?
     var reads: [Bool] = []
     var ranked: [Int] = []
     var sleeps: [Duration] = []
@@ -51,12 +57,14 @@ final class FakeMac {
             }
         }
         reads.append(detail)
+        if detail { volumeReads += 1 }
         ranked.append(previous.count)
         busy += UInt64(cpu * 1000)
         total += 1000
         let step = Double(reads.count)
         return MonitorFixtures.reading(at: time, busy: busy, total: total + 1000, received: UInt64(step) * 1000,
-                                       sent: UInt64(step) * 100, detail: detail, pressure: pressure, step: step)
+                                       sent: UInt64(step) * 100, detail: detail, pressure: pressure, step: step,
+                                       volumes: detail ? volumes : [])
     }
 
     func sleep(_ duration: Duration) throws {
@@ -74,8 +82,29 @@ final class FakeMac {
         held = nil
     }
 
+    func eject(_ path: String) async -> MonitorEjectResult {
+        ejects.append(path)
+        return await withCheckedContinuation {
+            heldEject = $0
+            whenEjectHeld?.resume()
+            whenEjectHeld = nil
+        }
+    }
+
+    func waitForEject() async {
+        guard heldEject == nil else { return }
+        await withCheckedContinuation { whenEjectHeld = $0 }
+    }
+
+    func finishEject(_ result: MonitorEjectResult) {
+        guard let heldEject else { preconditionFailure("no eject to finish") }
+        self.heldEject = nil
+        heldEject.resume(returning: result)
+    }
+
     var system: MonitorSystem {
-        MonitorSystem(read: { await self.read($0, $1) }, sleep: { try await self.sleep($0) }, processorCount: 4)
+        MonitorSystem(read: { await self.read($0, $1) }, eject: { await self.eject($0) },
+                      sleep: { try await self.sleep($0) }, processorCount: 4)
     }
 }
 
@@ -83,13 +112,14 @@ final class FakeMac {
 final class Recorder: IslandPresenting {
     var pages: [IslandPage?] = []
     var statuses: [IslandStatus?] = []
+    var notices: [IslandNotice] = []
     var action: (@MainActor (String) -> Void)?
     var tap: (@MainActor () -> Void)?
     var watcher: (@MainActor (Bool) -> Void)?
     var shown: [String] = []
 
     func showLevel(_ level: IslandLevel) { check(false, "the System add-on shows no level") }
-    func post(_ notice: IslandNotice, onTap: (@MainActor () -> Void)?) { check(false, "it posts no notice") }
+    func post(_ notice: IslandNotice, onTap: (@MainActor () -> Void)?) { notices.append(notice) }
     func end(notice id: String) {}
     func setMenuRows(_ rows: [IslandMenuRow], owner: String, onSelect: @escaping @MainActor (String) -> Void) {}
 
@@ -111,6 +141,12 @@ final class Recorder: IslandPresenting {
     }
 
     func showPage(id: String) { shown.append(id) }
+
+    func row(named name: String) -> IslandPageRow? {
+        pages.last.flatMap(\.self)?.blocks.compactMap {
+            if case .row(let row) = $0 { row } else { nil }
+        }.first { $0.title == name }
+    }
 }
 
 /// The module as its hook starts it, on a scripted Mac: cadence, visibility, the hot glyph, Command-R, teardown.
@@ -125,6 +161,9 @@ struct SystemMonitorModuleTests {
         await refresh()
         await switchOff()
         await staleRead()
+        await eject()
+        await ejectWhileClosed()
+        await ejectAcrossSwitchOff()
         print("PASSED")
     }
 
@@ -165,6 +204,7 @@ struct SystemMonitorModuleTests {
         let mac = FakeMac()
         let presenter = Recorder()
         let (module, _) = make(mac, presenter)
+        mac.volumes = [MonitorFixtures.volume("Test Disk")]
         mac.steps = [{}, {}]
         module.start()
         module.start()
@@ -175,6 +215,7 @@ struct SystemMonitorModuleTests {
         check(presenter.pages.count == 1 && presenter.pages[0]?.line.text == "Measuring…",
               "one page at start, so Home lists it; hidden reads post nothing more")
         check(presenter.statuses.isEmpty, "nothing hot, no status")
+        check(mac.volumeReads == 0 && presenter.row(named: "Test Disk") == nil, "hidden reads never ask for volumes")
         module.stop()
     }
 
@@ -297,6 +338,102 @@ struct SystemMonitorModuleTests {
             mac.release()
             await late?.value
             check(presenter.statuses.isEmpty, "a read that lands after switch-off is dropped (on again: \(restart))")
+        }
+        module.stop()
+    }
+
+    static func eject() async {
+        let mac = FakeMac()
+        let presenter = Recorder()
+        let (module, _) = make(mac, presenter)
+        let volume = MonitorFixtures.volume("Test Disk")
+        mac.volumes = [volume]
+        module.start()
+        presenter.watcher?(true)
+        await settle(module)
+
+        let reads = mac.volumeReads
+        presenter.action?(MonitorVolumes.action(for: "/Volumes/Unknown"))
+        check(module.ejectTasks.isEmpty, "a path outside the current list does nothing")
+        let action = presenter.row(named: volume.name)?.id
+        check(action == MonitorVolumes.action(for: volume.path), "the fixture is an eject button")
+        presenter.action?(action!)
+        let task = module.ejectTasks[volume.path]
+        await mac.waitForEject()
+        check(presenter.row(named: volume.name)?.trailing == "Ejecting…", "the row reports work")
+        presenter.action?(action!)
+        check(mac.ejects == [volume.path] && module.ejectTasks[volume.path] == task, "a second click starts no task")
+        mac.finishEject(MonitorEjectResult(errorDomain: NSCocoaErrorDomain, errorCode: 769, holder: "Preview",
+                                           stillMounted: true))
+        await task?.value
+        check(presenter.notices.last?.text == "Test Disk Is in Use by Preview" && presenter.notices.last?.isFailure == true,
+              "busy posts a failure naming the holder")
+        check(presenter.row(named: volume.name)?.id == action && mac.volumeReads == reads, "busy restores the button")
+
+        presenter.action?(action!)
+        let retry = module.ejectTasks[volume.path]
+        await mac.waitForEject()
+        mac.volumes = []
+        mac.finishEject(MonitorEjectResult())
+        await retry?.value
+        await settle(module)
+        check(mac.ejects == [volume.path, volume.path] && mac.volumeReads == reads + 1, "success rereads at once")
+        check(presenter.notices.last?.text == "Ejected Test Disk" && presenter.row(named: volume.name) == nil,
+              "success posts a notice and the disk is gone")
+        module.stop()
+    }
+
+    static func ejectWhileClosed() async {
+        let mac = FakeMac()
+        let presenter = Recorder()
+        let (module, _) = make(mac, presenter)
+        let volume = MonitorFixtures.volume("Test Disk")
+        mac.volumes = [volume]
+        module.start()
+        presenter.watcher?(true)
+        await settle(module)
+        presenter.action?(MonitorVolumes.action(for: volume.path))
+        let task = module.ejectTasks[volume.path]
+        await mac.waitForEject()
+
+        presenter.watcher?(false)
+        await settle(module)
+        let pages = presenter.pages.count
+        let volumeReads = mac.volumeReads
+        mac.finishEject(MonitorEjectResult())
+        await task?.value
+        await settle(module)
+        check(presenter.notices.last?.text == "Ejected Test Disk", "a result reaches the closed island")
+        check(presenter.pages.count == pages && mac.volumeReads == volumeReads, "closed: no detail reads or page posts")
+        module.stop()
+    }
+
+    static func ejectAcrossSwitchOff() async {
+        let mac = FakeMac()
+        let presenter = Recorder()
+        let (module, _) = make(mac, presenter)
+        let volume = MonitorFixtures.volume("Test Disk")
+        let action = MonitorVolumes.action(for: volume.path)
+        mac.volumes = [volume]
+        for restart in [false, true] {
+            module.start()
+            presenter.watcher?(true)
+            await settle(module)
+            presenter.action?(action)
+            let task = module.ejectTasks[volume.path]
+            await mac.waitForEject()
+            module.stop()
+            check(task?.isCancelled == true && module.ejectTasks.isEmpty, "stop cancels and drops owned ejects")
+            if restart {
+                module.start()
+                presenter.watcher?(true)
+                await settle(module)
+                check(presenter.row(named: volume.name)?.id == action, "the new session starts with a clean row")
+            }
+            let pages = presenter.pages.count
+            mac.finishEject(MonitorEjectResult())
+            await task?.value
+            check(presenter.notices.isEmpty && presenter.pages.count == pages, "no late result after switch-off")
         }
         module.stop()
     }

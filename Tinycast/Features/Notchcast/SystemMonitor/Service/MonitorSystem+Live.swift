@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Vorssaint
 // Adapted from Vorssaint faada18's SystemMonitor, SystemInfo, NetworkSampler, DiskSampler and ProcessUsageService.
 
+import AppKit
 import Darwin
 import Foundation
 
@@ -10,6 +11,7 @@ extension MonitorSystem {
         let (hidden, tolerance) = (MonitorBoard.hiddenInterval, MonitorBoard.hiddenTolerance)
         return MonitorSystem(
             read: { await MonitorLiveReads.read(detail: $0, previous: $1) },
+            eject: { await MonitorLiveReads.eject($0) },
             sleep: { try await Task.sleep(for: $0, tolerance: $0 == hidden ? tolerance : nil) },
             processorCount: ProcessInfo.processInfo.activeProcessorCount)
     }
@@ -23,7 +25,8 @@ enum MonitorLiveReads {
     @concurrent
     static func read(detail: Bool, previous: [Int32: UInt64]) async -> MonitorReading {
         MonitorReading(uptime: ProcessInfo.processInfo.systemUptime, cpu: cpu(), memory: memory(),
-                       pressure: pressure(), disk: disk(), network: detail ? network() : nil,
+                       pressure: pressure(), disk: disk(), volumes: detail ? volumes() : nil,
+                       network: detail ? network() : nil,
                        processes: detail ? processes(previous: previous) : nil)
     }
 
@@ -70,6 +73,44 @@ enum MonitorLiveReads {
         func positive<T: BinaryInteger>(_ value: T?) -> UInt64? { value.flatMap { $0 >= 0 ? UInt64($0) : nil } }
         return MonitorDisk(total: positive(values.volumeTotalCapacity), rawFree: positive(values.volumeAvailableCapacity),
                            importantFree: positive(values.volumeAvailableCapacityForImportantUsage))
+    }
+
+    nonisolated static func volumes() -> [MonitorVolume] {
+        let keys: Set<URLResourceKey> = [
+            .volumeLocalizedNameKey, .volumeNameKey, .volumeTotalCapacityKey, .volumeIsInternalKey,
+            .volumeIsRemovableKey, .volumeIsEjectableKey, .volumeIsLocalKey, .volumeIsRootFileSystemKey,
+        ]
+        let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: Array(keys),
+                                                         options: [.skipHiddenVolumes]) ?? []
+        return urls.compactMap { url in
+            guard let values = try? url.resourceValues(forKeys: keys) else { return nil }
+            return MonitorVolume(
+                path: url.path, name: values.volumeLocalizedName ?? values.volumeName ?? url.lastPathComponent,
+                size: values.volumeTotalCapacity.flatMap(UInt64.init(exactly:)), isInternal: values.volumeIsInternal,
+                isRemovable: values.volumeIsRemovable, isEjectable: values.volumeIsEjectable,
+                isLocal: values.volumeIsLocal, isRootFileSystem: values.volumeIsRootFileSystem)
+        }
+    }
+
+    @concurrent
+    static func eject(_ path: String) async -> MonitorEjectResult {
+        do {
+            try Task.checkCancellation()
+            try await FileManager.default.unmountVolume(at: URL(filePath: path),
+                                                        options: [.allPartitionsAndEjectDisk, .withoutUI])
+            return MonitorEjectResult()
+        } catch let error as NSError {
+            let mounts = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: nil, options: [])
+            let stillMounted = mounts?.contains { $0.path == path } ?? true
+            let pid = (error.userInfo[NSFileManagerUnmountDissentingProcessIdentifierErrorKey] as? NSNumber)?.int32Value
+            let holder: String? = if let pid, pid > 0 {
+                NSRunningApplication(processIdentifier: pid)?.localizedName ?? name(pid)
+            } else {
+                nil
+            }
+            return MonitorEjectResult(errorDomain: error.domain, errorCode: error.code, holder: holder,
+                                      stillMounted: stillMounted)
+        }
     }
 
     /// 64-bit counters from the routing socket (`NET_RT_IFLIST2`); `getifaddrs`' 32-bit ones wrap.
@@ -123,9 +164,9 @@ enum MonitorLiveReads {
         }
     }
 
-    nonisolated private static func name(_ pid: pid_t) -> String {
+    nonisolated static func name(_ pid: pid_t) -> String? {
         var buffer = [UInt8](repeating: 0, count: 2 * Int(MAXCOMLEN) + 1)
         let length = proc_name(pid, &buffer, UInt32(buffer.count))
-        return length > 0 ? String(bytes: buffer.prefix(Int(length)), encoding: .utf8) ?? "pid \(pid)" : "pid \(pid)"
+        return length > 0 ? String(bytes: buffer.prefix(Int(length)), encoding: .utf8) : nil
     }
 }

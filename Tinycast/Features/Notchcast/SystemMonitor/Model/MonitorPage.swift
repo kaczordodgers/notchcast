@@ -22,7 +22,8 @@ enum MonitorPage {
         return IslandPage(
             id: id, title: String(localized: "System", table: "NotchcastSystemMonitor"), symbol: symbol,
             order: order, line: line(board, locale: locale),
-            blocks: [.cards(tiles)] + processes(sample, locale: locale).map(IslandPageBlock.row))
+            blocks: [.cards(tiles)] + (disks(board, locale: locale) + processes(sample, locale: locale))
+                .map(IslandPageBlock.row))
     }
 
     /// The first hot resource, else the busier of CPU and memory, with the busiest process beside it.
@@ -128,6 +129,47 @@ enum MonitorPage {
             body: .notice(symbol: nil, headline: String(localized: "↓ \(inbound)", table: "NotchcastSystemMonitor"),
                           detail: String(localized: "↑ \(outbound)", table: "NotchcastSystemMonitor")),
             spoken: String(localized: "Network. Download \(inbound), upload \(outbound)", table: "NotchcastSystemMonitor"))
+    }
+
+    private static func disks(_ board: MonitorBoard, locale: Locale) -> [IslandPageRow] {
+        let volumes = board.sample.volumes
+        guard !volumes.isEmpty else { return [] }
+        var rows = [IslandPageRow(title: String(localized: "Disks", table: "NotchcastSystemMonitor"))]
+        rows += volumes.prefix(MonitorVolumes.rowLimit).map { volume in
+            let name = volume.name
+            let size = volume.size.map { bytes($0, locale) } ?? dash
+            let ejecting = board.ejecting.contains(volume.path)
+            return IslandPageRow(
+                id: ejecting ? nil : MonitorVolumes.action(for: volume.path), symbol: "externaldrive",
+                title: name, detail: size, trailing: ejecting
+                    ? String(localized: "Ejecting…", table: "NotchcastSystemMonitor")
+                    : String(localized: "Eject", table: "NotchcastSystemMonitor"),
+                spoken: ejecting ? String(localized: "Ejecting \(name)", table: "NotchcastSystemMonitor")
+                    : String(localized: "Eject \(name), \(size)", table: "NotchcastSystemMonitor"))
+        }
+        let more = volumes.count - MonitorVolumes.rowLimit
+        if more > 0 {
+            rows.append(IslandPageRow(title: String(localized: "\(more) more", table: "NotchcastSystemMonitor")))
+        }
+        return rows
+    }
+
+    static func ejectNotice(_ outcome: MonitorEjectOutcome, volume: MonitorVolume) -> IslandNotice {
+        let id = MonitorVolumes.action(for: volume.path)
+        let name = volume.name
+        let text: String
+        switch outcome {
+        case .ejected:
+            return IslandNotice(id: id, symbol: "checkmark",
+                                text: String(localized: "Ejected \(name)", table: "NotchcastSystemMonitor"))
+        case .busy(let holder?):
+            text = String(localized: "\(name) Is in Use by \(holder)", table: "NotchcastSystemMonitor")
+        case .busy(nil):
+            text = String(localized: "\(name) Is in Use", table: "NotchcastSystemMonitor")
+        case .failed:
+            text = String(localized: "Couldn’t Eject \(name)", table: "NotchcastSystemMonitor")
+        }
+        return IslandNotice(id: id, symbol: "externaldrive.badge.exclamationmark", text: text, isFailure: true)
     }
 
     /// A header, then the busiest processes by CPU with their memory; "Measuring…" until two reads.
