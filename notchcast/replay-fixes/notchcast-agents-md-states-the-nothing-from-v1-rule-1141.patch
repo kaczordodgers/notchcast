@@ -1,0 +1,12 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index e2bd88f23..6e7a33cd4 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -66,6 +66,7 @@ system-wide chord, and HIToolbox's TIS APIs remain the public input-source mecha
+ Never break these without an explicit task to do so. Anything feature-specific lives in that
+ feature's doc, under its own `## Invariants`.
+ 
++- **Nothing from v1:** every feature is written fresh on the island base; references are outside projects (Aural, Vorssaint, RemoveMacAI, Peel), never our v1 code or its backup branches (Damian 17 Nov).
+ - **`AppCore` is the sole owner.** New long-lived state goes on `AppCore`, wired in `load()` when
+   Settings' own process needs it too and in `start()` otherwise, never a competing singleton. Views
+   reach a feature's **coordinator** through `@Environment`, not `AppCore`.

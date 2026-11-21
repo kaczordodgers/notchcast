@@ -1,0 +1,12 @@
+diff --git a/Tinycast/App/AppCore.swift b/Tinycast/App/AppCore.swift
+index 51c661c53..97ff4c168 100644
+--- a/Tinycast/App/AppCore.swift
++++ b/Tinycast/App/AppCore.swift
+@@ -295,6 +295,7 @@ final class AppCore {
+             dictationAudioDucker.recover()
+             load()
+             loadHotKeys()
++            calendarCoordinator.isWatchedElsewhere = { [unowned self] in island.glance.isWatching }
+             island.start()
+             pinnedEmoji.onPersistenceFailure = { [weak self] in
+                 self?.showMessage(String(localized: "Couldn't save Emoji & Symbols pins"), tone: .danger)

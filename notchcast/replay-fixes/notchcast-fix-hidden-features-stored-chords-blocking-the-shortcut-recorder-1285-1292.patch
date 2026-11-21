@@ -1,0 +1,21 @@
+diff --git a/Tinycast/Features/HotKeys/Service/HotKeyManager.swift b/Tinycast/Features/HotKeys/Service/HotKeyManager.swift
+index 5e30a7a38..8d9b398c8 100644
+--- a/Tinycast/Features/HotKeys/Service/HotKeyManager.swift
++++ b/Tinycast/Features/HotKeys/Service/HotKeyManager.swift
+@@ -52,6 +52,8 @@ final class HotKeyManager {
+     /// Whether the action's category, feature and item are switched on. Set in `AppCore.start()`.
+     var allowsAction: ((HotKeyAction) -> Bool)?
+     var onBindingEdit: ((HotKeyAction, HotKeyBinding?) -> Void)?
++    /// A hidden feature's stored chord owns nothing, so the recorder never names it.
++    var isHidden: ((HotKeyAction) -> Bool)? { didSet { candidateActionsCache = nil } }
+ 
+     /// The recorder currently capturing, which also pauses both engines.
+     var recordingAction: HotKeyAction? {
+@@ -425,6 +427,7 @@ final class HotKeyManager {
+         actions += SystemAction.ID.allCases.map { .systemAction(id: $0) }
+         actions += WindowCommand.ID.allCases.map { .windowCommand(id: $0) }
+         actions += extraActions
++        actions.removeAll { isHidden?($0) == true }
+         candidateActionsCache = actions
+         return actions
+     }

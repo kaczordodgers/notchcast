@@ -1,0 +1,34 @@
+diff --git a/Tinycast/App/AppCore.swift b/Tinycast/App/AppCore.swift
+index db653d486..51c661c53 100644
+--- a/Tinycast/App/AppCore.swift
++++ b/Tinycast/App/AppCore.swift
+@@ -246,6 +246,7 @@ final class AppCore {
+         core: self)
+ 
+     @ObservationIgnored private lazy var windowController = PaletteWindowController(core: self)
++    @ObservationIgnored private(set) lazy var island = IslandCoordinator(core: self)
+     @ObservationIgnored private lazy var messageHUD = MessageHUDController(settings: settings)
+     private(set) var isShowingDialog = false
+     /// A link that launched the app can arrive before `start` wires anything; it waits, then runs.
+@@ -294,6 +295,7 @@ final class AppCore {
+             dictationAudioDucker.recover()
+             load()
+             loadHotKeys()
++            island.start()
+             pinnedEmoji.onPersistenceFailure = { [weak self] in
+                 self?.showMessage(String(localized: "Couldn't save Emoji & Symbols pins"), tone: .danger)
+             }
+diff --git a/Tinycast/App/TinycastApp.swift b/Tinycast/App/TinycastApp.swift
+index e6de44677..e1fd8d5af 100644
+--- a/Tinycast/App/TinycastApp.swift
++++ b/Tinycast/App/TinycastApp.swift
+@@ -4,6 +4,9 @@ import SwiftUI
+ enum TinycastLaunch {
+     static func main() {
+         LaunchedExecutable.pin()
++        #if DEBUG
++        if ProcessRole.current == .main, IslandVerification.enabled { IslandVerification.main(); return }
++        #endif
+         AppSettings.pinLanguage()
+         switch ProcessRole.current {
+         case .main: TinycastApp.main()

@@ -1,0 +1,52 @@
+diff --git a/Tinycast/Features/Onboarding/OnboardingView.swift b/Tinycast/Features/Onboarding/OnboardingView.swift
+index ab6d82d71..8e6619b14 100644
+--- a/Tinycast/Features/Onboarding/OnboardingView.swift
++++ b/Tinycast/Features/Onboarding/OnboardingView.swift
+@@ -87,7 +87,7 @@ struct OnboardingView: View {
+ 
+     private var title: String {
+         switch step {
+-        case 0: String(localized: "Welcome to Tinycast")
++        case 0: String(localized: "Welcome to Notchcast", table: "Notchcast")
+         case 1: String(localized: "Enable Pasting")
+         case 2: String(localized: "Import from Raycast")
+         default: String(localized: "You're all set")
+@@ -97,7 +97,7 @@ struct OnboardingView: View {
+     private var subtitle: Text {
+         switch step {
+         case 0: Text("Set a shortcut to summon the launcher from anywhere.")
+-        case 1: Text("Let Tinycast paste items back into the app you were using.")
++        case 1: Text("Let Notchcast paste items back into the app you were using.", tableName: "Notchcast")
+         case 2: Text("Bring your shortcuts, favorites, and clipboard history along.")
+         default: readyMessage
+         }
+@@ -121,9 +121,9 @@ struct OnboardingView: View {
+ 
+     private var readyMessage: Text {
+         if let caps = hotKeys.binding(for: .togglePalette)?.keycaps {
+-            return Text("Press \(caps.joined()) anytime to start using Tinycast.")
++            return Text("Press \(caps.joined()) anytime to start using Notchcast.", tableName: "Notchcast")
+         }
+-        return Text("Tinycast is ready. Set a shortcut in Settings to summon it.")
++        return Text("Notchcast is ready. Set a shortcut in Settings to summon it.", tableName: "Notchcast")
+     }
+ 
+     // MARK: - Step content
+@@ -144,7 +144,7 @@ struct OnboardingView: View {
+             OnboardingCard {
+                 OnboardingRow(
+                     title: String(localized: "onboarding-open-launcher", defaultValue: "App Launcher"),
+-                    subtitle: String(localized: "Press this shortcut to open Tinycast."),
++                    subtitle: String(localized: "Press this shortcut to open Notchcast.", table: "Notchcast"),
+                     systemImage: "magnifyingglass", tint: .blue
+                 ) {
+                     ShortcutRecorder(action: .togglePalette)
+@@ -152,7 +152,7 @@ struct OnboardingView: View {
+                 OnboardingDivider()
+                 OnboardingRow(
+                     title: String(localized: "Launch at login"),
+-                    subtitle: String(localized: "Start Tinycast automatically when you log in."),
++                    subtitle: String(localized: "Start Notchcast automatically when you log in.", table: "Notchcast"),
+                     systemImage: "power", tint: .green
+                 ) {
+                     Toggle("", isOn: $settings.launchAtLogin)
