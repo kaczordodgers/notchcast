@@ -5,9 +5,10 @@
     "Check Disk Space" : {},
     "Couldn’t read disk space" : {},
     "GB" : {},
+    "Low disk space" : {},
     "Low disk space: %@" : {},
     "Low disk warning" : {},
-    "The island warns once when free space drops below this." : {},
+    "The island warns once when free space drops below this, then shows a drive icon until space is back." : {},
     "Warn below" : {},
     "Warns on the island when the startup disk is nearly full." : {}
   },

@@ -39,7 +39,9 @@ struct LowDiskSettingsView: View {
             }
         } label: {
             SettingsRowTitle(Self.anchor, LocalizedStringResource("Warn below", table: "NotchcastLowDisk"))
-            Text("The island warns once when free space drops below this.", tableName: "NotchcastLowDisk")
+            Text(
+                "The island warns once when free space drops below this, then shows a drive icon until space is back.",
+                tableName: "NotchcastLowDisk")
         }
         .onChange(of: threshold) { context.module(LowDiskModule.self)?.check() }
     }

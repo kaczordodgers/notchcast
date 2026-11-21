@@ -7,8 +7,17 @@ struct LowDiskPolicy: Equatable, Sendable {
     static let checkInterval: Duration = .seconds(30 * 60)
     static let thresholdKey = "lowDiskThresholdGB"
     static let warnedKey = "lowDiskWarned"
+    static let statusID = "lowDisk"
+    static let symbol = "internaldrive"
 
     var hasWarned = false
+
+    var status: IslandStatus? {
+        guard hasWarned else { return nil }
+        return IslandStatus(
+            id: Self.statusID, symbol: Self.symbol, text: nil,
+            label: String(localized: "Low disk space", table: "NotchcastLowDisk"), tone: nil)
+    }
 
     /// An unset or out-of-range stored value falls back to the default or the nearest bound.
     static func thresholdGB(stored: Int?) -> Int {
