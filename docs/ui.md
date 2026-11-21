@@ -922,7 +922,9 @@ See [features/window-layouts.md](features/window-layouts.md#the-editor).
 
 ### The shortcut recorder callout
 
-`ShortcutRecorder` is a **120pt** field showing only the binding. A single modifier binding puts a small
+`ShortcutRecorder` is a **120pt** field that reserves a slot beside the binding for the clear button. Hovering reveals the button without moving the keycaps.
+
+A single modifier binding puts a small
 L/R beside its glyph inside the same cap; double presses show only the two glyphs. The side follows
 the modifier identity macOS reports after remapping. Ordinary combos have no side label. Recording is
 narrated by `ShortcutRecorderPopover`, a small **176 × 96** callout above it: caps, up to two centred label lines, an

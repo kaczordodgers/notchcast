@@ -7,6 +7,8 @@ struct ShortcutRecorder: View {
     /// Drops the empty well's fill: a column of identical pills reads louder than its rows.
     var isQuiet = false
 
+    static let horizontalInset = Theme.Spacing.sm
+
     @Environment(HotKeyManager.self) private var hotKeys
     @Environment(\.shortcutDeepLink) private var deepLink
     /// Observed so a modifier-only binding surfaces its warning when the grant changes.
@@ -26,8 +28,8 @@ struct ShortcutRecorder: View {
         // The width is kept either way, so a column of recorders stays aligned as they fill in.
         let showsFill = !isQuiet || isRecording || hovered || hotKeys.binding(for: action) != nil
         content
-            .padding(.horizontal, Theme.Spacing.sm + 1)
-            .frame(width: Theme.Size.shortcutRecorder, height: 24)
+            .padding(.horizontal, Self.horizontalInset)
+            .frame(width: Theme.Size.shortcutRecorder, height: Theme.Size.settingsRowButton)
             .background(shape.fill(Theme.Colors.cardFill).opacity(showsFill ? 1 : 0))
             .background {
                 if isRecording { ShortcutRecorderHitRegion(capture: hotKeys.capture) }
@@ -58,7 +60,13 @@ struct ShortcutRecorder: View {
     @ViewBuilder
     private var content: some View {
         if let binding = hotKeys.binding(for: action) {
-            boundLabel(binding)
+            ShortcutRecorderBindingLabel(
+                binding: binding,
+                showsAccessibilityWarning: binding.usesModifierTapMonitor && modifierTapMonitor.needsAccessibility,
+                hovered: hovered
+            ) {
+                hotKeys.setBinding(nil, for: action)
+            }
         } else {
             Text(isRecording ? "Waiting for a shortcut…" : "Record Hotkey")
                 .font(Theme.Typography.keyCap)
@@ -66,11 +74,17 @@ struct ShortcutRecorder: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+}
 
-    private func boundLabel(_ binding: HotKeyBinding) -> some View {
-        HStack(spacing: Theme.Spacing.xs) {
-            // A modifier-only binding is dead without the grant, so say so where the binding is.
-            if binding.usesModifierTapMonitor, modifierTapMonitor.needsAccessibility {
+struct ShortcutRecorderBindingLabel: View {
+    let binding: HotKeyBinding
+    let showsAccessibilityWarning: Bool
+    let hovered: Bool
+    let onClear: () -> Void
+
+    var body: some View {
+        HStack(spacing: Theme.Spacing.xxs) {
+            if showsAccessibilityWarning {
                 Button {
                     Permissions.openAccessibilitySettings()
                 } label: {
@@ -81,39 +95,46 @@ struct ShortcutRecorder: View {
                 .accessibilityLabel("Open Accessibility settings")
                 .help("Modifier-only hotkeys need Accessibility access. Click to grant it.")
             }
-            HStack(spacing: Theme.Spacing.xs) {
-                ForEach(Array(binding.recorderKeycaps.enumerated()), id: \.offset) { _, cap in
-                    KeyCapChip.Label(text: cap, prefix: binding.recorderPrefix)
-                        .font(Theme.Typography.keyCap)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, Theme.Spacing.xs)
-                        .frame(
-                            minWidth: Theme.Size.recorderKeyCap, minHeight: Theme.Size.recorderKeyCap
-                        )
-                        .background(
-                            RoundedRectangle(
-                                cornerRadius: Theme.Radius.recorderKeyCap, style: .continuous
-                            )
-                            .fill(Color.primary.opacity(0.08))
-                        )
-                }
+            ViewThatFits(in: .horizontal) {
+                keycaps(compact: false)
+                keycaps(compact: true)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(binding.keycaps.joined(separator: " "))
-        }
-        .frame(maxWidth: .infinity)
-        // Overlaid, not a row member, so it costs the caps no width.
-        .overlay(alignment: .trailing) {
-            Button {
-                hotKeys.setBinding(nil, for: action)
-            } label: {
+            .frame(maxWidth: .infinity)
+
+            Button(action: onClear) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 11))
+                    .font(Theme.Typography.compactKeyCap)
                     .foregroundStyle(.tertiary)
+                    .frame(width: Theme.Size.recorderKeyCap, height: Theme.Size.recorderKeyCap)
+                    .opacity(hovered ? 1 : 0)
+                    .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .opacity(hovered ? 1 : 0)
+            .accessibilityLabel(Text("Clear shortcut", tableName: "Notchcast"))
             .allowsHitTesting(hovered)
+        }
+    }
+
+    private func keycaps(compact: Bool) -> some View {
+        let spacing = compact ? Theme.Spacing.xxs : Theme.Spacing.xs
+        let capSize = Theme.Size.recorderKeyCap
+        let capWidth = compact ? Theme.Size.compactRecorderKeyCapWidth : capSize
+        return HStack(spacing: spacing) {
+            ForEach(Array(binding.recorderKeycaps.enumerated()), id: \.offset) { _, cap in
+                KeyCapChip.Label(text: cap, prefix: binding.recorderPrefix)
+                    .font(compact ? Theme.Typography.compactKeyCap : Theme.Typography.keyCap)
+                    .lineLimit(1)
+                    .minimumScaleFactor(Theme.Size.recorderKeyCapMinimumScale)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, spacing)
+                    .frame(minWidth: capWidth, minHeight: capSize)
+                    .background(
+                        RoundedRectangle(cornerRadius: Theme.Radius.recorderKeyCap, style: .continuous)
+                            .fill(Color.primary.opacity(0.08))
+                    )
+            }
         }
     }
 }
