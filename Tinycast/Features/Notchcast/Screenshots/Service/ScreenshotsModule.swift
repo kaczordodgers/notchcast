@@ -1,5 +1,5 @@
+import CoreGraphics
 import Foundation
-import ImageIO
 
 /// Runs one capture or edit at a time; a trigger while one is active, the editor included, is ignored.
 @MainActor
@@ -10,6 +10,9 @@ final class ScreenshotsModule: NotchcastModule {
     static let editAfterCaptureKey = "notchcast.screenshot.editAfterCapture"
     static let textSymbol = "text.viewfinder"
     static let textNoticeID = "screenshot.text"
+    static let scrollingID = "screenshot.scrolling"
+    static let finishScrollingTitle = String(localized: "Finish Scrolling Capture", table: "NotchcastScreenshots")
+    static let cancelScrollingTitle = String(localized: "Cancel Scrolling Capture", table: "NotchcastScreenshots")
     private let context: NotchcastContext
     private let system: ScreenshotSystem
     private let exclusion: ScreenshotExclusion
@@ -22,6 +25,10 @@ final class ScreenshotsModule: NotchcastModule {
     private var closeEditor: (@MainActor () -> Void)?
     private var export: Task<Void, Never>?
     private var warmUp: Task<Void, Never>?
+    private var scrolling = ScrollingCapturePhase.idle
+    private var scrollingFinish: ScrollingFinishFlag?
+    private var scrollingHeight: Int?
+    private var hideGuide: (@MainActor () -> Void)?
 
     init(context: NotchcastContext, system: ScreenshotSystem,
          exclusion: ScreenshotExclusion = ScreenshotExclusion(
@@ -45,6 +52,7 @@ final class ScreenshotsModule: NotchcastModule {
         warmUp?.cancel()
         warmUp = nil
         context.presenter.end(notice: Self.textNoticeID)
+        endScrolling()
         closeSurface?()
         export?.cancel()
         export = nil
@@ -58,11 +66,53 @@ final class ScreenshotsModule: NotchcastModule {
 
     func captureText() { begin(.text) }
 
+    /// Starts a run, or finishes the one capturing; a result never opens the editor by itself.
+    func captureScrolling() {
+        switch scrolling.command {
+        case .finish: return finishScrolling()
+        case .ignore: return
+        case .start: break
+        }
+        guard isIdle else { return }
+        guard system.grantAccess() else { return report(ScreenshotRequest.Failure.permissionDenied) }
+        scrolling = .selecting
+        run { [self] id in
+            defer { if operation == id { endScrolling() } }
+            guard let region = try await selectRegion() else { return }
+            let finish = ScrollingFinishFlag()
+            scrollingFinish = finish
+            scrolling = .capturing
+            hideGuide = system.showGuide(region)
+            showScrolling(height: nil)
+            context.presenter.setMenuRows([
+                IslandMenuRow(id: "finish", title: Self.finishScrollingTitle),
+                IslandMenuRow(id: "cancel", title: Self.cancelScrollingTitle),
+            ], owner: Self.scrollingID) { [weak self] row in
+                if row == "cancel" { self?.cancelScrolling() } else { self?.finishScrolling() }
+            }
+            let source = try await system.openRegion(region)
+            try Task.checkCancellation()
+            let result = try await ScrollingCaptureRun.run(
+                source, finish: finish, uptime: system.uptime, pause: system.pause,
+                progress: { [weak self] height in
+                    guard let self, operation == id else { return }
+                    showScrolling(height: height)
+                })
+            let data = try await ScreenshotFiles.png(result.image, scale: region.scale)
+            try Task.checkCancellation()
+            lastCapture = (data, region.scale)
+            let saved = try await output(data)
+            try Task.checkCancellation()
+            endScrolling()
+            context.presenter.post(ScreenshotNotices.scrolling(result.ending, saved: saved), onTap: nil)
+        }
+    }
+
     func editLastCapture() {
         guard isIdle else { return }
         guard let lastCapture else { return report(ScreenshotRequest.Failure.nothingToEdit) }
-        run { [self] in
-            guard let image = await Self.decode(lastCapture.png) else {
+        run { [self] _ in
+            guard let image = await ScreenshotFiles.decode(lastCapture.png) else {
                 throw ScreenshotRequest.Failure.encodingFailed
             }
             try Task.checkCancellation()
@@ -78,10 +128,10 @@ final class ScreenshotsModule: NotchcastModule {
             if scope == .text { system.openScreenRecordingSettings() }
             return report(ScreenshotRequest.Failure.permissionDenied)
         }
-        run { [self] in
+        run { [self] _ in
             guard let shot = try await capture(scope) else { return }
             if scope == .text { return try await copyText(in: shot.image) }
-            let data = try await Self.png(shot.image, scale: shot.scale)
+            let data = try await ScreenshotFiles.png(shot.image, scale: shot.scale)
             try Task.checkCancellation()
             lastCapture = (data, shot.scale)
             if context.defaults.bool(forKey: Self.editAfterCaptureKey) {
@@ -92,12 +142,12 @@ final class ScreenshotsModule: NotchcastModule {
         }
     }
 
-    private func run(_ work: @escaping @MainActor @Sendable () async throws -> Void) {
+    private func run(_ work: @escaping @MainActor @Sendable (UUID) async throws -> Void) {
         let id = UUID()
         operation = id
         session = Task {
             do {
-                try await work()
+                try await work(id)
             } catch {
                 if operation == id, !(error is CancellationError) { report(error) }
             }
@@ -116,16 +166,75 @@ final class ScreenshotsModule: NotchcastModule {
             }
             return (display.image, display.scale)
         case .area, .text:
-            let frozen = try await system.freeze(nil, exclusion)
-            try Task.checkCancellation()
-            let pickable = exclusion.pickable(system.windows())
-            let windows = try await system.freezeWindows(pickable.map(\.id))
-            try Task.checkCancellation()
-            let offered = pickable.filter { windows[$0.id] != nil }
-            guard let request = await select(frozen, offered) else { return nil }
-            try Task.checkCancellation()
-            return try capture(request, in: frozen, windows: windows, frames: offered)
+            guard let picked = try await pick() else { return nil }
+            return try capture(picked.request, in: picked.frozen, windows: picked.windows, frames: picked.offered)
         }
+    }
+
+    private struct Selection {
+        let request: ScreenshotRequest
+        let frozen: [ScreenshotFrozenDisplay]
+        let windows: [UInt32: CGImage]
+        let offered: [ScreenshotWindow]
+    }
+
+    /// Every display frozen and every pickable window with it, then the user's pick; nil when cancelled.
+    private func pick() async throws -> Selection? {
+        let frozen = try await system.freeze(nil, exclusion)
+        try Task.checkCancellation()
+        let pickable = exclusion.pickable(system.windows())
+        let windows = try await system.freezeWindows(pickable.map(\.id))
+        try Task.checkCancellation()
+        let offered = pickable.filter { windows[$0.id] != nil }
+        guard let request = await select(frozen, offered) else { return nil }
+        try Task.checkCancellation()
+        return Selection(request: request, frozen: frozen, windows: windows, offered: offered)
+    }
+
+    /// Only the area leaves this call, so the frozen displays are let go before the run starts.
+    private func selectRegion() async throws -> ScrollingCaptureRegion? {
+        guard let picked = try await pick() else { return nil }
+        guard let region = ScrollingCaptureRegion(picked.request, displays: picked.frozen, windows: picked.offered)
+        else { throw ScreenshotRequest.Failure.targetUnavailable }
+        return region
+    }
+
+    /// The island's stop and the stitched height; once Finish is asked it takes no more presses.
+    private func showScrolling(height: Int?) {
+        scrollingHeight = height
+        var onTap: (@MainActor () -> Void)?
+        if scrolling == .capturing { onTap = { [weak self] in self?.finishScrolling() } }
+        context.presenter.setStatus(
+            IslandStatus(id: Self.scrollingID, symbol: "stop.circle", text: height.map(ScrollingCapturePhase.heightText),
+                         label: Self.finishScrollingTitle),
+            for: Self.scrollingID, onTap: onTap)
+    }
+
+    private func finishScrolling() {
+        guard scrolling == .capturing, let scrollingFinish else { return }
+        scrollingFinish.request()
+        scrolling = .finishing
+        context.presenter.setMenuRows([], owner: Self.scrollingID) { _ in }
+        showScrolling(height: scrollingHeight)
+    }
+
+    private func cancelScrolling() {
+        guard scrolling == .capturing else { return }
+        operation = nil
+        session?.cancel()
+        session = nil
+        endScrolling()
+    }
+
+    private func endScrolling() {
+        guard scrolling != .idle else { return }
+        scrolling = .idle
+        scrollingFinish = nil
+        scrollingHeight = nil
+        hideGuide?()
+        hideGuide = nil
+        context.presenter.setStatus(nil, for: Self.scrollingID, onTap: nil)
+        context.presenter.setMenuRows([], owner: Self.scrollingID) { _ in }
     }
 
     private func select(_ frozen: [ScreenshotFrozenDisplay], _ windows: [ScreenshotWindow]) async
@@ -184,24 +293,19 @@ final class ScreenshotsModule: NotchcastModule {
         }
         export = Task {
             do {
-                let data = try await Self.render(document)
+                let data = try await ScreenshotFiles.render(document)
                 try Task.checkCancellation()
                 let notice: IslandNotice
                 if case .copy = outcome {
                     guard system.writeClipboard(data) else { throw ScreenshotRequest.Failure.clipboardFailed }
-                    notice = IslandNotice(
-                        id: "screenshot.copied", symbol: "camera",
-                        text: String(localized: "Copied", table: "NotchcastScreenshots"))
+                    notice = ScreenshotNotices.copied
                 } else {
                     let url = if let chosen {
-                        try await Self.write(data, to: chosen)
+                        try await ScreenshotFiles.write(data, to: chosen)
                     } else {
-                        try await Self.save(data, in: folder(), date: context.now(), timeZone: .current)
+                        try await ScreenshotFiles.save(data, in: folder(), date: context.now(), timeZone: .current)
                     }
-                    let name = url.deletingLastPathComponent().lastPathComponent
-                    notice = IslandNotice(
-                        id: "screenshot.saved", symbol: "camera",
-                        text: String(localized: "Saved to \(name)", table: "NotchcastScreenshots"))
+                    notice = ScreenshotNotices.saved(url)
                 }
                 try Task.checkCancellation()
                 endEditing()
@@ -238,17 +342,22 @@ final class ScreenshotsModule: NotchcastModule {
     }
 
     /// v1's order: the file first, so a failed clipboard write still leaves the picture saved.
-    private func output(_ data: Data) async throws {
+    @discardableResult
+    private func output(_ data: Data) async throws -> URL? {
         let destination = context.defaults.string(forKey: ScreenshotBackupKeys.destination)
             .flatMap(ScreenshotDestination.init(rawValue:)) ?? .clipboard
         var saved: URL?
         if destination != .clipboard {
-            saved = try await Self.save(data, in: folder(), date: context.now(), timeZone: .current)
+            saved = try await ScreenshotFiles.save(data, in: folder(), date: context.now(), timeZone: .current)
         }
-        try Task.checkCancellation()
+        if Task.isCancelled {
+            if let saved { try? FileManager.default.removeItem(at: saved) }
+            throw CancellationError()
+        }
         if destination != .file, !system.writeClipboard(data), saved == nil {
             throw ScreenshotRequest.Failure.clipboardFailed
         }
+        return saved
     }
 
     /// Only the text leaves: the image stays in memory and is never written to disk.
@@ -283,51 +392,5 @@ final class ScreenshotsModule: NotchcastModule {
         context.presenter.post(IslandNotice(
             id: "screenshot.failed", symbol: "camera", text: ScreenshotRequest.failureMessage(error),
             isFailure: true), onTap: nil)
-    }
-
-    @concurrent
-    private static func png(_ image: CGImage, scale: CGFloat) async throws -> Data {
-        do {
-            return try AnnotationRenderer.png(image, scale: scale)
-        } catch {
-            throw ScreenshotRequest.Failure.encodingFailed
-        }
-    }
-
-    @concurrent
-    private static func render(_ document: AnnotationDocument) async throws -> Data {
-        do {
-            return try AnnotationRenderer.png(document.finished())
-        } catch {
-            throw ScreenshotRequest.Failure.encodingFailed
-        }
-    }
-
-    @concurrent
-    private static func decode(_ data: Data) async -> CGImage? {
-        CGImageSourceCreateWithData(data as CFData, nil).flatMap { CGImageSourceCreateImageAtIndex($0, 0, nil) }
-    }
-
-    /// Save As writes where the save panel pointed, which already asked before replacing a file.
-    @concurrent
-    private static func write(_ data: Data, to url: URL) async throws -> URL {
-        try data.write(to: url, options: .atomic)
-        return url
-    }
-
-    @concurrent
-    static func save(_ data: Data, in folder: URL, date: Date, timeZone: TimeZone) async throws -> URL {
-        var collision = 0
-        while true {
-            try Task.checkCancellation()
-            let url = folder.appending(
-                path: ScreenshotFileName.name(date: date, timeZone: timeZone, collision: collision))
-            do {
-                try data.write(to: url, options: .withoutOverwriting)
-                return url
-            } catch CocoaError.fileWriteFileExists {
-                collision += 1
-            }
-        }
     }
 }

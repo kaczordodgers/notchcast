@@ -6,6 +6,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScreenshotSystem.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScreenshotsModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScreenshotOutput.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScrollingCaptureRun.swift
 // notchcast-sources: Tests/NotchcastDictationFixture.swift
 
 import CoreGraphics
@@ -121,7 +123,11 @@ extension ScreenshotSystem {
                 fake.finish = nil
                 fake.signals.fire("close")
             }
-        }
+        },
+        openRegion: { _ in fatalError("nc-Screenshots-module-test covers scrolling capture") },
+        uptime: { 0 },
+        pause: { _ in },
+        showGuide: { _ in {} }
     )
 }
 

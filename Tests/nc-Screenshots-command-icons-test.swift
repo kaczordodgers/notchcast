@@ -3,6 +3,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScreenshotSystem.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScreenshotsModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScreenshotOutput.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Screenshots/Service/ScrollingCaptureRun.swift
 // notchcast-reads: Tinycast/Features/Notchcast/NotchcastCore.swift
 import SwiftUI
 

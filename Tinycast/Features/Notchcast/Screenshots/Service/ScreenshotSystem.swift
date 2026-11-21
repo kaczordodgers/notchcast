@@ -28,4 +28,15 @@ struct ScreenshotSystem: Sendable {
     /// Opens the editor on a capture and its pixels per point; it answers per way out.
     let edit: @MainActor @Sendable (CGImage, CGFloat, @escaping @MainActor (CaptureEditorOutcome) -> Void)
         -> @MainActor () -> Void
+    /// A scrolled area's live picture, prepared once per run; it leaves every window of ours out.
+    let openRegion: @MainActor @Sendable (ScrollingCaptureRegion) async throws -> ScreenshotRegionSource
+    let uptime: @Sendable () -> TimeInterval
+    let pause: @Sendable (TimeInterval) async throws -> Void
+    /// The outline over a scrolled area; the returned closure takes it down.
+    let showGuide: @MainActor @Sendable (ScrollingCaptureRegion) -> @MainActor () -> Void
+}
+
+/// One area's picture on demand; nil when a frame could not be taken.
+struct ScreenshotRegionSource: Sendable {
+    let image: @Sendable () async -> CGImage?
 }

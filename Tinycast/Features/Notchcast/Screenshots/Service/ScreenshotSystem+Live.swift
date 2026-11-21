@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Vorssaint
 // Adapted from Vorssaint 89d2626's capture engine: excluded windows left out, windows front to back.
+// The scrolling region adapted from Vorssaint faada18d's capture engine and recorder filter.
 
 import AppKit
 import ScreenCaptureKit
@@ -53,7 +54,14 @@ extension ScreenshotSystem {
             let surface = ScreenshotSelectionSurface(frozen: frozen, windows: windows, completion: completion)
             return { surface.finish(nil) }
         },
-        edit: { image, scale, finish in CaptureEditorPanel.open(image, scale: scale, finish: finish) }
+        edit: { image, scale, finish in CaptureEditorPanel.open(image, scale: scale, finish: finish) },
+        openRegion: { region in try await openRegion(region) },
+        uptime: { ProcessInfo.processInfo.systemUptime },
+        pause: { seconds in try await Task.sleep(for: .seconds(seconds)) },
+        showGuide: { region in
+            let guide = ScrollingCaptureGuide(region)
+            return { guide.close() }
+        }
     )
 
     private static var configuration: SCScreenshotConfiguration {
@@ -101,8 +109,32 @@ extension ScreenshotSystem {
         return images
     }
 
+    /// Built once per run, since resolving windows per frame loses the overlap; all of our app stays out.
+    @concurrent
+    private static func openRegion(_ region: ScrollingCaptureRegion) async throws -> ScreenshotRegionSource {
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        guard let display = content.displays.first(where: { $0.displayID == region.displayID }) else {
+            throw ScreenshotRequest.Failure.targetUnavailable
+        }
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let ownWindows = content.windows.filter { $0.owningApplication?.processID == pid }
+        guard let app = content.applications.first(where: { $0.processID == pid })
+            ?? ownWindows.compactMap(\.owningApplication).first else {
+            throw ScreenshotRequest.Failure.targetUnavailable
+        }
+        let filter = SCContentFilter(display: display, excludingApplications: [app], exceptingWindows: [])
+        let configuration = configuration
+        configuration.sourceRect = region.rect.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+        configuration.width = Int((region.rect.width * region.scale).rounded())
+        configuration.height = Int((region.rect.height * region.scale).rounded())
+        let capture = RegionCapture(filter: filter, configuration: configuration)
+        return ScreenshotRegionSource { await capture.image() }
+    }
+
     @MainActor private static func captureUIWindowIDs() -> Set<UInt32> {
-        Set(NSApp.windows.compactMap { $0 is ScreenshotSelectionPanel ? UInt32($0.windowNumber) : nil })
+        Set(NSApp.windows.compactMap {
+            $0 is ScreenshotSelectionPanel || $0 is ScrollingCaptureGuidePanel ? UInt32($0.windowNumber) : nil
+        })
     }
 
     /// Read from WindowServer, because AppKit's getter can keep answering none after a change.
@@ -131,5 +163,22 @@ extension ScreenshotSystem {
                                     isShared: sharing != CGWindowSharingType.none.rawValue,
                                     isCaptureUI: captureUI.contains(id))
         }
+    }
+}
+
+/// `SCContentFilter` is not marked Sendable, but nothing changes it after it is built.
+private final class RegionCapture: @unchecked Sendable {
+    private let filter: SCContentFilter
+    private let configuration: SCScreenshotConfiguration
+
+    init(filter: SCContentFilter, configuration: SCScreenshotConfiguration) {
+        self.filter = filter
+        self.configuration = configuration
+    }
+
+    /// Nil when this frame failed; the run then keeps what it joined so far.
+    @concurrent
+    func image() async -> CGImage? {
+        try? await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration).sdrImage
     }
 }

@@ -1,9 +1,10 @@
 // notchcast-addon-order: 90
 // notchcast-readme: Capture: screenshots of an area, window or display,
-// notchcast-readme: Capture: and an editor to mark one up with arrows, shapes, highlights, text, pixelation and a crop before copying, saving or dragging it out
+// notchcast-readme: Capture: an editor to mark one up with arrows, shapes, highlights, text, pixelation and a crop before copying, saving or dragging it out,
+// notchcast-readme: Capture: and a scrolling capture that joins a long page into one tall image
 import SwiftUI
 
-/// Area, window and display screenshots, and their text, from one frozen selection surface.
+/// Area, window, display and scrolling screenshots, and their text, from one frozen selection surface.
 enum ScreenshotsAddon: NotchcastAddon {
     static let switches = [
         NotchcastSwitch(
@@ -35,6 +36,11 @@ enum ScreenshotsAddon: NotchcastAddon {
             symbol: ScreenshotsModule.textSymbol, switchID: ScreenshotsModule.switchID,
             keywords: ["ocr", "copy text", "recognize"]
         ) { $0.module(ScreenshotsModule.self)?.captureText() },
+        NotchcastCommand(
+            slug: "scrolling-capture", name: String(localized: "Scrolling Capture", table: "NotchcastScreenshots"),
+            symbol: "arrow.up.and.down.square", switchID: ScreenshotsModule.switchID,
+            keywords: ["long screenshot", "full page", "scroll", "stitch"]
+        ) { $0.module(ScreenshotsModule.self)?.captureScrolling() },
     ]
 
     static let settings = [
