@@ -65,6 +65,8 @@ nonisolated enum TorrentFileReader {
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [UTType(filenameExtension: "torrent") ?? .data]
+        // Activation is only a request, so at the normal level the panel can open behind Finder.
+        panel.level = .modalPanel
         NSApp.activate()
         return panel.runModal() == .OK ? panel.urls : []
     }

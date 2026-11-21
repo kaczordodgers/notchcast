@@ -195,7 +195,7 @@
     "Fast Downloads with aria2c" : {
 
     },
-    "Include approximate chunk timestamps in Distill transcripts." : {
+    "Approximate, one per chunk." : {
 
     },
     "No Links Waiting for Distill" : {
@@ -268,7 +268,7 @@
         }
       }
     },
-    "Use aria2c for faster media downloads when it is installed." : {
+    "Media downloads only, when aria2c is installed." : {
 
     },
     "Waiting for Distill: %lld" : {

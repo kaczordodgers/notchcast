@@ -48,7 +48,7 @@ private struct NotchcastSwitchRows: View {
     var body: some View {
         Toggle(isOn: Binding(get: { preferences.isOn(item.id) }, set: { preferences.set(item.id, on: $0) })) {
             SettingsRowTitle(anchor, verbatim: item.title)
-            Text(item.subtitle)
+            if !item.subtitle.isEmpty { Text(item.subtitle) }
         }
         .settingsEnabled(dependenciesMet)
         if preferences.isEnabled(item.id), needsAccessibility {
@@ -64,11 +64,20 @@ private struct NotchcastSwitchRows: View {
         if preferences.isEnabled(item.id) {
             ForEach(controller.slots.flatMap { $0.addon.commands }.filter { $0.switchID == item.id }) { command in
                 let shown = preferences.showsInLauncher(command.id)
-                SettingsRow(title: command.name, labelOpacity: shown ? 1 : 0.45) {
+                // Not SettingsRow: its one-line title truncates beside the three controls.
+                NotchcastCommandRow {
+                    Text(command.name)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(minWidth: NotchcastCommandRowLayout.titleMinimum, alignment: .leading)
+                        .opacity(shown ? 1 : 0.45)
+                } trailing: {
+                    EmptyView()
+                } controls: {
                     AliasField(key: command.id, name: command.name)
                     ShortcutRecorder(action: .notchcastCommand(entryID: command.id))
-                    Toggle("Show in launcher", isOn: Binding(
-                        get: { shown }, set: { preferences.setShowsInLauncher(command.id, $0) }))
+                    Toggle(isOn: Binding(get: { shown }, set: { preferences.setShowsInLauncher(command.id, $0) })) {
+                        NotchcastLauncherCheckboxLabel(title: Text("Show in launcher"))
+                    }
                         .toggleStyle(.checkbox)
                         .launcherVisibilityHelp()
                         .accessibilityLabel(

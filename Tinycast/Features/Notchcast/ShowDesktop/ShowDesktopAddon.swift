@@ -9,9 +9,7 @@ enum ShowDesktopAddon: NotchcastAddon {
         NotchcastSwitch(
             id: "showDesktop",
             title: String(localized: "Show Desktop with F3", table: "NotchcastShowDesktop"),
-            subtitle: String(
-                localized: "Press F3 to show the desktop; press again to restore windows.",
-                table: "NotchcastShowDesktop"),
+            subtitle: String(localized: "Press again to restore windows.", table: "NotchcastShowDesktop"),
             category: .keyboardMouse,
             defaultEnabled: true,
             requiredGrants: [.accessibility]

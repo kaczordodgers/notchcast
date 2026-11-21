@@ -5,7 +5,6 @@
     "Couldn't resume %@." : {},
     "Couldn't Stop Apple Music Opening" : {},
     "Play key resumes the last player" : {},
-    "Prevent media keys from launching Apple Music." : {},
     "Stop Apple Music opening on media keys" : {},
     "When nothing is playing, the play key resumes Spotify if you played it last." : {}
   },

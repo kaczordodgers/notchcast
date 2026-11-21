@@ -93,7 +93,7 @@ struct DownloadsModuleTest {
             "downloadsUseIPhone",
         ], "v1 raw ids stay; #1183: one iPhone switch, last")
         expect(switches.allSatisfy { !$0.defaultEnabled && $0.category == .filesDownloads && $0.requiredGrants.isEmpty },
-               "every switch starts off in Files & Downloads")
+               "every switch starts off in Downloads")
         expect(switches.map(\.dependencies) == [
             [], ["downloads"], [], ["distill"], [], ["torrents"], [],
         ], "aria2 needs Downloads, Timestamps needs Distill, keep-sharing needs Torrents, bonding serves either")

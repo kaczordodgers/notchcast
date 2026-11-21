@@ -62,29 +62,33 @@ private struct ScriptCommandRow: View {
         row.title.isEmpty ? String(localized: "Untitled", table: "NotchcastScriptCommands") : row.title
     }
 
+    // Not SettingsRow: its one-line title truncates beside the row's controls.
     var body: some View {
         let shown = preferences.showsInLauncher(entryID)
-        SettingsRow(title: name, subtitle: row.script.isEmpty ? nil : row.script) {
-            Image(systemName: ScriptCommandsModule.symbol)
+        NotchcastCommandRow {
+            HStack(spacing: Theme.Spacing.lg) {
+                Image(systemName: ScriptCommandsModule.symbol)
+                    .fixedSize()
+                VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
+                    Text(name)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if !row.script.isEmpty {
+                        Text(row.script)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(row.script)
+                    }
+                }
+                .frame(minWidth: NotchcastCommandRowLayout.titleMinimum, alignment: .leading)
+            }
         } trailing: {
             if module.running.contains(row.id) {
                 ProgressView()
                     .controlSize(.small)
                     .accessibilityLabel(String(localized: "\(name) is running", table: "NotchcastScriptCommands"))
             }
-            Group {
-                AliasField(key: entryID, name: name)
-                    .settingsEnabled(shown)
-                ShortcutRecorder(action: .notchcastCommand(entryID: entryID))
-                Toggle(isOn: Binding(get: { shown }, set: { preferences.setShowsInLauncher(entryID, $0) })) {
-                    Text("Show in launcher", tableName: "NotchcastScriptCommands")
-                }
-                .labelsHidden()
-                .toggleStyle(.checkbox)
-                .launcherVisibilityHelp()
-                .accessibilityLabel(String(localized: "Show \(name) in the launcher", table: "NotchcastScriptCommands"))
-            }
-            .settingsEnabled(row.isRunnable)
             Button(action: onEdit) {
                 Image(systemName: isEditing ? "chevron.up" : "pencil")
             }
@@ -96,6 +100,19 @@ private struct ScriptCommandRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(String(localized: "Delete \(name)", table: "NotchcastScriptCommands"))
+        } controls: {
+            Group {
+                AliasField(key: entryID, name: name)
+                    .settingsEnabled(shown)
+                ShortcutRecorder(action: .notchcastCommand(entryID: entryID))
+                Toggle(isOn: Binding(get: { shown }, set: { preferences.setShowsInLauncher(entryID, $0) })) {
+                    NotchcastLauncherCheckboxLabel(title: Text("Show in launcher", tableName: "NotchcastScriptCommands"))
+                }
+                .toggleStyle(.checkbox)
+                .launcherVisibilityHelp()
+                .accessibilityLabel(String(localized: "Show \(name) in the launcher", table: "NotchcastScriptCommands"))
+            }
+            .settingsEnabled(row.isRunnable)
         }
     }
 }

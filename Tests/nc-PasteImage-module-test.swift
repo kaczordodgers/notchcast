@@ -164,7 +164,7 @@ enum PasteImageModuleTests {
         let switchInfo = PasteImageAddon.switches
         precondition(switchInfo.map(\.id) == ["pasteImage"], "v1 switch id")
         precondition(switchInfo[0].defaultEnabled == false, "off by default")
-        precondition(switchInfo[0].category == .filesDownloads, "Files & Downloads")
+        precondition(switchInfo[0].category == .filesDownloads, "Downloads")
         precondition(switchInfo[0].requiredGrants == [.accessibility], "key handling needs Accessibility")
 
         fake.reset()

@@ -32,6 +32,8 @@ final class FakeSystem {
     var writes: [Policy.Write] = []
     var failingWrites = 0
     var failureMutates = false
+    var reads = 0
+    var failOnRead: Int?
     var readFails = false
     var failingReadBacks = 0
     var filesUnreadable = false
@@ -56,7 +58,8 @@ func plantJournal(_ data: Data) {
 extension IPhoneBackupSystem {
     static let live = IPhoneBackupSystem(
         read: {
-            if fake.readFails { throw ReadFailed() }
+            fake.reads += 1
+            if fake.readFails || fake.reads == fake.failOnRead { throw ReadFailed() }
             return fake.value
         },
         write: { write in
@@ -166,6 +169,8 @@ func reset(_ value: Policy.Value?) {
     fake.writes = []
     fake.failingWrites = 0
     fake.failureMutates = false
+    fake.reads = 0
+    fake.failOnRead = nil
     fake.readFails = false
     fake.failingReadBacks = 0
     fake.filesUnreadable = false
@@ -538,6 +543,42 @@ enum IPhoneBackupModuleTests {
             precondition(!rig.isOn && fake.value == .bool(false) && rig.journal.isEmpty, "launch restores the pending capture")
             rig.finish()
         }
+
+        for captured in [false, true] {
+            reset(.bool(false))
+            let leftOn = "nc-IPhoneBackup-test.\(UUID())"
+            UserDefaults(suiteName: leftOn)!.set(true, forKey: IPhoneBackupAddon.switchID)
+            if captured { plantJournal(Data(v1Journal.utf8)) }
+            fake.failOnRead = 2
+            rig = Rig(suite: leftOn)
+            precondition(fake.reads == 1, "stale switch recovery uses only the first system read")
+            precondition(!rig.isOn && !rig.hasModule, "left on, not applied: the switch is off at launch")
+            precondition(fake.writes.isEmpty && rig.presenter.posts.isEmpty, "turned off quietly, nothing written")
+            precondition(rig.journal.isEmpty && journalOnDisk() == nil, "a capture the system no longer holds goes")
+            rig.finish()
+        }
+
+        reset(.bool(true))
+        let unreadable = "nc-IPhoneBackup-test.\(UUID())"
+        UserDefaults(suiteName: unreadable)!.set(true, forKey: IPhoneBackupAddon.switchID)
+        let captured = Data(v1Journal.utf8)
+        plantJournal(captured)
+        fake.failOnRead = 1
+        rig = Rig(suite: unreadable)
+        precondition(rig.isOn && fake.writes.isEmpty, "a failed read at launch decides nothing")
+        precondition(journalOnDisk() == captured, "a failed first read keeps the journal")
+        rig.finish()
+
+        // A corrupt journal at launch keeps the switch as it was and the journal's bytes.
+        reset(.bool(false))
+        let corrupt = "nc-IPhoneBackup-test.\(UUID())"
+        UserDefaults(suiteName: corrupt)!.set(true, forKey: IPhoneBackupAddon.switchID)
+        let garbage = Data("not a journal".utf8)
+        plantJournal(garbage)
+        rig = Rig(suite: corrupt)
+        precondition(rig.isOn && fake.writes.isEmpty, "a corrupt journal at launch decides nothing")
+        precondition(journalOnDisk() == garbage, "a corrupt journal at launch is kept")
+        rig.finish()
 
         // A v1 journal of the wrong type is corrupt, not absent: nothing is written, the value is kept.
         reset(.bool(false))

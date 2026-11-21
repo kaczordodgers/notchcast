@@ -12,8 +12,11 @@ final class IPhoneBackupRecovery: NotchcastModule {
     }
 
     func start() {
-        guard !context.isEnabled(IPhoneBackupAddon.switchID) else { return }
-        store.restore(bounceOnFailure: false)
+        if context.isEnabled(IPhoneBackupAddon.switchID) {
+            store.dropUnanswered()
+        } else {
+            store.restore(bounceOnFailure: false)
+        }
     }
 
     func stop() {}

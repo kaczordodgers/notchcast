@@ -25,7 +25,6 @@ struct ScreenshotsSettingsView: View {
         } label: {
             SettingsRowTitle(
                 Self.anchor, LocalizedStringResource("Screenshot destination", table: "NotchcastScreenshots"))
-            Text("Where a new screenshot goes.", tableName: "NotchcastScreenshots")
         }
         LabeledContent {
             Button(action: chooseFolder) {

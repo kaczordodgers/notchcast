@@ -10,7 +10,7 @@ enum MusicBlockAddon: NotchcastAddon {
         NotchcastSwitch(
             id: "musicBlockAppleMusic",
             title: String(localized: "Stop Apple Music opening on media keys", table: "NotchcastMusicBlock"),
-            subtitle: String(localized: "Prevent media keys from launching Apple Music.", table: "NotchcastMusicBlock"),
+            subtitle: "",
             category: .music, defaultEnabled: true, requiredGrants: [.accessibility]),
         NotchcastSwitch(
             id: "musicBlockResumeLastPlayer",

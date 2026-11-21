@@ -20,8 +20,7 @@ enum DownloadsAddon: NotchcastAddon {
         NotchcastSwitch(
             id: "downloadsAria2",
             title: String(localized: "Fast Downloads with aria2c", table: "NotchcastDownloads"),
-            subtitle: String(
-                localized: "Use aria2c for faster media downloads when it is installed.", table: "NotchcastDownloads"),
+            subtitle: String(localized: "Media downloads only, when aria2c is installed.", table: "NotchcastDownloads"),
             category: .filesDownloads, dependencies: ["downloads"]),
         NotchcastSwitch(
             id: "distill",
@@ -32,8 +31,7 @@ enum DownloadsAddon: NotchcastAddon {
         NotchcastSwitch(
             id: "distillTimestamps",
             title: String(localized: "Distill Timestamps", table: "NotchcastDownloads"),
-            subtitle: String(
-                localized: "Include approximate chunk timestamps in Distill transcripts.", table: "NotchcastDownloads"),
+            subtitle: String(localized: "Approximate, one per chunk.", table: "NotchcastDownloads"),
             category: .filesDownloads, dependencies: ["distill"]),
         NotchcastSwitch(
             id: "torrents",

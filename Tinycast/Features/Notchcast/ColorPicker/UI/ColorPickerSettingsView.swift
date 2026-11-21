@@ -20,7 +20,6 @@ struct ColorPickerSettingsView: View {
             Text(verbatim: "SwiftUI Color()").tag(ColorPickerFormat.swiftUI)
         } label: {
             SettingsRowTitle(Self.anchor, LocalizedStringResource("Color format", table: "NotchcastColorPicker"))
-            Text("How a picked color is copied.", tableName: "NotchcastColorPicker")
         }
         let colors = ColorPickerHistory.colors(recent)
         if !colors.isEmpty {
@@ -28,7 +27,6 @@ struct ColorPickerSettingsView: View {
                 EmptyView()
             } label: {
                 SettingsRowTitle(Self.anchor, LocalizedStringResource("Recent picks", table: "NotchcastColorPicker"))
-                Text("Copy one again in the chosen format.", tableName: "NotchcastColorPicker")
             }
         }
         ForEach(Array(colors.enumerated()), id: \.offset) { _, color in

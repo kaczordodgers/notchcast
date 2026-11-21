@@ -4,9 +4,6 @@
     "A faint line around the open island in Dark." : {
 
     },
-    "A notch always decides where the island sits." : {
-
-    },
     "Add to Liked Songs" : {
 
     },
@@ -90,9 +87,6 @@
     },
     "Every saved dictation goes. This can't be undone." : {
 
-    },
-    "Files & Downloads" : {
-      "shouldTranslate" : false
     },
     "Fix punctuation, numbers and filler words before pasting. Return pastes it as spoken." : {
 
@@ -197,9 +191,6 @@
 
     },
     "Reset to Default" : {
-
-    },
-    "Resting the pointer on the island opens what it shows." : {
 
     },
     "Search past dictations…" : {

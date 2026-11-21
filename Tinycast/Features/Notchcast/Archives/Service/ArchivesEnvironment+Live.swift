@@ -53,6 +53,8 @@ extension ArchivesEnvironment {
         panel.canChooseDirectories = false
         panel.treatsFilePackagesAsDirectories = false
         panel.prompt = String(localized: "Extract", table: "NotchcastArchives")
+        // Activation is only a request, so at the normal level the panel can open behind Finder.
+        panel.level = .modalPanel
         NSApp.activate()
         return panel.runModal() == .OK ? panel.urls : []
     }
