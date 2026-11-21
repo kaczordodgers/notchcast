@@ -7,6 +7,10 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
+      hosted_linux:
+        description: Run Linux checks on GitHub-hosted runners
+        type: boolean
+        default: false
       base:
         description: Base commit the checks compare against, as a PR's base (notchcast/train.sh)
         default: ''
@@ -40,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
+      linux-runner: ${{ steps.linux.outputs.runs-on }}
       build: ${{ steps.lanes.outputs.build }}
       scripts: ${{ steps.lanes.outputs.scripts }}
       harness-planned: ${{ steps.select.outputs.planned }}
@@ -47,6 +52,19 @@ jobs:
       harness-unsure: ${{ steps.select.outputs.unsure }}
       harness-only: ${{ steps.select.outputs.only }}
     steps:
+      - name: Linux runner availability
+        id: linux
+        env:
+          POOL_FREE: ${{ vars.POOL_FREE_LINUX }}
+          FORCE_HOSTED: ${{ inputs.hosted_linux }}
+        shell: bash
+        run: |
+          runner=ubuntu-latest
+          if [[ "$FORCE_HOSTED" != true && "$POOL_FREE" =~ ^([1-9][0-9]{0,8})[[:blank:]]([0-9]{10})$ ]]; then
+            age=$(( $(date +%s) - 10#${BASH_REMATCH[2]} ))
+            if (( age >= 0 && age < 180 )); then runner=linux-pool; fi
+          fi
+          echo "runs-on=$runner" >> "$GITHUB_OUTPUT"
       # train.sh reads a train's PR run by its conclusion alone, and a harness-only run builds nothing.
       - name: A harness-only run is never a train's
         if: inputs.harness_runner != '' && startsWith(github.ref, 'refs/heads/train/')
@@ -205,13 +223,22 @@ jobs:
   linux-checks:
     needs: route
     if: needs.route.outputs.build == 'true' && inputs.harness_runner == ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: ./.github/actions/linux-python
       - name: Checks that need no Mac
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base }}
@@ -221,50 +248,81 @@ jobs:
   script-tests:
     needs: route
     if: needs.route.outputs.scripts == 'true' && inputs.harness_runner == ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-24.04' }}
     timeout-minutes: 10
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Install pinned jq
+        shell: bash
+        run: |
+          curl -fsSL https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64 -o "$RUNNER_TEMP/jq"
+          echo "020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d  $RUNNER_TEMP/jq" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/jq"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: ./.github/actions/linux-python
+      - uses: ./.github/actions/linux-node
+        with:
+          version: '24.22.3'
+          sha256: 4f2b175a6d53a5c617a80dba2676238a0688cef28c6da4eba35c7d844e66fcfb
+      - uses: ./.github/actions/linux-swift
+      - name: Install pinned Ruby
+        shell: bash
+        env:
+          RUBY_VERSION: '4.0.10'
+          RUBY_SHA256: ca54d2d9204f9f9724f7aa1620b30538723da3a9365d9195951b82fa6765fd4e
+        run: |
+          archive="$RUNNER_TEMP/ruby.tar.gz"
+          curl -fsSL "https://github.com/jdx/ruby/releases/download/$RUBY_VERSION/ruby-$RUBY_VERSION.x86_64_linux.tar.gz" -o "$archive"
+          printf '%s  %s\n' "$RUBY_SHA256" "$archive" | sha256sum --check
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          ruby_bin="$RUNNER_TEMP/ruby-$RUBY_VERSION/bin"
+          "$ruby_bin/ruby" --version
+          echo "$ruby_bin" >> "$GITHUB_PATH"
+      - name: Install pinned Gitleaks
+        shell: bash
+        env:
+          VERSION: 8.30.1
+          SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          archive="$RUNNER_TEMP/gitleaks.tgz"
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" -o "$archive"
+          printf '%s  %s\n' "$SHA256" "$archive" | sha256sum --check
+          tar -xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" version
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
       - name: Script tests
         run: python3 notchcast/script-tests.py --all --runner linux
   # mac also runs the selected Linux-compatible harnesses against the macOS SDK.
   linux-harnesses:
     needs: route
     if: needs.route.outputs.build == 'true' && inputs.harness_runner == ''
-    runs-on: ubuntu-24.04
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-24.04' }}
     timeout-minutes: 15
-    env:
-      SWIFT_VERSION: '6.4.2'
-      SWIFT_SHA256: 2e9ebec040ad459dd89a6d093a02d8314939135104850fae4d5c0f174fb3ba8c
     steps:
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        id: swift
-        with:
-          path: ${{ runner.temp }}/swift.tar.gz
-          key: swift-ubuntu24.04-${{ runner.arch }}-${{ env.SWIFT_VERSION }}-${{ env.SWIFT_SHA256 }}
-      - name: Install the pinned Swift toolchain
-        env:
-          CACHE_HIT: ${{ steps.swift.outputs.cache-hit }}
+      - name: Prepare clean Linux workspace
+        shell: bash
         run: |
-          archive="$RUNNER_TEMP/swift.tar.gz"
-          release="swift-$SWIFT_VERSION-RELEASE"
-          if [ "$CACHE_HIT" != true ]; then
-            curl --fail --silent --show-error --location \
-              "https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404/$release/$release-ubuntu24.04.tar.gz" \
-              --output "$archive"
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
           fi
-          printf '%s  %s\n' "$SWIFT_SHA256" "$archive" | sha256sum --check
-          tar --use-compress-program=pigz -xf "$archive" -C "$RUNNER_TEMP"
-          swift_bin="$RUNNER_TEMP/$release-ubuntu24.04/usr/bin"
-          "$swift_bin/swiftc" --version
-          echo "$swift_bin" >> "$GITHUB_PATH"
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: ./.github/actions/linux-swift
       # An unsure or missing selection runs every linux-ok harness; run-tests.sh names the mac-only ones it skips.
       - name: Linux-ok harnesses the diff needs
         env:
@@ -278,9 +336,17 @@ jobs:
   build:
     needs: [route, mac, linux-checks, linux-harnesses, script-tests]
     if: ${{ !cancelled() && inputs.harness_runner == '' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: A train run names its base
         if: startsWith(github.ref, 'refs/heads/train/') && inputs.base == ''
         run: |
@@ -311,6 +377,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - uses: ./.github/actions/linux-python
       # check-config reads every notchcast/ file, docs too; linux-checks runs it when the build lane does.
       - name: Config literals
         if: needs.route.outputs.build != 'true'

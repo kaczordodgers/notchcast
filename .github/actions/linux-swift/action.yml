@@ -1,0 +1,37 @@
+name: Install pinned Linux Swift
+description: Verify and extract the same Swift archive for Linux harnesses and script tests.
+runs:
+  using: composite
+  steps:
+    - id: pin
+      shell: bash
+      run: |
+        echo 'version=6.4.2' >> "$GITHUB_OUTPUT"
+        echo 'sha256=2e9ebec040ad459dd89a6d093a02d8314939135104850fae4d5c0f174fb3ba8c' >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      id: swift
+      with:
+        path: ${{ runner.temp }}/swift.tar.gz
+        key: swift-ubuntu24.04-${{ runner.arch }}-${{ steps.pin.outputs.version }}-${{ steps.pin.outputs.sha256 }}
+    - name: Install the pinned Swift toolchain
+      shell: bash
+      env:
+        SWIFT_VERSION: ${{ steps.pin.outputs.version }}
+        SWIFT_SHA256: ${{ steps.pin.outputs.sha256 }}
+        CACHE_HIT: ${{ steps.swift.outputs.cache-hit }}
+      run: |
+        archive="$RUNNER_TEMP/swift.tar.gz"
+        release="swift-$SWIFT_VERSION-RELEASE"
+        if [ "$CACHE_HIT" != true ]; then
+          curl --fail --silent --show-error --location \
+            "https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404/$release/$release-ubuntu24.04.tar.gz" \
+            --output "$archive"
+        fi
+        printf '%s  %s\n' "$SWIFT_SHA256" "$archive" | sha256sum --check
+        curl -fsSL https://archive.ubuntu.com/ubuntu/pool/universe/p/pigz/pigz_2.8-1_amd64.deb -o "$RUNNER_TEMP/pigz.deb"
+        echo "9c90b8ada9e9c346b787aa7e827c1f70c4a8933ee322171689f2a0311e3f7b5e  $RUNNER_TEMP/pigz.deb" | sha256sum -c -
+        dpkg-deb -x "$RUNNER_TEMP/pigz.deb" "$RUNNER_TEMP/pigz"
+        tar --use-compress-program="$RUNNER_TEMP/pigz/usr/bin/pigz" -xf "$archive" -C "$RUNNER_TEMP"
+        swift_bin="$RUNNER_TEMP/$release-ubuntu24.04/usr/bin"
+        "$swift_bin/swiftc" --version
+        echo "$swift_bin" >> "$GITHUB_PATH"

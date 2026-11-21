@@ -4,6 +4,10 @@ name: Delete check
 on:
   workflow_dispatch:
     inputs:
+      hosted_linux:
+        description: Run Linux checks on GitHub-hosted runners
+        type: boolean
+        default: false
       ref:
         description: Commit or branch whose add-on folders are deleted one at a time
         required: true
@@ -16,16 +20,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  plan:
+  route:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      linux-runner: ${{ steps.linux.outputs.runs-on }}
+    steps:
+      - name: Linux runner availability
+        id: linux
+        env:
+          POOL_FREE: ${{ vars.POOL_FREE_LINUX }}
+          FORCE_HOSTED: ${{ inputs.hosted_linux }}
+        shell: bash
+        run: |
+          runner=ubuntu-latest
+          if [[ "$FORCE_HOSTED" != true && "$POOL_FREE" =~ ^([1-9][0-9]{0,8})[[:blank:]]([0-9]{10})$ ]]; then
+            age=$(( $(date +%s) - 10#${BASH_REMATCH[2]} ))
+            if (( age >= 0 && age < 180 )); then runner=linux-pool; fi
+          fi
+          echo "runs-on=$runner" >> "$GITHUB_OUTPUT"
+  plan:
+    needs: route
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-latest' }}
     timeout-minutes: 10
     outputs:
       sha: ${{ steps.list.outputs.sha }}
       folders: ${{ steps.list.outputs.folders }}
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Install pinned jq
+        shell: bash
+        run: |
+          curl -fsSL https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64 -o "$RUNNER_TEMP/jq"
+          echo "020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d  $RUNNER_TEMP/jq" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/jq"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - uses: ./.github/actions/linux-python
       - id: list
         env:
           REF: ${{ inputs.ref }}
@@ -88,15 +128,30 @@ jobs:
           path: ${{ env.DELETE_LOGS }}/*.log
           if-no-files-found: ignore
   summary:
-    needs: [plan, delete]
+    needs: [route, plan, delete]
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Install pinned jq
+        shell: bash
+        run: |
+          curl -fsSL https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64 -o "$RUNNER_TEMP/jq"
+          echo "020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d  $RUNNER_TEMP/jq" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/jq"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: results
-          path: results
+          path: ${{ runner.temp }}/results
       - env:
           SHA: ${{ needs.plan.outputs.sha }}
           FOLDERS: ${{ needs.plan.outputs.folders }}
@@ -111,7 +166,7 @@ jobs:
             echo "| Folder | Result | Line |"
             echo "| --- | --- | --- |"
             for folder in $(jq -r '.[]' <<< "$FOLDERS"); do
-              file="results/$folder.tsv"
+              file="$RUNNER_TEMP/results/$folder.tsv"
               if [ -f "$file" ]; then IFS=$'\t' read -r _ code line < "$file"; else code=none line='no result: the job stopped before this folder finished'; fi
               case "$code" in 0) result=PASS ;; 1) result='FAIL breach' ;; *) result='FAIL tooling' ;; esac
               echo "| $folder | $result | ${line//|/\\|} |"

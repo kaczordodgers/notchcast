@@ -4,6 +4,10 @@ name: Main harnesses
 on:
   workflow_dispatch:
     inputs:
+      hosted_linux:
+        description: Run Linux checks on GitHub-hosted runners
+        type: boolean
+        default: false
       all:
         description: Run every harness, not only the ones the branch changed (load test)
         type: boolean
@@ -26,18 +30,47 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      linux-runner: ${{ steps.linux.outputs.runs-on }}
+    steps:
+      - name: Linux runner availability
+        id: linux
+        env:
+          POOL_FREE: ${{ vars.POOL_FREE_LINUX }}
+          FORCE_HOSTED: ${{ inputs.hosted_linux }}
+        shell: bash
+        run: |
+          runner=ubuntu-latest
+          if [[ "$FORCE_HOSTED" != true && "$POOL_FREE" =~ ^([1-9][0-9]{0,8})[[:blank:]]([0-9]{10})$ ]]; then
+            age=$(( $(date +%s) - 10#${BASH_REMATCH[2]} ))
+            if (( age >= 0 && age < 180 )); then runner=linux-pool; fi
+          fi
+          echo "runs-on=$runner" >> "$GITHUB_OUTPUT"
   # On Linux, so a macOS runner is spent only on shards that have harnesses to run.
   plan:
-    runs-on: ubuntu-latest
+    needs: route
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-latest' }}
     timeout-minutes: 10
     outputs:
       tests: ${{ steps.shards.outputs.tests }}
       shards: ${{ steps.shards.outputs.shards }}
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: ./.github/actions/linux-python
       - name: Changed harnesses
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.all) }}
         run: |

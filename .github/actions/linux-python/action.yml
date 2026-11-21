@@ -1,0 +1,13 @@
+name: Install pinned Linux Python
+description: Match the hosted Python version on fresh runners and the shared Linux pool.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        archive="$RUNNER_TEMP/python.tar.gz"
+        curl -fsSL https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.14.4%2B20260414-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz -o "$archive"
+        echo "fe9a9c32d13870af632cbac3dfc7528ae53597e94472aa4c7d6a42e8166136cd  $archive" | sha256sum -c -
+        tar -xzf "$archive" -C "$RUNNER_TEMP"
+        "$RUNNER_TEMP/python/bin/python3" --version
+        echo "$RUNNER_TEMP/python/bin" >> "$GITHUB_PATH"

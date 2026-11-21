@@ -7,6 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      hosted_linux:
+        description: Run Linux checks on GitHub-hosted runners
+        type: boolean
+        default: false
       base:
         description: Base commit the checks compare against, as a PR's base (notchcast/train.sh)
         default: ''
@@ -19,10 +23,38 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
 
 jobs:
-  leaks:
+  route:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      linux-runner: ${{ steps.linux.outputs.runs-on }}
+    steps:
+      - name: Linux runner availability
+        id: linux
+        env:
+          POOL_FREE: ${{ vars.POOL_FREE_LINUX }}
+          FORCE_HOSTED: ${{ inputs.hosted_linux }}
+        shell: bash
+        run: |
+          runner=ubuntu-latest
+          if [[ "$FORCE_HOSTED" != true && "$POOL_FREE" =~ ^([1-9][0-9]{0,8})[[:blank:]]([0-9]{10})$ ]]; then
+            age=$(( $(date +%s) - 10#${BASH_REMATCH[2]} ))
+            if (( age >= 0 && age < 180 )); then runner=linux-pool; fi
+          fi
+          echo "runs-on=$runner" >> "$GITHUB_OUTPUT"
+  leaks:
+    needs: route
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.route.outputs.linux-runner == 'linux-pool' && 'linux-pool' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
+      - name: Prepare clean Linux workspace
+        shell: bash
+        run: |
+          if [[ "$RUNNER_ENVIRONMENT" == self-hosted ]]; then
+            find "${GITHUB_WORKSPACE:?}" -mindepth 1 -delete
+          fi
+          mkdir -p "$RUNNER_TEMP/home"
+          printf 'HOME=%s/home\nTMPDIR=%s\nnpm_config_cache=%s/npm\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: A train run names its base
         if: startsWith(github.ref, 'refs/heads/train/') && inputs.base == ''
         run: |
@@ -32,6 +64,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: ./.github/actions/linux-python
       # Our commits only: upstream's history is upstream's.
       - name: Our commits
         run: |

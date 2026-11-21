@@ -135,7 +135,14 @@ test_jobs = TEST_BUILD.fetch('jobs')
 assert(test_jobs.fetch('plan')['if'] == "github.ref == 'refs/heads/main'", 'test-build must run only from main')
 assert(test_jobs.fetch('build')['if'] == "needs.plan.outputs.build == 'true'", 'test-build builds only what lanes.py says')
 assert(test_jobs.fetch('build').fetch('steps').none? { |step| step.to_s.include?('secrets.') }, 'test-build build holds no secret')
-artifact = test_jobs.fetch('sign').fetch('steps').last
+build_steps = test_jobs.fetch('build').fetch('steps')
+verify_step = build_steps.first
+assert(verify_step.fetch('name') == 'Verify the PR before building for signing', 'verify the planned PR before checkout')
+sign_steps = test_jobs.fetch('sign').fetch('steps')
+[build_steps.find { |step| step.dig('with', 'path') == 'tools' }, sign_steps.first].each do |step|
+  assert(step.dig('with', 'ref') == '${{ github.sha }}', 'the planner may not choose signing or build tools')
+end
+artifact = sign_steps.last
 assert(artifact.dig('with', 'name') == 'test-build' && artifact.dig('with', 'path') == 'dist/*.zip' &&
        artifact.dig('with', 'retention-days') == 3, 'test-build keeps only the zip, for 3 days')
 plan_step = test_jobs.fetch('plan').fetch('steps').find { |step| step['id'] == 'plan' }
@@ -155,7 +162,6 @@ Dir.mktmpdir('test-build-plan-') do |directory|
     #!/bin/bash
     case "$1 $2" in
       'rev-parse FETCH_HEAD') echo "$FETCHED" ;;
-      'rev-parse HEAD') echo 1111111111111111111111111111111111111111 ;;
       merge-base*) echo 2222222222222222222222222222222222222222 ;;
     esac
   SH
@@ -184,6 +190,19 @@ Dir.mktmpdir('test-build-plan-') do |directory|
     assert(ok || written.empty?, "test-build plan, #{name}: a refusal must plan nothing")
     assert(!written.match?(/version=.*[.]snapshot[.]/), 'a test build version must never look like a snapshot')
     puts "PASS test-build plan: #{name}"
+  end
+  File.write(script, verify_step.fetch('run'))
+  version = '0.12.7.pr7.abcdef01'
+  [['still open at the planned commit', pr.(), head, version, true],
+   ['closed after planning', pr.(state: 'CLOSED'), head, version, false],
+   ['fork reported by GitHub', pr.(cross: true), head, version, false],
+   ['different commit from GitHub', pr.(), '0' * 40, '0.12.7.pr7.00000000', false],
+   ['unexpected version', pr.(), head, '0.12.7.pr9.abcdef01', false]].each do |name, json, sha, planned_version, ok|
+    env = {'PATH' => "#{directory}/bin:#{ENV.fetch('PATH')}", 'PR' => '7', 'PR_JSON' => json,
+           'HEAD' => sha, 'VERSION' => planned_version, 'GITHUB_REPOSITORY' => 'owner/repo'}
+    output, status = Open3.capture2e(env, 'bash', '-eo', 'pipefail', script, chdir: directory)
+    assert(status.success? == ok, "test-build verification, #{name}: #{output}")
+    puts "PASS test-build verification: #{name}"
   end
 end
 puts 'release action: PASS'
