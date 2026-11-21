@@ -72,7 +72,7 @@ final class NotchcastGlobeTrigger {
             } else {
                 run(detector.interrupted())
             }
-        // macOS follows a bare Globe release with key-down 179; Return and Escape belong to the panel.
+        // macOS follows a bare Globe release with key-down 179; Return and Escape go to the hold.
         case .keyDown where [179, kVK_Return, kVK_ANSI_KeypadEnter, kVK_Escape].contains(Int(event.keyCode)):
             break
         default:

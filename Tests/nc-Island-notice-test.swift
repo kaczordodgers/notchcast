@@ -219,7 +219,7 @@ struct IslandNoticeTest {
         keyLease()
     }
 
-    /// #960: a forgotten `holdKeys(nil)` ends with the notice the hold was taken under.
+    /// #960: a forgotten `releaseKeys()` ends with the notice the hold was taken under.
     private static func keyLease() {
         var queue = IslandNoticeQueue()
         var lease = IslandKeyLease()

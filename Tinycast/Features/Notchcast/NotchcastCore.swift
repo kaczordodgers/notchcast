@@ -9,6 +9,7 @@ final class NotchcastCore {
     private var trustMonitor: NotchcastTrustMonitor?
     private var launcherHides: NotchcastLauncherHides?
     private var globeTrigger: NotchcastGlobeTrigger?
+    private let dictationIsland = DictationIslandCoordinator()
 
     init(core: AppCore, addons: [any NotchcastAddon.Type] = NotchcastRegistry.addons) {
         let bundleID = Bundle.main.bundleIdentifier ?? "Notchcast"
@@ -80,6 +81,10 @@ final class NotchcastCore {
             visibility: core.visibility, preferences: controller.preferences, commandIDs: Set(commands.map(\.id)))
         trustMonitor = NotchcastTrustMonitor(hub: hub)
         globeTrigger = NotchcastGlobeTrigger(core: core, hub: hub)
+        let typingDisplay = TypingDisplayReader()
+        dictationIsland.start(core: core, captureDisplay: { [weak dictation = core.dictationCoordinator] in
+            typingDisplay.capture(dictation?.target)
+        }, typingDisplay: typingDisplay.display)
         if let seed = DictationFirstModel.seed(
             stored: UserDefaults.standard.string(forKey: AppSettingsKey.dictationModel.rawValue)),
             let model = DictationModel(rawValue: seed) { core.settings.dictationModel = model }

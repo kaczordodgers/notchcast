@@ -1,2 +1,3 @@
 Core: Model/NotchcastLinkCleaner.swift ← vorssaint/vorssaint-utils@89d2626/Sources/Vorssaint/Core/URLCleaning.swift (GPL-3.0-or-later)
 Core: Service/NotchcastProcesses.swift ← vorssaint/vorssaint-utils@89d2626/Sources/Vorssaint/Services/SystemMonitor/ProcessUsageService.swift (GPL-3.0-or-later)
+Core: Model/TypingDisplay.swift and TypingDisplayReader.swift ← vorssaint/vorssaint-utils@9075c626/Sources/Vorssaint/Services/Switcher/{SwitcherSupport,WindowEnumerator}.swift (GPL-3.0-or-later)

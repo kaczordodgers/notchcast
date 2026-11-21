@@ -54,19 +54,28 @@ struct IslandPresenterTest {
         precondition(island.calls.count == 11)
 
         var held: [IslandHeldKey] = []
-        island.holdKeys { held.append($0) }
+        island.holdKeys(for: sync.id, onFocus: { precondition($0) }) { held.append($0) }
         island.press(.accept)
         island.press(.cancel)
-        island.holdKeys(nil)
+        island.releaseKeys()
         island.press(.accept)
         precondition(island.calls.suffix(2) == [.holdKeys(true), .holdKeys(false)] && held == [.accept, .cancel],
                      "holdKeys is recorded, its handler hears the keys, and nil lets them go")
         precondition(IslandHeldKey(keyCode: 36) == .accept && IslandHeldKey(keyCode: 76) == .accept
                      && IslandHeldKey(keyCode: 53) == .cancel && IslandHeldKey(keyCode: 49) == nil,
                      "Return and keypad Enter accept, Escape cancels, any other key is not held")
+        island.place(notice: sync.id, on: 2)
+        island.post(sync, onTap: nil)
+        island.place(notice: sync.id, on: 3)
+        precondition(island.calls.suffix(3) == [
+            .place(notice: sync.id, on: 2), .post(sync, tappable: false), .place(notice: sync.id, on: 3),
+        ], "Placement works before the notice is posted and can change afterward")
+        island.end(notice: sync.id)
+        island.post(sync, onTap: nil)
+        precondition(island.displays[sync.id] == nil, "Ending a notice clears its placement")
         let silent: any IslandPresenting = SilentIslandPresenter()
-        silent.holdKeys { _ in }
-        silent.holdKeys(nil)
+        silent.holdKeys(for: sync.id, onFocus: { precondition(!$0) }) { _ in }
+        silent.releaseKeys()
         print("Island presenter: the fake records calls in order and clears status, menu rows, notices and held keys")
     }
 }
@@ -77,6 +86,7 @@ final class RecordingIslandPresenter: IslandPresenting {
     enum Call: Equatable {
         case showLevel(IslandLevel)
         case post(IslandNotice, tappable: Bool)
+        case place(notice: String, on: UInt32?)
         case end(notice: String)
         case setStatus(IslandStatus?, id: String)
         case setMenuRows([IslandMenuRow], owner: String)
@@ -85,6 +95,7 @@ final class RecordingIslandPresenter: IslandPresenting {
 
     private(set) var calls: [Call] = []
     private(set) var notice: IslandNotice?
+    private(set) var displays: [String: UInt32] = [:]
     private(set) var statuses: [String: IslandStatus] = [:]
     private var onTap: (@MainActor () -> Void)?
     private var onKey: (@MainActor (IslandHeldKey) -> Void)?
@@ -99,8 +110,14 @@ final class RecordingIslandPresenter: IslandPresenting {
         self.onTap = onTap
     }
 
+    func place(notice id: String, on display: UInt32?) {
+        calls.append(.place(notice: id, on: display))
+        displays[id] = display
+    }
+
     func end(notice id: String) {
         calls.append(.end(notice: id))
+        displays[id] = nil
         if notice?.id == id { notice = nil; onTap = nil }
     }
 
@@ -121,9 +138,16 @@ final class RecordingIslandPresenter: IslandPresenting {
         }
     }
 
-    func holdKeys(_ onKey: (@MainActor (IslandHeldKey) -> Void)?) {
-        calls.append(.holdKeys(onKey != nil))
+    func holdKeys(for notice: String, onFocus: @escaping @MainActor (Bool) -> Void,
+                  onKey: @escaping @MainActor (IslandHeldKey) -> Void) {
+        calls.append(.holdKeys(true))
         self.onKey = onKey
+        onFocus(true)
+    }
+
+    func releaseKeys() {
+        calls.append(.holdKeys(false))
+        onKey = nil
     }
 
     func tapNotice() { onTap?() }

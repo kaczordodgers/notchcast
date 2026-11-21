@@ -6,6 +6,10 @@ import Observation
 @Observable
 final class DictationExtrasCoordinator {
     let history = DictationHistoryStore()
+    /// Hooks Notchcast's island sets; unset, cleanup reports through stock's HUD as before.
+    @ObservationIgnored var cleaningUp: @MainActor () -> Void = {}
+    @ObservationIgnored var cleanupFailed: @MainActor () -> Bool = { false }
+    @ObservationIgnored var delivered: @MainActor (_ empty: Bool) -> Void = { _ in }
     /// Nil follows `DictationCleanupModelPolicy`: the installed Claude, else Codex.
     private(set) var cleanupModel: AIModelSelection?
     @ObservationIgnored private let defaults: UserDefaults
@@ -24,6 +28,7 @@ final class DictationExtrasCoordinator {
         }
         core.dictationCoordinator.didDictate = { [weak self] raw, cleaned, target in
             self?.record(raw: raw, cleaned: cleaned, target: target)
+            self?.delivered(raw.isEmpty)
         }
         observe { [weak self] in self?.applySettings() }
     }
@@ -73,6 +78,7 @@ final class DictationExtrasCoordinator {
                 switchOn: core.settings.dictationCleansUp, cleansUp: cleansUp, hasField: hasField,
                 liveTextEmpty: liveTextEmpty)
         else { return nil }
+        cleaningUp()
         let outcome = await DictationCleanupRunner.run(
             transcript, generate: generator(for: transcript, core: core),
             usesDefaultPrompt: DictationCleanupPrompt.instructions(custom: core.settings.dictationCleanupPrompt)
@@ -86,9 +92,11 @@ final class DictationExtrasCoordinator {
         case .skipped:
             return nil
         case .failed(.noModel):
-            core.showMessage(
+            core.dictationCoordinator.showMessage(
                 String(localized: "Cleanup has no model, so the raw text was pasted", table: "Notchcast"),
-                tone: .danger)
+                .danger)
+        case .failed where cleanupFailed():
+            break
         case .failed(.timeout):
             core.showMessage(
                 String(localized: "Cleanup took too long, so the raw text was pasted", table: "Notchcast"),

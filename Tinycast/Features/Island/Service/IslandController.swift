@@ -224,14 +224,14 @@ final class IslandController: NSObject {
             } else if showsRest, let page = page?.frame.size {
                 if !suspended { backdrop.orderFrontRegardless() }
                 surface.expand(to: page, contentKey: "page")
-            } else if showsRest, let line = canvas.headline {
+            } else if showsRest || notice != nil, let line = canvas.headline {
                 if !suspended { backdrop.orderFrontRegardless() }
                 surface.expand(to: line.size, contentKey: "notice." + line.notice.id)
             } else if showsRest, let expansion = canvas.expansion, let art = canvas.glance {
                 if !suspended { backdrop.orderFrontRegardless() }
                 let width = max(expansion.size.width, glanceWidth(art.layout))
                 surface.expand(to: CGSize(width: width, height: expansion.size.height), contentKey: "expansion")
-            } else if showsRest, let art = canvas.glance {
+            } else if showsRest || notice != nil, let art = canvas.glance {
                 if rests || glancing, !suspended { backdrop.orderFrontRegardless() }
                 let slots = CompactContent(leading: CGSize(width: art.layout.leading, height: 0),
                                            trailing: CGSize(width: art.layout.trailing, height: 0))

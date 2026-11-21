@@ -15,8 +15,9 @@ Each section states one normative rule per element with its token, and one refer
 | Report HUDs | + 3 | `HUDPresenter`, `MessageHUDView` |
 | Questions (dialogs) | + 4 | `DialogController`, `DialogView` |
 | Update flow (pill, notice, Try Again) | footer, notice, dialog | `UpdatePill`, `IslandLiveState`, `UpdateCoordinator` |
+| Dictation states (recording, transcribing, cleaning up, result) | one notice, `dictation`, and the key hold (`IslandKeyHold`) | `DictationIslandCoordinator` |
 
-Off the island and out of scope: the Settings window (stock, native macOS, §11), Notes, Camera, AI chat panels, Dictation, Screenshots' Capture Editor, Screen Recording's trimmer and every other stock floating panel, which keep upstream's content → `panelScrim` → `GlassEffectView` recipe from `docs/ui.md`. `Features/Extensions/` is never touched. A view shared between a palette screen and an out-of-scope panel (`ChatTranscriptView`, `AIEmptyState`, `ChatSuggestionChips`) follows the island rules everywhere it is used; the panel's own `AIChat*` files keep upstream's recipe.
+Off the island and out of scope: the Settings window (stock, native macOS, §11), Notes, Camera, AI chat panels, Screenshots' Capture Editor, Screen Recording's trimmer and every other stock floating panel, which keep upstream's content → `panelScrim` → `GlassEffectView` recipe from `docs/ui.md`. `Features/Extensions/` is never touched. A view shared between a palette screen and an out-of-scope panel (`ChatTranscriptView`, `AIEmptyState`, `ChatSuggestionChips`) follows the island rules everywhere it is used; the panel's own `AIChat*` files keep upstream's recipe.
 
 Reference: HIG Live Activities, "Live Activities in the Dynamic Island use a black opaque background."
 

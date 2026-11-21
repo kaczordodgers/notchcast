@@ -4,18 +4,45 @@ import AppKit
 @MainActor
 final class IslandKeyHold {
     private var panel: IslandKeyPanel?
+    private var retry: Task<Void, Never>?
     private(set) var lease = IslandKeyLease()
 
-    /// `near` is the resting pill's screen shape, so the one-point window sits on the island.
-    func hold(_ onKey: (@MainActor (IslandHeldKey) -> Void)?, near shape: CGRect?, during notice: String?) {
-        guard let onKey else { return release() }
+    func hold(near shape: CGRect?, during notice: String,
+              onFocus: @escaping @MainActor (Bool) -> Void, onKey: @escaping @MainActor (IslandHeldKey) -> Void) {
+        release()
         lease.take(during: notice)
         let panel = panel ?? IslandKeyPanel()
         self.panel = panel
-        panel.onKey = onKey
-        panel.onResign = { [weak self] in self?.release() }
-        if let shape { panel.setFrameOrigin(CGPoint(x: shape.midX, y: shape.midY)) }
+        move(near: shape)
+        let focused = acquire(panel, onFocus: onFocus, onKey: onKey)
+        if !focused { retake(onFocus: onFocus, onKey: onKey) }
+        onFocus(focused)
+    }
+
+    func move(near shape: CGRect?) {
+        guard lease.held, let shape else { return }
+        panel?.setFrameOrigin(CGPoint(x: shape.midX, y: shape.midY))
+    }
+
+    private func acquire(_ panel: IslandKeyPanel, onFocus: @escaping @MainActor (Bool) -> Void,
+                         onKey: @escaping @MainActor (IslandHeldKey) -> Void) -> Bool {
         panel.makeKeyAndOrderFront(nil)
+        guard panel.isKeyWindow else { return false }
+        panel.onKey = onKey
+        panel.onResign = { [weak self] in self?.retake(onFocus: onFocus, onKey: onKey) }
+        return true
+    }
+
+    private func retake(onFocus: @escaping @MainActor (Bool) -> Void,
+                        onKey: @escaping @MainActor (IslandHeldKey) -> Void) {
+        retry = Task { [weak self] in
+            guard !Task.isCancelled, let self, let panel else { return }
+            retry = nil
+            panel.orderOut(nil)
+            let focused = acquire(panel, onFocus: onFocus, onKey: onKey)
+            if !focused { release() }
+            onFocus(focused)
+        }
     }
 
     func noticesChanged(live: (String) -> Bool) {
@@ -23,6 +50,8 @@ final class IslandKeyHold {
     }
 
     func release() {
+        retry?.cancel()
+        retry = nil
         lease.give()
         panel?.onResign = nil
         panel?.onKey = nil
@@ -53,13 +82,11 @@ private final class IslandKeyPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 
-    /// Once focus leaves, the hold never comes back by itself, so it can never swallow keys later.
     override func resignKey() {
         super.resignKey()
         onKey = nil
         guard let resigned = onResign else { return }
         onResign = nil
-        orderOut(nil)
         resigned()
     }
 

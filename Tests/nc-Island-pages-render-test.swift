@@ -13,6 +13,8 @@
 // notchcast-sources: Tinycast/Features/Island/Model/IslandPageSwipe.swift
 // notchcast-sources: Tinycast/Features/Island/Model/IslandPlayer.swift
 // notchcast-sources: Tinycast/Features/Island/UI/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/Model/DictationIslandSession.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/Model/DictationIslandNotice.swift
 import AppKit
 import SwiftUI
 
@@ -37,7 +39,9 @@ struct IslandPagesRenderTest {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         // A run's own stale PNGs must not pass for this run's.
         for old in try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
-        where old.lastPathComponent.hasPrefix("975-") { try FileManager.default.removeItem(at: old) }
+        where ["975-", "960-open-"].contains(where: old.lastPathComponent.hasPrefix) {
+            try FileManager.default.removeItem(at: old)
+        }
         var sizes: [String: CGSize] = [:]
         for frosted in [false, true] {
             for notch in [false, true] {
@@ -46,6 +50,9 @@ struct IslandPagesRenderTest {
                 for (name, deck) in decks() {
                     (sizes[name], bitmaps[name]) = render("975-\(name)-\(suffix)", deck: deck, notch: notch,
                                                           frosted: frosted)
+                }
+                for (name, deck) in dictationDecks() {
+                    _ = render("960-open-\(name)-\(suffix)", deck: deck, notch: notch, frosted: frosted)
                 }
                 checkTones(toned: bitmaps["3-home-tones"]!, plain: bitmaps["3-home-untoned"]!, frosted: frosted,
                            look: suffix)
@@ -120,6 +127,27 @@ struct IslandPagesRenderTest {
             ("5-home", deck([agents, player, system, day, usage])),
             ("5-system", deck([agents, player, system, day, usage], select: .page("system"))),
         ]
+    }
+
+    /// #960: the dictation notice heads the open page, recording over Home, a failure over a page.
+    static func dictationDecks() -> [(String, IslandPageDeck)] {
+        var session = DictationIslandSession()
+        session.begin(copies: false, at: 0)
+        _ = session.hear(levels: [0.4], at: 7)
+        let player = IslandPlayerPage.page(IslandNowPlaying(title: "Paper Lanterns", artist: "Juno Vale",
+                                                            artwork: artwork(), time: nil, isPlaying: true))
+        let system = IslandPage(id: "system", title: "System", symbol: "cpu", order: 20,
+            line: IslandPageLine(symbol: "cpu", text: "CPU 18 %", detail: "Memory 61 %"),
+            blocks: [.meter(IslandPageMeter(label: "CPU", fraction: 0.18, value: "18 %"))])
+        func deck(_ notice: IslandNotice, select: IslandPageDeck.Tab?) -> IslandPageDeck {
+            var deck = IslandPageDeck()
+            for page in [player, system] { deck.set(page, id: page.id) }
+            if let select { deck.select(select) }
+            deck.show(notice, tappable: false)
+            return deck
+        }
+        return [("recording-home", deck(IslandNotice(dictation: session)!, select: nil)),
+                ("failed-page", deck(IslandNotice(dictation: .failed), select: .page("system")))]
     }
 
     /// #1128's approved board (pill-slots, notch-slots), and one Mac alone with no feed.

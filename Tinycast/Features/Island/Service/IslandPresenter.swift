@@ -1,7 +1,7 @@
 import AppKit
 import Observation
 
-/// Renders levels, notices, status and the meeting expansion on the resting pill.
+/// Renders levels, notices, status and the meeting expansion on the island.
 @MainActor
 final class IslandPresenter: IslandPresenting {
     private var dwell = IslandLevelDwell()
@@ -16,6 +16,8 @@ final class IslandPresenter: IslandPresenting {
     private weak var expandedPill: IslandController?
     private var notices = IslandNoticeQueue()
     private var noticeTask: Task<Void, Never>?
+    private var noticeDisplays: [String: UInt32] = [:]
+    private weak var awayHost: IslandController?
     private var statuses: [IslandStatus] = []
     private var hovered = false
     private var noticeTaps: [String: @MainActor () -> Void] = [:]
@@ -66,13 +68,24 @@ final class IslandPresenter: IslandPresenting {
         noticesChanged()
     }
 
-    func holdKeys(_ onKey: (@MainActor (IslandHeldKey) -> Void)?) {
-        keyHold.hold(onKey, near: AppCore.shared.island.resting?.screenShape, during: notices.notice?.id)
+    func place(notice id: String, on display: UInt32?) {
+        guard noticeDisplays[id] != display else { return }
+        noticeDisplays[id] = display
+        if notices.holds(id) { noticesChanged() }
+        if keyHold.lease.owner == id { keyHold.move(near: host(for: id)?.screenShape) }
     }
+
+    func holdKeys(for notice: String, onFocus: @escaping @MainActor (Bool) -> Void,
+                  onKey: @escaping @MainActor (IslandHeldKey) -> Void) {
+        keyHold.hold(near: host(for: notice)?.screenShape, during: notice, onFocus: onFocus, onKey: onKey)
+    }
+
+    func releaseKeys() { keyHold.release() }
 
     func end(notice id: String) {
         notices.end(id, at: now())
         noticeTaps[id] = nil
+        noticeDisplays[id] = nil
         noticesChanged()
     }
 
@@ -81,23 +94,25 @@ final class IslandPresenter: IslandPresenting {
         statusTaps[id] = status == nil ? nil : onTap
         if let status { statuses.append(status) }
         AppCore.shared.island.resting?.statuses = statuses
-        if hoverOpensPill { AppCore.shared.island.resting?.notice = shownNotice }
+        if hoverOpensPill { showNotices() }
         showOnPages()
     }
 
     /// A click on the resting pill opens the pages while any exist, else acts on what the pill shows.
-    var tap: (@MainActor () -> Void)? { pages.deck.opensOnClick ? nil : shownTap }
+    var tap: (@MainActor () -> Void)? {
+        pages.deck.opensOnClick ? nil : tap(for: restingNotice)
+    }
 
     /// What the pill shows heads the open page, its tap that row's click, so no page hides it (#1005).
     private func showOnPages() {
         pages.show(IslandHover.notice(top: notices.notice, statuses: statuses,
                                       glance: AppCore.shared.island.resting?.glance != nil, level: false, hovered: true),
-                   onTap: shownTap)
+                   onTap: tap(for: notices.notice))
     }
 
     /// The shown notice's tap, else none under the meeting glance, else the last status's.
-    private var shownTap: (@MainActor () -> Void)? {
-        if let notice = notices.notice { return noticeTaps[notice.id] }
+    private func tap(for notice: IslandNotice?) -> (@MainActor () -> Void)? {
+        if let notice { return noticeTaps[notice.id] }
         if AppCore.shared.island.resting?.glance != nil { return nil }
         return statuses.last.flatMap { statusTaps[$0.id] }
     }
@@ -152,7 +167,7 @@ final class IslandPresenter: IslandPresenting {
 
     /// A meeting, a level, a notice or the open island outranks the song change and cuts it (D7, D16).
     private var songQuiet: Bool {
-        AppCore.shared.island.resting?.glance == nil && notices.notice == nil && dwell.level == nil && !pages.isOpen
+        AppCore.shared.island.resting?.glance == nil && restingNotice == nil && dwell.level == nil && !pages.isOpen
             && expansion.showing == nil
     }
 
@@ -163,14 +178,36 @@ final class IslandPresenter: IslandPresenting {
         AppCore.shared.island.resting?.songChange = false
     }
 
-    private var shownNotice: IslandNotice? {
-        IslandHover.notice(top: notices.notice, statuses: statuses, glance: AppCore.shared.island.resting?.glance != nil,
-                           level: dwell.level != nil, hovered: hoverOpensPill)
+    private func placedHost(for id: String) -> IslandController? {
+        noticeDisplays[id].flatMap { AppCore.shared.island.controller(on: $0) }
     }
 
-    /// Hands notices and status to the resting pill without posting, so none re-announces.
+    private func host(for id: String) -> IslandController? {
+        placedHost(for: id) ?? AppCore.shared.island.resting
+    }
+
+    private var restingNotice: IslandNotice? {
+        guard let notice = notices.notice else { return nil }
+        if let placed = placedHost(for: notice.id), placed !== AppCore.shared.island.resting { return nil }
+        return notice
+    }
+
+    private func showNotices() {
+        let resting = AppCore.shared.island.resting
+        let placed = notices.notice.flatMap { placedHost(for: $0.id) }
+        let away = placed === resting ? nil : placed
+        if awayHost !== away { awayHost?.notice = nil }
+        awayHost = away
+        away?.notice = notices.notice
+        resting?.notice = IslandHover.notice(top: away == nil ? notices.notice : nil, statuses: statuses,
+                                             glance: resting?.glance != nil, level: dwell.level != nil,
+                                             hovered: hoverOpensPill)
+    }
+
+    /// Restores content without reposting, so none re-announces.
     func restore(_ controller: IslandController, resting: Bool) {
-        controller.notice = resting ? notices.notice : nil
+        let placed = notices.notice.flatMap { placedHost(for: $0.id) }
+        if placed !== controller { controller.notice = resting && placed == nil ? notices.notice : nil }
         controller.statuses = resting ? statuses : []
         controller.song = resting ? song : nil
         controller.songChange = resting && songChange.shown != nil
@@ -186,6 +223,7 @@ final class IslandPresenter: IslandPresenting {
     func restingChanged() {
         if hovered { hoverPages(true) }
         noticesChanged()
+        if let id = keyHold.lease.owner { keyHold.move(near: host(for: id)?.screenShape) }
     }
 
     /// An owner keeps its first registration's place, so replacing its rows never reorders the menu.
@@ -211,10 +249,11 @@ final class IslandPresenter: IslandPresenting {
     private func noticesChanged() {
         let time = now()
         let core = AppCore.shared
-        let unseen = dwell.level != nil || core.palette.isVisible || core.isShowingDialog || core.island.resting == nil
-        let held = unseen || hovered && notices.notice != nil
+        let host = notices.notice.flatMap { host(for: $0.id) } ?? core.island.resting
+        let unseen = dwell.level != nil || core.palette.isVisible || core.isShowingDialog || host == nil
+        let held = unseen || hovered && restingNotice != nil
         if notices.paused != held { notices.pause(held, at: time) }
-        core.island.resting?.notice = shownNotice
+        showNotices()
         showOnPages()
         if let text = notices.announcement() {
             NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
@@ -236,7 +275,10 @@ final class IslandPresenter: IslandPresenting {
             guard !Task.isCancelled, let self else { return }
             let gone = self.notices.notice?.id
             self.notices.expire(at: now())
-            if let gone, self.notices.notice?.id != gone { self.noticeTaps[gone] = nil }
+            if let gone, self.notices.notice?.id != gone {
+                self.noticeTaps[gone] = nil
+                self.noticeDisplays[gone] = nil
+            }
             self.noticesChanged()
         }
     }
@@ -269,7 +311,7 @@ final class IslandPresenter: IslandPresenting {
 
     private func updateExpansion() {
         let core = AppCore.shared
-        if expansion.update(carded: occurrence, waiting: dwell.level != nil || notices.notice != nil,
+        if expansion.update(carded: occurrence, waiting: dwell.level != nil || restingNotice != nil,
                             covered: core.palette.isVisible || core.isShowingDialog, at: now()) {
             expansionTask?.cancel()
             expansionTask = settleWhenExpanded(expansion.presentation)

@@ -52,6 +52,8 @@ final class IslandCoordinator: NSObject {
 
     var resting: IslandController? { backdrops.values.first { $0.showsRest } }
 
+    func controller(on display: UInt32) -> IslandController? { backdrops[display] }
+
     private func showGlance(_ next: IslandGlance?) {
         restingGlance = next
         for controller in backdrops.values { controller.glance = controller.showsRest ? next : nil }
@@ -77,10 +79,13 @@ final class IslandCoordinator: NSObject {
             let backdrop = backdrops[screen.islandDisplayID] ?? IslandController()
             backdrop.showsRest = screen.islandDisplayID == main?.islandDisplayID
             backdrop.outlineWhenOpen = core.settings.islandOutlineWhenOpen
-            backdrop.canOpen = { [weak self] in self?.panel?.isVisible != true }
+            backdrop.canOpen = { [weak self, weak backdrop] in
+                backdrop?.showsRest == true && self?.panel?.isVisible != true
+            }
             // The launcher has its hotkey; a click acts on what the island shows, else opens and pins it.
             backdrop.onOpen = { [weak self, weak backdrop] in
-                if backdrop?.showsRest == true, let tap = presenter?.tap { return tap() }
+                guard backdrop?.showsRest == true else { return }
+                if let tap = presenter?.tap { return tap() }
                 self?.hover.pin()
             }
             backdrop.onSettle = { [weak self] in self?.hover.refresh() }
@@ -384,17 +389,5 @@ final class IslandCoordinator: NSObject {
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         spaceCheck?.cancel()
-    }
-}
-
-extension NSScreen {
-    var islandDisplayID: CGDirectDisplayID {
-        (deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
-    }
-
-    /// Stable across replugs and restarts, where the display id is not.
-    var islandDisplayUUID: String? {
-        guard let uuid = CGDisplayCreateUUIDFromDisplayID(islandDisplayID)?.takeRetainedValue() else { return nil }
-        return CFUUIDCreateString(nil, uuid) as String?
     }
 }

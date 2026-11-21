@@ -29,7 +29,7 @@ final class DictationCoordinator {
     @ObservationIgnored private var cueTask: Task<Void, Never>?
     @ObservationIgnored private var pendingStartCue: UUID?
     @ObservationIgnored private var finishWhenStarted = false
-    @ObservationIgnored private var target: InjectionTarget?
+    @ObservationIgnored private(set) var target: InjectionTarget?
     @ObservationIgnored var willStart: @MainActor () async -> Void = {}
     /// Rewrites a finished transcript before it is pasted; nil pastes it as heard.
     @ObservationIgnored var cleanUp: @MainActor (String, Bool, Bool, Bool) async -> String? = { _, _, _, _ in nil }

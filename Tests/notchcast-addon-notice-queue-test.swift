@@ -34,6 +34,8 @@ final class AppCore {
 @MainActor
 final class StubIsland {
     var resting: IslandController? = IslandController()
+    var displays: [UInt32: IslandController] = [:]
+    func controller(on display: UInt32) -> IslandController? { displays[display] }
     let overlays = StubOverlays()
     let pillMenu = StubPillMenu()
     func frosted(on screen: NSScreen?) -> Bool { false }
@@ -221,6 +223,35 @@ struct AddonNoticeQueueTest {
         check("nil clears the song", pill.song == nil && !pill.songChange)
     }
 
+    static func checkPlacement(_ presenter: IslandPresenter, resting: IslandController) async {
+        let island = AppCore.shared.island
+        let first = IslandController()
+        let second = IslandController()
+        island.displays = [2: first, 3: second]
+        let notice = IslandNotice(id: "placed", text: "Placed", seconds: dwell)
+        presenter.place(notice: notice.id, on: 2)
+        presenter.post(notice, onTap: nil)
+        check("only the chosen display gets the notice", resting.notice == nil && first.notice == notice)
+        presenter.hoverChanged(true)
+        presenter.place(notice: notice.id, on: 3)
+        check("the hop clears the first display", first.notice == nil && second.notice == notice)
+        await clock.advance(by: dwell)
+        check("the away notice dwells even while the resting pill is hovered", second.notice == nil)
+        presenter.hoverChanged(false)
+        presenter.post(notice, onTap: nil)
+        check("expiry clears placement for the next post", resting.notice == notice)
+        presenter.place(notice: notice.id, on: 2)
+        island.displays[2] = nil
+        presenter.restingChanged()
+        check("a disconnected display falls back to the resting pill", first.notice == nil && resting.notice == notice)
+        island.displays[2] = first
+        presenter.end(notice: notice.id)
+        presenter.post(notice, onTap: nil)
+        check("end clears placement for the next post", resting.notice == notice && first.notice == nil)
+        presenter.end(notice: notice.id)
+        island.displays = [:]
+    }
+
     static func main() async {
         _ = NSApplication.shared
         let suite = "nc-notice-queue-test-\(UUID().uuidString)"
@@ -250,6 +281,7 @@ struct AddonNoticeQueueTest {
         check("the first notice returns exactly when the second dwells out", pill.shown == [first, second, first])
         await clock.advance(by: 10)
         check("the queue empties", pill.notice == nil)
+        await checkPlacement(presenter, resting: pill)
         let core = AppCore.shared
         let music = { controller.run(entryID: "command:nc-music-notice") }
         await checkHeld("launcher", first, run: music, cover: { core.palette.isVisible = true }) {

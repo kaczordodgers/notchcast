@@ -17,3 +17,15 @@ extension IslandLayout {
         return CGSize(width: screen.frame.width - left.width - right.width, height: screen.safeAreaInsets.top)
     }
 }
+
+extension NSScreen {
+    var islandDisplayID: CGDirectDisplayID {
+        (deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
+    }
+
+    /// Stable across replugs and restarts, where the display id is not.
+    var islandDisplayUUID: String? {
+        guard let uuid = CGDisplayCreateUUIDFromDisplayID(islandDisplayID)?.takeRetainedValue() else { return nil }
+        return CFUUIDCreateString(nil, uuid) as String?
+    }
+}
