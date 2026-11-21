@@ -11,7 +11,7 @@ extension ArchivesEnvironment {
                 .appending(path: "Notchcast", directoryHint: .isDirectory).appending(path: "archives.json"),
             extractor: ArchiveExtractor(
                 locate: { await ExecutableLocator.locate($0) },
-                run: { try await ArchiveProcess.run($0, $1) }),
+                run: { try await ArchiveProcess.run($0, $1, environment: $2) }),
             compressor: ArchiveCompressor(
                 locate: { await ExecutableLocator.locate($0) },
                 run: { try await ArchiveProcess.run($0, $1) }),

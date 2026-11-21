@@ -180,6 +180,23 @@ func failures() {
     check(ArchiveFailure.hatchzip(result(5)) == .password, "5 is a password")
     check(ArchiveFailure.hatchzip(result(1)) == .failed("it broke"), "anything else is a failure with its words")
     check(ArchiveFailure.tool(result(2)) == .failed("it broke"), "fallback tools fail with their words")
+    let elsewhere = ArchiveProcessResult(
+        status: 1, errors: "error: this archive is already partially extracted to /x. Complete or restore that extraction first")
+    check(ArchiveFailure.hatchzip(elsewhere) == .startedElsewhere("/x"), "progress HatchZip holds elsewhere is named plainly")
+}
+
+func passwords() {
+    let steps = (0...3).map { ArchivePassword.next(asked: $0) }
+    check(steps == [.ask(wrong: false), .ask(wrong: true), .ask(wrong: true), .giveUp], "three tries: \(steps)")
+    check(ArchivePassword.environment("pw", engine: .hatchzip) == ["HATCHZIP_PASSWORD": "pw"], "HatchZip gets the variable")
+    check(ArchivePassword.environment(nil, engine: .hatchzip).isEmpty, "no password, no variable")
+    for engine in [ArchiveEngine.bsdtar, .unar, .gzip, .bzip2, .xz, .zstd] {
+        check(ArchivePassword.environment("pw", engine: engine).isEmpty, "\(engine) never gets it")
+    }
+    for name in ["a.zip", "A.ZIP"] { check(ArchivePassword.allowsInPlace(fileName: name), "\(name) may go in place") }
+    for name in ["a.7z", "a.rar", "a.part1.rar", "a.7z.001", "a.tar.gz"] {
+        check(!ArchivePassword.allowsInPlace(fileName: name), "\(name) is kept")
+    }
 }
 
 func journal() {
@@ -188,6 +205,15 @@ func journal() {
     check(job.staging.lastPathComponent.hasPrefix(".notchcast-extract-"), "staging is hidden")
     check(ArchiveJob.decode(ArchiveJob.encode([job])) == [job], "the journal round-trips")
     check(ArchiveJob.decode(Data("garbage".utf8)).isEmpty, "a damaged journal resumes nothing")
+    var stopped = job
+    stopped.stopped = ArchiveFingerprint(size: 7, stoppedAt: Date(timeIntervalSinceReferenceDate: 1.25))
+    check(ArchiveJob.decode(ArchiveJob.encode([stopped])) == [stopped], "a stopped entry round-trips")
+    let older = #"[{"id":"\#(job.id)","archive":"file:///tmp/a.7z","staging":"file:///tmp/.s/","inPlace":false}]"#
+    let oldStopped = older.replacingOccurrences(
+        of: #""inPlace":false"#, with: #""inPlace":false,"stopped":{"size":7,"modified":1.25}"#)
+    check(ArchiveJob.decode(Data(oldStopped.utf8)).first?.stopped == ArchiveFingerprint(size: 7),
+          "a stopped entry with the old fingerprint still decodes")
+    check(ArchiveJob.decode(Data(older.utf8)).first?.stopped == nil, "a journal from before `stopped` still decodes")
 }
 
 func zipNames() {
@@ -338,6 +364,7 @@ enum ArchivesModelTest {
         safety()
         placement()
         failures()
+        passwords()
         journal()
         zipNames()
         try compressionNames()

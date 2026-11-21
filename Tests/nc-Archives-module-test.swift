@@ -158,7 +158,8 @@ final class Rig {
         let (tools, record) = (tools, record)
         harnessEnvironment = ArchivesEnvironment(
             journal: journalURL,
-            extractor: ArchiveExtractor(locate: { tools.locate($0) }, run: { try await tools.run($0, $1) }),
+            extractor: ArchiveExtractor(
+                locate: { tools.locate($0) }, run: { tool, arguments, _ in try await tools.run(tool, arguments) }),
             compressor: ArchiveCompressor(locate: { URL(filePath: "/fake/bin/\($0)") }, run: { _, arguments in
                 try Data("zip".utf8).write(to: URL(filePath: arguments.last!))
                 return ArchiveProcessResult(status: 0)
@@ -393,12 +394,13 @@ func abandonKeepsOnlyHatchZipWork() async throws {
     let folder = FileManager.default.temporaryDirectory.appending(path: "nc-archives-abandon-\(UUID())")
     defer { try? FileManager.default.removeItem(at: folder) }
     let tools = FakeTools(journal: folder.appending(path: "none.json"))
-    let extractor = ArchiveExtractor(locate: { tools.locate($0) }, run: { try await tools.run($0, $1) })
+    let extractor = ArchiveExtractor(
+        locate: { tools.locate($0) }, run: { tool, arguments, _ in try await tools.run(tool, arguments) })
     func abandoned(_ name: String) async throws -> URL? {
         let job = ArchiveJob(id: UUID(), archive: folder.appending(path: name), inPlace: true)
         try FileManager.default.createDirectory(at: job.staging, withIntermediateDirectories: true)
         try Data("half".utf8).write(to: job.staging.appending(path: "part.bin"))
-        let placed = await extractor.abandon(job)
+        let placed = await extractor.abandon(job).placed
         check(!FileManager.default.fileExists(atPath: job.staging.path), "\(name): no staging folder is left")
         return placed
     }
@@ -448,9 +450,10 @@ func realHatchZip() async throws {
     let zip = try await ArchiveProcess.run(URL(filePath: "/usr/bin/ditto"), [
         "-c", "-k", "--norsrc", folder.appending(path: "src").path, folder.appending(path: "Real.zip").path])
     check(zip.status == 0, "ditto made the fixture: \(zip.errors)")
-    let extractor = ArchiveExtractor(locate: { $0 == "hatchzip" ? hatchzip : nil }, run: { try await ArchiveProcess.run($0, $1) })
+    let extractor = ArchiveExtractor(
+        locate: { $0 == "hatchzip" ? hatchzip : nil }, run: { try await ArchiveProcess.run($0, $1, environment: $2) })
     let job = ArchiveJob(id: UUID(), archive: folder.appending(path: "Real.zip"), inPlace: false)
-    let placed = try await extractor.extract(job, askInPlace: { _ in false }, onInPlace: {})
+    let placed = try await extractor.extract(job, askPassword: nil, askInPlace: { _ in false }, onInPlace: { _ in })
     check(placed?.lastPathComponent == "Real", "placed as a folder: \(String(describing: placed))")
     check(FileManager.default.fileExists(atPath: folder.appending(path: "Real/one/a.txt").path), "files extracted")
     check(FileManager.default.fileExists(atPath: job.archive.path), "the archive is kept")

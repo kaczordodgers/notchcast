@@ -5,8 +5,9 @@ nonisolated struct ArchiveJob: Codable, Equatable, Identifiable, Sendable {
     let id: UUID
     let archive: URL
     /// A hidden folder beside the archive; the engine writes here, then the items move into place.
-    let staging: URL
+    var staging: URL
     var inPlace: Bool
+    var stopped: ArchiveFingerprint?
 
     init(id: UUID, archive: URL, inPlace: Bool) {
         self.id = id
@@ -22,4 +23,10 @@ nonisolated struct ArchiveJob: Codable, Equatable, Identifiable, Sendable {
 
     /// A damaged journal resumes nothing rather than blocking new extractions.
     static func decode(_ data: Data) -> [ArchiveJob] { (try? JSONDecoder().decode([ArchiveJob].self, from: data)) ?? [] }
+}
+
+/// Tells a stopped archive from a different file that took its name since.
+nonisolated struct ArchiveFingerprint: Codable, Equatable, Sendable {
+    var size: Int64
+    var stoppedAt: Date?
 }

@@ -8,9 +8,11 @@ nonisolated enum ArchiveProcess {
         var cancelled = false
     }
 
-    static func run(_ executable: URL, _ arguments: [String]) async throws -> ArchiveProcessResult {
+    static func run(
+        _ executable: URL, _ arguments: [String], environment extra: [String: String] = [:]
+    ) async throws -> ArchiveProcessResult {
         let launch = Mutex(Launch())
-        let environment = ExecutableLocator.environment(running: executable)
+        let environment = ExecutableLocator.environment(running: executable, adding: extra)
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 // Blocking reads and the exit wait stay off the cooperative pool.

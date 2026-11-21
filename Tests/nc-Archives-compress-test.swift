@@ -151,7 +151,7 @@ final class Rig {
         for name in ["a.txt", "b.txt"] { try Data("input \(name)".utf8).write(to: folder.appending(path: name)) }
         record.selection = [folder.appending(path: "a.txt"), folder.appending(path: "b.txt")]
         let (tools, record) = (tools, record)
-        let unused = ArchiveExtractor(locate: { _ in nil }, run: { _, _ in ArchiveProcessResult(status: 1) })
+        let unused = ArchiveExtractor(locate: { _ in nil }, run: { _, _, _ in ArchiveProcessResult(status: 1) })
         harnessEnvironment = ArchivesEnvironment(
             journal: root.appending(path: "support/archives.json"),
             extractor: unused,
